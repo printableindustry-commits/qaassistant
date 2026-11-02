@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-node-install page-node-install-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Installation Node.js</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.16.3" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.16.3" />
+</head>
+<body class="page-node-install page-node-install-compact">
+  <div class="wrap hub-app">
+    <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
+      <div class="hub-hero-nav">
+        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+        <a href="/npmrc.html" class="btn-hub-secondary">← .npmrc</a>
+      </div>
+      <div class="hub-hero-page-logo">
+        <img src="/assets/logo-npm.png" alt="Node.js" width="40" height="40" />
+      </div>
+      <div class="hub-hero-page-body">
+        <div class="npmrc-hero-head">
+          <h1>Installation Node.js</h1>
+          <span class="file-badge" id="nodeRuntimeBadge" aria-live="polite">…</span>
+        </div>
+        <p class="hub-hero-lead">Téléchargez Node dans l'inventaire <strong>Volta</strong>, configurez la toolchain d'entreprise, puis enregistrez le <code>package.json</code> à la racine du dépôt.</p>
+      </div>
+    </div>
+
+    <section class="card card-compact npmrc-card">
+      <h2 class="form-section-title">1. Téléchargement et installation de Node</h2>
+      <p class="hint hint-tight">Versions proposées : majeures 20 à 26 (win-x64 depuis nodejs.org) — dépôt Volta <code>tools/inventory/node</code>.</p>
+      <div id="nodeInstallStatus" class="npmrc-runtime-status" aria-live="polite"></div>
+      <label class="npmrc-field-label" for="nodeVersionSelect">Version Node</label>
+      <select id="nodeVersionSelect" class="npmrc-version-select" aria-label="Version Node"></select>
+      <div class="npmrc-action-buttons" style="margin-top:10px">
+        <button type="button" class="btn-primary btn-sm" id="nodeDownloadBtn">Télécharger et installer</button>
+        <button type="button" class="btn-secondary btn-sm" id="nodeRefreshBtn">Actualiser l'état</button>
+      </div>
+      <pre class="npmrc-install-log" id="nodeInstallLog" hidden aria-live="polite"></pre>
+    </section>
+
+    <section class="card card-compact npmrc-card">
+      <h2 class="form-section-title">2. Édition du package.json</h2>
+      <p class="hint hint-tight">Modèle basé sur le projet Cypress — enregistrez à la racine du dépôt.</p>
+      <span class="file-badge" id="packageJsonBadge" aria-live="polite">…</span>
+      <textarea id="packageJsonEditor" class="npmrc-pkg-editor" spellcheck="false" aria-label="package.json"></textarea>
+      <div class="npmrc-action-buttons" style="margin-top:10px">
+        <button type="button" class="btn-primary btn-sm" id="packageJsonSaveBtn">Enregistrer package.json</button>
+      </div>
+      <pre class="npmrc-install-log" id="packageJsonLog" hidden></pre>
+    </section>
+
+    <section class="card card-compact npmrc-card npm-page-bottom">
+      <div class="npmrc-generate-row">
+        <a href="/npm-install.html?prompt=1" id="nextStepLink" class="npmrc-next-step-link is-locked" aria-disabled="true">→ Installer les dépendances npm</a>
+      </div>
+      <div id="status" class="status" style="display:none;margin-top:10px"></div>
+    </section>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.16.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.16.3"></script>
+  <script src="/assets/npm-wizard-shared.js?v=1.16.3"></script>
+  <script src="/assets/node-install-page.js?v=1.16.3"></script>
+  <script src="/assets/wizard-footer.js?v=1.16.3"></script>
+</body>
+</html>

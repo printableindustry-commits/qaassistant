@@ -1,0 +1,145 @@
+{
+  "name": "wizard-qa-assistant",
+  "displayName": "Wizard QA Assistant (CATS)",
+  "description": "Assistant de configuration de tests automatisés Crédit Agricole Technologies Services",
+  "version": "1.33.0",
+  "publisher": "cats-ts",
+  "license": "UNLICENSED",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:wizardQa.explorer"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "wizard-qa",
+          "title": "Wizard QA",
+          "icon": "media/icon-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "wizard-qa": [
+        {
+          "id": "wizardQa.explorer",
+          "name": "Assistant"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "wizardQa.open",
+        "title": "Wizard QA: Ouvrir une page",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "wizardQa.openAccueil",
+        "title": "Wizard QA: Accueil",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openHookGit",
+        "title": "Wizard QA: Hook Git",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openProject",
+        "title": "Wizard QA: Sync JIRA",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openNpmrc",
+        "title": "Wizard QA: Éditer .npmrc",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openRepair",
+        "title": "Wizard QA: Pré-configuration poste",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openHook",
+        "title": "Wizard QA: Hook JIRA / Xray",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openDocQa",
+        "title": "Wizard QA: Livrables QA",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.openWiki",
+        "title": "Wizard QA: Wiki",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.restartServer",
+        "title": "Wizard QA: Redémarrer le serveur",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.stopServer",
+        "title": "Wizard QA: Arrêter le serveur",
+        "category": "Wizard QA"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "wizardQa.restartServer",
+          "when": "view == wizardQa.explorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "wizardQa.open",
+          "when": "view == wizardQa.explorer && viewItem == wizardPage",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Wizard QA Assistant",
+      "properties": {
+        "wizardQa.port": {
+          "type": "number",
+          "default": 3920,
+          "description": "Port HTTP local du serveur wizard (3920–3925)."
+        },
+        "wizardQa.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Démarrer le serveur à l'ouverture d'une page wizard."
+        },
+        "wizardQa.nodePath": {
+          "type": "string",
+          "default": "",
+          "description": "Chemin vers node.exe (vide = node du PATH ou vendor repair)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npm run compile && vsce package --no-dependencies",
+    "split-theme-css": "node scripts/split-theme-css.mjs",
+    "format-stack-questionnaire": "node scripts/format-stack-questionnaire-conf.mjs",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3",
+    "@vscode/vsce": "^2.24.0"
+  }
+}

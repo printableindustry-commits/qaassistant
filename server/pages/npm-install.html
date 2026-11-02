@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-npm-install page-npm-install-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Installer NPM</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.16.3" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.16.3" />
+</head>
+<body class="page-npm-install page-npm-install-compact">
+  <div class="wrap hub-app">
+    <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
+      <div class="hub-hero-nav">
+        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+        <a href="/node-install.html" class="btn-hub-secondary">← Node.js</a>
+      </div>
+      <div class="hub-hero-page-logo">
+        <img src="/assets/logo-npm.png" alt="npm" width="40" height="40" />
+      </div>
+      <div class="hub-hero-page-body">
+        <div class="npmrc-hero-head">
+          <h1>Installer NPM</h1>
+          <span class="file-badge" id="npmRuntimeBadge" aria-live="polite">…</span>
+        </div>
+        <p class="hub-hero-lead">Lance <code>npm install</code> des paquets définis dans <code>npm-install.conf.json</code> — prérequis : <code>.npmrc</code>, Node/Volta et <code>package.json</code>.</p>
+      </div>
+    </div>
+
+    <section class="card card-compact npmrc-card npmrc-form-card">
+      <div class="npmrc-generate-row">
+        <div class="npmrc-action-buttons">
+          <button type="button" class="btn-primary" id="npmInstallBtn">Installer NPM</button>
+        </div>
+      </div>
+
+      <div id="status" class="status" style="display:none;margin-top:10px"></div>
+      <div id="npmInstallPanel" hidden></div>
+    </section>
+
+    <section class="card card-compact npmrc-card npm-page-bottom">
+      <div class="npmrc-generate-row">
+        <p class="hint hint-tight npmrc-next-step"><a href="/repair.html" id="nextRepairLink">→ Étape suivante : initialiser Cypress</a></p>
+        <p class="hint hint-tight npmrc-next-step"><a href="/wiki.html#playwright">→ Documentation Playwright</a></p>
+      </div>
+    </section>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.16.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.16.3"></script>
+  <script src="/assets/npm-wizard-shared.js?v=1.16.3"></script>
+  <script src="/assets/npm-install-page.js?v=1.16.3"></script>
+  <script src="/assets/wizard-footer.js?v=1.16.3"></script>
+</body>
+</html>

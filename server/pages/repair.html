@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Environnement Node / Cypress</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+</head>
+<body class="page-repair">
+  <div class="wrap">
+    <header class="site-header site-header-compact">
+      <div class="logo"><img src="/assets/logo-cats.png" alt="CATS" /></div>
+      <div class="title">
+        <h1>Environnement Node / Cypress</h1>
+        <p>Réparation offline · <code>repair.conf.json</code></p>
+      </div>
+      <p class="tribu-label tribu-label-sm tribu-label-header">TRIBU IT pour CA-TS</p>
+    </header>
+    <nav class="breadcrumb"><a href="/">Accueil</a> › Pré-configuration</nav>
+
+    <div class="page-status-bar">
+      <div class="page-status-main">
+        <span class="page-status-label">Config</span>
+        <code class="page-status-path">{{paths.repairConfPath}}</code>
+        <span class="file-badge" id="badgeVendor">…</span>
+        <span class="file-badge" id="badgeProject">…</span>
+      </div>
+      <p class="page-status-hint">Vendor portable dans <code>vendor/node</code></p>
+    </div>
+
+    <div class="card card-compact repair-card">
+      <div class="preset-strip">
+        <span class="preset-label">Scénario</span>
+        <button type="button" class="btn-preset btn-preset-sm" data-preset="full">Réparation complète</button>
+        <button type="button" class="btn-preset btn-preset-sm" data-preset="download">Télécharger vendor</button>
+        <button type="button" class="btn-preset btn-preset-sm" data-preset="diag">Diagnostic</button>
+        <button type="button" class="btn-preset btn-preset-sm" data-preset="dry">Simulation</button>
+      </div>
+
+      <form id="repairForm" autocomplete="off" onsubmit="return false">
+        <section class="form-section">
+          <h2 class="form-section-title">Chemins</h2>
+          <div class="form-grid form-grid-2">
+            <div class="field field-full">
+              <label for="project">Projet Cypress <span class="req">*</span></label>
+              <input id="project" type="text" placeholder="Racine du dépôt Cypress" />
+            </div>
+            <div class="field">
+              <label for="voltaHome">Volta <span class="opt">optionnel</span></label>
+              <input id="voltaHome" type="text" placeholder="%LOCALAPPDATA%\Volta" />
+            </div>
+            <div class="field">
+              <label for="registry">Registry npm CATS</label>
+              <input id="registry" type="url" placeholder="https://registry.saas.cagip.group.gca/…" />
+            </div>
+          </div>
+        </section>
+
+        <section class="repair-offline-panel" aria-labelledby="offlinePanelTitle">
+          <header class="repair-offline-head">
+            <div>
+              <h2 class="repair-offline-title" id="offlinePanelTitle">Environnement offline</h2>
+              <p class="repair-offline-sub">Téléchargez sur un poste connecté, importez ici ou copiez <code>vendor/</code></p>
+            </div>
+          </header>
+
+          <div class="vendor-card-grid" id="vendorGrid">
+            <article class="vendor-card vendor-card--node" data-kind="node">
+              <div class="vendor-card-glow" aria-hidden="true"></div>
+              <div class="vendor-card-top">
+                <div class="vendor-card-icon vendor-card-icon--node" aria-hidden="true">N</div>
+                <div class="vendor-card-head">
+                  <h3 class="vendor-card-name">Node.js</h3>
+                  <span class="vendor-status" id="badgeNodeBin">…</span>
+                </div>
+              </div>
+              <span class="vendor-format-chip" id="fmtNode">—</span>
+              <p class="vendor-card-link" id="urlNode">—</p>
+              <div class="vendor-card-foot">
+                <label class="vendor-ver-wrap" for="node"><span>v</span>
+                  <input id="node" type="text" inputmode="decimal" class="vendor-ver-input" placeholder="22.13.0" />
+                </label>
+                <label class="vendor-upload-btn file-btn">
+                  <span class="vendor-upload-icon">↑</span> ZIP
+                  <input type="file" accept=".zip" data-upload="node" hidden />
+                </label>
+              </div>
+            </article>
+
+            <article class="vendor-card vendor-card--npm" data-kind="npm">
+              <div class="vendor-card-glow" aria-hidden="true"></div>
+              <div class="vendor-card-top">
+                <div class="vendor-card-icon vendor-card-icon--npm" aria-hidden="true">npm</div>
+                <div class="vendor-card-head">
+                  <h3 class="vendor-card-name">npm</h3>
+                  <span class="vendor-status" id="badgeNpmBin">…</span>
+                </div>
+              </div>
+              <span class="vendor-format-chip" id="fmtNpm">—</span>
+              <p class="vendor-card-link" id="urlNpm">—</p>
+              <div class="vendor-card-foot">
+                <label class="vendor-ver-wrap" for="npm"><span>v</span>
+                  <input id="npm" type="text" inputmode="decimal" class="vendor-ver-input" placeholder="10.9.0" />
+                </label>
+                <span class="vendor-foot-hint">Inclus dans Node</span>
+              </div>
+            </article>
+
+            <article class="vendor-card vendor-card--cypress" data-kind="cypress">
+              <div class="vendor-card-glow" aria-hidden="true"></div>
+              <div class="vendor-card-top">
+                <div class="vendor-card-icon vendor-card-icon--cypress" aria-hidden="true">Cy</div>
+                <div class="vendor-card-head">
+                  <h3 class="vendor-card-name">Cypress</h3>
+                  <span class="vendor-status" id="badgeCypressBin">…</span>
+                </div>
+              </div>
+              <span class="vendor-format-chip" id="fmtCypress">—</span>
+              <p class="vendor-card-link" id="urlCypress">—</p>
+              <div class="vendor-card-foot">
+                <label class="vendor-ver-wrap" for="cypressVersion"><span>v</span>
+                  <input id="cypressVersion" type="text" inputmode="decimal" class="vendor-ver-input" placeholder="14.0.3" />
+                </label>
+                <label class="vendor-upload-btn file-btn">
+                  <span class="vendor-upload-icon">↑</span> ZIP
+                  <input type="file" accept=".zip" data-upload="cypress" hidden />
+                </label>
+              </div>
+            </article>
+
+            <article class="vendor-card vendor-card--modules" data-kind="nodeModules">
+              <div class="vendor-card-glow" aria-hidden="true"></div>
+              <div class="vendor-card-top">
+                <div class="vendor-card-icon vendor-card-icon--modules" aria-hidden="true">tg</div>
+                <div class="vendor-card-head">
+                  <h3 class="vendor-card-name">node_modules</h3>
+                  <span class="vendor-status" id="badgeModulesBin">…</span>
+                </div>
+              </div>
+              <span class="vendor-format-chip" id="fmtModules">—</span>
+              <p class="vendor-card-link vendor-card-link--muted" id="urlModules">—</p>
+              <div class="vendor-card-foot">
+                <span class="vendor-foot-hint">Optionnel</span>
+                <label class="vendor-upload-btn file-btn">
+                  <span class="vendor-upload-icon">↑</span> .tgz
+                  <input type="file" accept=".tgz,.tar.gz,.gz" data-upload="nodeModules" hidden />
+                </label>
+              </div>
+            </article>
+          </div>
+
+          <div class="repair-package-card">
+            <div class="repair-package-icon" aria-hidden="true">{ }</div>
+            <div class="repair-package-body">
+              <div class="repair-package-head">
+                <h3>package.json</h3>
+                <div class="repair-package-badges">
+                  <span class="pkg-pill" id="badgePackageJson">…</span>
+                  <span class="pkg-pill" id="badgePackageLock">…</span>
+                </div>
+              </div>
+              <p class="repair-package-hint" id="packageHint">—</p>
+              <div class="repair-package-actions">
+                <button type="button" class="btn-secondary btn-sm" id="ensurePkgBtn">Créer / réparer</button>
+                <button type="button" class="btn-secondary btn-sm btn-outline-muted" id="removeLockBtn">Supprimer lock</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section repair-actions-section">
+          <div class="repair-actions-head">
+            <h2 class="form-section-title">Actions à lancer</h2>
+            <p class="hint hint-tight">Cochez les étapes exécutées à la suite — survolez ou cliquez <span class="action-info-demo">i</span> pour le détail CLI</p>
+          </div>
+
+          <div class="action-option-list">
+            <div class="action-option">
+              <label class="action-option-label" for="install">
+                <input type="checkbox" id="install" checked />
+                <span class="action-option-body">
+                  <span class="action-option-title">Purge complète puis réinstallation npm</span>
+                  <span class="action-option-desc">Supprime <code>node_modules</code>, caches Cypress/npm, puis <code>npm ci</code> ou <code>npm install</code></span>
+                </span>
+              </label>
+              <details class="action-info">
+                <summary aria-label="Aide — purge et installation"><span class="action-info-icon">i</span></summary>
+                <div class="action-info-body">
+                  <p><strong>Script :</strong> <code>repair.mjs</code></p>
+                  <p><strong>Argument :</strong> <code>--install</code> (alias <code>--fix</code>)</p>
+                  <p>Active la purge (sauf si <code>--no-purge</code>), vérifie Node, met à jour <code>~/.npmrc</code>, épingle <code>volta.node</code> dans <code>package.json</code>, restaure les dépendances.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="action-option">
+              <label class="action-option-label" for="portable">
+                <input type="checkbox" id="portable" checked />
+                <span class="action-option-body">
+                  <span class="action-option-title">Node portable (vendor/node)</span>
+                  <span class="action-option-desc">Utilise <code>vendor/node/node.exe</code> — sans Volta ni droits admin</span>
+                </span>
+              </label>
+              <details class="action-info">
+                <summary aria-label="Aide — mode portable"><span class="action-info-icon">i</span></summary>
+                <div class="action-info-body">
+                  <p><strong>Script :</strong> <code>repair.mjs</code></p>
+                  <p><strong>Argument :</strong> <code>--portable</code> (ou <code>--portable-only</code>)</p>
+                  <p>Ignore Volta et force le runtime dans <code>01_reparation-poste-travail/vendor/node/</code>. Génère <code>repair-env.cmd</code> à la racine du projet.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="action-option">
+              <label class="action-option-label" for="installCypress">
+                <input type="checkbox" id="installCypress" checked />
+                <span class="action-option-body">
+                  <span class="action-option-title">Installation binaire Cypress</span>
+                  <span class="action-option-desc"><code>npx cypress install</code> — ZIP offline si présent dans <code>vendor/cypress/</code></span>
+                </span>
+              </label>
+              <details class="action-info">
+                <summary aria-label="Aide — Cypress"><span class="action-info-icon">i</span></summary>
+                <div class="action-info-body">
+                  <p><strong>Script :</strong> <code>repair.mjs</code></p>
+                  <p><strong>Argument :</strong> <code>--cypress</code></p>
+                  <p>Variable d'environnement <code>CYPRESS_INSTALL_BINARY</code> pointée vers le ZIP vendor. Implicite avec <code>--install</code>.</p>
+                </div>
+              </details>
+            </div>
+
+            <div class="action-option">
+              <label class="action-option-label" for="downloadVendor">
+                <input type="checkbox" id="downloadVendor" />
+                <span class="action-option-body">
+                  <span class="action-option-title">Télécharger vendor (poste connecté)</span>
+                  <span class="action-option-desc">Lance <code>download-vendor.mjs</code> avant repair — Node ZIP, Cypress ZIP, <code>node_modules.tgz</code></span>
+                </span>
+              </label>
+              <details class="action-info">
+                <summary aria-label="Aide — download vendor"><span class="action-info-icon">i</span></summary>
+                <div class="action-info-body">
+                  <p><strong>Script :</strong> <code>download-vendor.mjs</code></p>
+                  <p><strong>Arguments optionnels :</strong></p>
+                  <ul>
+                    <li><code>--node-only</code> — ZIP Node uniquement</li>
+                    <li><code>--cypress-only</code> — ZIP Cypress uniquement</li>
+                    <li><code>--modules-only</code> — archive <code>node_modules.tgz</code> du dépôt</li>
+                  </ul>
+                  <p>Sans argument : télécharge / archive les trois. Nécessite Internet (poste maison).</p>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <details class="form-advanced repair-actions-advanced">
+            <summary>Options avancées <span class="action-adv-hint">repair.mjs — flags complémentaires</span></summary>
+            <div class="action-option-list action-option-list--adv">
+              <div class="action-option action-option--muted">
+                <label class="action-option-label" for="removePackageLock">
+                  <input type="checkbox" id="removePackageLock" />
+                  <span class="action-option-body">
+                    <span class="action-option-title">Supprimer package-lock.json avant repair</span>
+                    <span class="action-option-desc">Force <code>npm install</code> au lieu de <code>npm ci</code> (lock régénéré)</span>
+                  </span>
+                </label>
+                <details class="action-info">
+                  <summary aria-label="Aide — package-lock"><span class="action-info-icon">i</span></summary>
+                  <div class="action-info-body">
+                    <p><strong>Argument :</strong> <code>--remove-package-lock</code></p>
+                    <p>Supprime <code>package-lock.json</code> à la racine du projet avant purge / install.</p>
+                  </div>
+                </details>
+              </div>
+
+              <div class="action-option action-option--muted">
+                <label class="action-option-label" for="noPurge">
+                  <input type="checkbox" id="noPurge" />
+                  <span class="action-option-body">
+                    <span class="action-option-title">Sans purge des caches</span>
+                    <span class="action-option-desc">Garde <code>node_modules</code> et caches — réinstall « douce »</span>
+                  </span>
+                </label>
+                <details class="action-info">
+                  <summary aria-label="Aide — no purge"><span class="action-info-icon">i</span></summary>
+                  <div class="action-info-body">
+                    <p><strong>Argument :</strong> <code>--no-purge</code></p>
+                    <p>Désactive la suppression de <code>node_modules</code>, <code>.cypress</code>, caches npm/Cypress. Utile pour diagnostic rapide.</p>
+                  </div>
+                </details>
+              </div>
+
+              <div class="action-option action-option--muted">
+                <label class="action-option-label" for="online">
+                  <input type="checkbox" id="online" />
+                  <span class="action-option-body">
+                    <span class="action-option-title">npm en ligne (ignorer node_modules.tgz)</span>
+                    <span class="action-option-desc">Télécharge les paquets via le registry CATS — VPN / proxy requis</span>
+                  </span>
+                </label>
+                <details class="action-info">
+                  <summary aria-label="Aide — npm online"><span class="action-info-icon">i</span></summary>
+                  <div class="action-info-body">
+                    <p><strong>Argument :</strong> <code>--online</code></p>
+                    <p>Ignore <code>vendor/node_modules.tgz</code> et exécute <code>npm ci</code> ou <code>npm install</code> contre le registry (voir page .npmrc).</p>
+                  </div>
+                </details>
+              </div>
+
+              <div class="action-option action-option--muted">
+                <label class="action-option-label" for="dryRun">
+                  <input type="checkbox" id="dryRun" />
+                  <span class="action-option-body">
+                    <span class="action-option-title">Simulation (dry-run)</span>
+                    <span class="action-option-desc">Affiche les actions sans écrire sur le disque</span>
+                  </span>
+                </label>
+                <details class="action-info">
+                  <summary aria-label="Aide — dry-run"><span class="action-info-icon">i</span></summary>
+                  <div class="action-info-body">
+                    <p><strong>Argument :</strong> <code>--dry-run</code></p>
+                    <p>Journalise les opérations prévues (purge, fichiers, commandes) sans modification réelle.</p>
+                  </div>
+                </details>
+              </div>
+
+              <div class="action-option action-option--muted">
+                <label class="action-option-label" for="diagnosticOnly">
+                  <input type="checkbox" id="diagnosticOnly" />
+                  <span class="action-option-body">
+                    <span class="action-option-title">Diagnostic seul (aucune installation)</span>
+                    <span class="action-option-desc">Vérifie chemins, Node, npm, présence de <code>package.json</code></span>
+                  </span>
+                </label>
+                <details class="action-info">
+                  <summary aria-label="Aide — diagnostic"><span class="action-info-icon">i</span></summary>
+                  <div class="action-info-body">
+                    <p><strong>Script :</strong> <code>repair.mjs</code> sans <code>--install</code></p>
+                    <p><strong>Arguments utiles :</strong> <code>--project</code>, <code>--node</code>, <code>--volta-home</code></p>
+                    <p>Équivalent à lancer repair sans flags d'installation — seul le bloc diagnostic s'exécute.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <div class="action-cmd-preview" aria-live="polite">
+            <span class="action-cmd-label">Commandes générées</span>
+            <pre class="action-cmd-code" id="cmdPreview">node repair.mjs …</pre>
+          </div>
+        </section>
+
+        <div class="action-bar">
+          <button type="button" class="btn-primary btn-sm" id="runBtn">Lancer la réparation</button>
+          <div class="action-bar-secondary">
+            <button type="button" class="btn-secondary btn-sm" id="saveBtn">Enregistrer config</button>
+            <button type="button" class="btn-secondary btn-sm" id="verifyBtn">Vérifier</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+      <div id="verifyResults" class="verify-results"></div>
+    </div>
+
+    <details class="console-wrap" id="consoleWrap">
+      <summary>Console <span class="console-hint" id="consoleHint">Prêt</span></summary>
+      <pre class="console console-compact" id="console">Prêt.</pre>
+    </details>
+
+    <div class="page-help-source" hidden aria-hidden="true">
+      <dl>
+        <dt>Scénarios</dt><dd>Pré-coches réparation (modifiables)</dd>
+        <dt>Lancer</dt><dd>Scripts Node/npm/Cypress → console</dd>
+        <dt>Charger binaires</dt><dd>ZIP Node / Cypress ou <code>node_modules.tgz</code> → <code>vendor/</code></dd>
+        <dt>package.json</dt><dd>Création minimale si absent · suppression optionnelle du lock</dd>
+        <dt>Enregistrer config</dt><dd><code>repair.conf.json</code> sans exécuter</dd>
+      </dl>
+    </div>
+  </div>
+  <script src="/assets/portail.js"></script>
+  <script>
+    const $ = id => document.getElementById(id)
+
+    function getConfig() {
+      return {
+        project: $('project').value.trim(),
+        voltaHome: $('voltaHome').value.trim(),
+        catsRegistry: $('registry').value.trim(),
+        proxyFromHookEnv: true,
+        versions: {
+          node: $('node').value.trim(),
+          npm: $('npm').value.trim(),
+          cypress: $('cypressVersion').value.trim(),
+        },
+        defaults: {
+          portable: $('portable').checked,
+          purge: !$('noPurge').checked,
+          cypress: $('installCypress').checked,
+        },
+      }
+    }
+
+    function setConfig(c) {
+      if (!c) return
+      $('project').value = c.project || ''
+      $('voltaHome').value = c.voltaHome || ''
+      $('registry').value = c.catsRegistry || ''
+      $('node').value = c.versions?.node || '22.13.0'
+      $('npm').value = c.versions?.npm || '10.9.0'
+      $('cypressVersion').value = c.versions?.cypress || '14.0.3'
+    }
+
+    function setActions(a) {
+      if (!a) return
+      const ids = { cypress: 'installCypress' }
+      for (const [k, v] of Object.entries(a)) {
+        const id = ids[k] || k
+        if ($(id)) $(id).checked = !!v
+      }
+    }
+
+    function getActions() {
+      return {
+        downloadVendor: $('downloadVendor').checked,
+        install: $('install').checked,
+        portable: $('portable').checked,
+        cypress: $('installCypress').checked,
+        removePackageLock: $('removePackageLock').checked,
+        noPurge: $('noPurge').checked,
+        online: $('online').checked,
+        dryRun: $('dryRun').checked,
+        diagnosticOnly: $('diagnosticOnly').checked,
+      }
+    }
+
+    function setVendorBadge(el, ok, label) {
+      el.textContent = label || (ok ? 'Prêt' : 'À charger')
+      el.className = 'vendor-status ' + (ok ? 'vendor-status--ok' : 'vendor-status--ko')
+      const card = el.closest('.vendor-card')
+      if (card) card.classList.toggle('vendor-card--ready', !!ok)
+    }
+
+    function linkifyUrl(text, url) {
+      if (!url || url.startsWith('(')) return `<span class="vendor-link-plain">${text || url || '—'}</span>`
+      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+      const full = text || url
+      const short = full.length > 52 ? `${full.slice(0, 49)}…` : full
+      return `<a class="vendor-ext-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(full)}">${esc(short)}</a>`
+    }
+
+    function setPkgPill(el, state, label) {
+      el.textContent = label
+      el.className = 'pkg-pill pkg-pill--' + state
+    }
+
+    function vendorQuery() {
+      const p = new URLSearchParams({
+        node: $('node').value.trim() || '22.13.0',
+        npm: $('npm').value.trim() || '10.9.0',
+        cypress: $('cypressVersion').value.trim() || '14.0.3',
+        project: $('project').value.trim(),
+      })
+      return p.toString()
+    }
+
+    async function refreshVendorPanel() {
+      try {
+        const r = await fetch(`/api/repair/vendor?${vendorQuery()}`)
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error)
+        const { urls, status, package: pkg } = data
+
+        $('urlNode').innerHTML = linkifyUrl(urls.node.url, urls.node.url)
+        $('fmtNode').textContent = urls.node.format
+        setVendorBadge($('badgeNodeBin'), status.node.ok)
+
+        $('urlNpm').innerHTML = linkifyUrl('Même archive Node', urls.npm.url)
+        $('fmtNpm').textContent = urls.npm.format
+        setVendorBadge($('badgeNpmBin'), status.npm.ok, status.npm.ok ? (status.npm.version || 'OK') : 'Absent')
+
+        $('urlCypress').innerHTML = linkifyUrl(urls.cypress.url, urls.cypress.url)
+        $('fmtCypress').textContent = urls.cypress.format
+        setVendorBadge($('badgeCypressBin'), status.cypress.ok)
+
+        $('urlModules').textContent = urls.nodeModules.url
+        $('fmtModules').textContent = urls.nodeModules.format
+        setVendorBadge($('badgeModulesBin'), status.nodeModules.ok,
+          status.nodeModules.ok ? `${status.nodeModules.sizeMb} Mo` : 'Absent')
+
+        const pj = pkg.packageJson
+        setPkgPill($('badgePackageJson'), pj.exists && pj.valid ? 'ok' : 'ko',
+          pj.exists && pj.valid ? 'package.json' : 'json manquant')
+        setPkgPill($('badgePackageLock'), pkg.packageLock.exists ? 'neutral' : 'ok',
+          pkg.packageLock.exists ? 'lock présent' : 'sans lock')
+        $('packageHint').textContent = pj.valid
+          ? (pj.voltaNode ? `volta.node = ${pj.voltaNode}` : 'package.json valide')
+          : (pj.error || 'package.json absent — bouton Créer / réparer')
+      } catch (e) {
+        $('packageHint').textContent = e.message
+      }
+    }
+
+    async function uploadVendor(kind, file) {
+      if (!file) return
+      const fd = new FormData()
+      fd.append('kind', kind)
+      fd.append('file', file)
+      if (kind === 'node') fd.append('version', $('node').value.trim())
+      if (kind === 'cypress') fd.append('version', $('cypressVersion').value.trim())
+      Portail.showStatus($('status'), null, `Import ${kind}…`)
+      const r = await fetch('/api/repair/vendor/upload', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error)
+      Portail.showStatus($('status'), true, `Binaire ${kind} importé`)
+      await refreshVendorPanel()
+      await refreshStatusBadges()
+    }
+
+    document.querySelectorAll('[data-upload]').forEach(input => {
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0]
+        e.target.value = ''
+        if (!file) return
+        try {
+          await uploadVendor(input.dataset.upload, file)
+        } catch (err) {
+          Portail.showStatus($('status'), false, err.message)
+        }
+      })
+    })
+
+    ['node', 'npm', 'cypressVersion'].forEach(id => {
+      $(id)?.addEventListener('change', refreshVendorPanel)
+    })
+
+    $('ensurePkgBtn').addEventListener('click', async () => {
+      try {
+        const r = await fetch('/api/repair/package', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'ensure', project: $('project').value.trim(), nodeVersion: $('node').value.trim() }),
+        })
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error)
+        Portail.showStatus($('status'), true, data.created ? 'package.json créé (minimal)' : 'package.json déjà valide')
+        await refreshVendorPanel()
+      } catch (e) {
+        Portail.showStatus($('status'), false, e.message)
+      }
+    })
+
+    $('removeLockBtn').addEventListener('click', async () => {
+      if (!confirm('Supprimer package-lock.json à la racine du projet ?')) return
+      try {
+        const r = await fetch('/api/repair/package', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'removeLock', project: $('project').value.trim() }),
+        })
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error)
+        Portail.showStatus($('status'), true, data.removed ? 'package-lock supprimé' : 'Aucun package-lock')
+        await refreshVendorPanel()
+      } catch (e) {
+        Portail.showStatus($('status'), false, e.message)
+      }
+    })
+
+    function getPageData() { return { config: getConfig(), actions: getActions() } }
+
+    function buildCmdPreview() {
+      const cfg = getConfig()
+      const a = getActions()
+      const q = s => `"${String(s).replace(/"/g, '\\"')}"`
+      const lines = []
+      if (a.downloadVendor) lines.push('node download-vendor.mjs')
+      const args = ['repair.mjs']
+      if (cfg.project) args.push('--project', q(cfg.project))
+      if (cfg.versions?.node) args.push('--node', cfg.versions.node)
+      if (cfg.voltaHome) args.push('--volta-home', q(cfg.voltaHome))
+      if (a.dryRun) args.push('--dry-run')
+      if (!a.diagnosticOnly) {
+        if (a.install) args.push('--install')
+        if (a.cypress) args.push('--cypress')
+        if (a.portable) args.push('--portable')
+        if (a.noPurge) args.push('--no-purge')
+        if (a.online) args.push('--online')
+        if (a.removePackageLock) args.push('--remove-package-lock')
+      }
+      lines.push(`node ${args.join(' ')}`)
+      const el = $('cmdPreview')
+      if (el) el.textContent = lines.join('\n')
+    }
+
+    function wireActionPreview() {
+      const ids = ['downloadVendor', 'install', 'portable', 'installCypress', 'removePackageLock',
+        'noPurge', 'online', 'dryRun', 'diagnosticOnly', 'project', 'node', 'voltaHome']
+      ids.forEach(id => {
+        const el = $(id)
+        if (!el) return
+        el.addEventListener('change', buildCmdPreview)
+        el.addEventListener('input', buildCmdPreview)
+      })
+      buildCmdPreview()
+    }
+
+    function applyPreset(name) {
+      ['downloadVendor', 'install', 'portable', 'installCypress', 'removePackageLock', 'noPurge', 'online', 'dryRun', 'diagnosticOnly']
+        .forEach(id => { if ($(id)) $(id).checked = false })
+      if (name === 'diag') { $('diagnosticOnly').checked = true; buildCmdPreview(); return }
+      if (name === 'full') {
+        $('install').checked = $('portable').checked = $('installCypress').checked = true
+        buildCmdPreview(); return
+      }
+      if (name === 'download') { $('downloadVendor').checked = true; buildCmdPreview(); return }
+      if (name === 'dry') {
+        $('install').checked = $('portable').checked = $('installCypress').checked = $('dryRun').checked = true
+      }
+      buildCmdPreview()
+    }
+
+    function setBadge(el, ok, okText, koText) {
+      el.textContent = ok ? okText : koText
+      el.className = 'file-badge ' + (ok ? 'file-badge-ok' : 'file-badge-missing')
+    }
+
+    async function refreshStatusBadges() {
+      try {
+        const res = await Portail.runVerify({ page: 'repair', config: getConfig() })
+        const vendor = res.checks?.find(c => c.name === 'Node portable')
+        const project = res.checks?.find(c => c.name === 'Chemin projet')
+        if (vendor) setBadge($('badgeVendor'), vendor.ok, 'Vendor OK', 'Vendor absent')
+        if (project) setBadge($('badgeProject'), project.ok, 'Projet OK', 'Projet KO')
+      } catch {
+        $('badgeVendor').textContent = '?'
+        $('badgeProject').textContent = '?'
+      }
+    }
+
+    function setConsoleHint(text, running) {
+      $('consoleHint').textContent = text
+      $('consoleHint').className = 'console-hint' + (running ? ' console-hint-run' : '')
+      if (running) $('consoleWrap').open = true
+    }
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyPreset(btn.dataset.preset)
+        document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+      })
+    })
+
+    async function loadPage() {
+      const saved = await Portail.fetchDefaults('repair')
+      const live = await (await fetch('/api/repair/config')).json()
+      setConfig(saved.data?.config || live)
+      if (saved.data?.actions) setActions(saved.data.actions)
+      await refreshVendorPanel()
+      await refreshStatusBadges()
+      buildCmdPreview()
+    }
+
+    $('project').addEventListener('blur', () => { refreshStatusBadges(); refreshVendorPanel(); buildCmdPreview() })
+    wireActionPreview()
+
+    $('saveBtn').addEventListener('click', async () => {
+      const data = getPageData()
+      await fetch('/api/repair/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.config),
+      })
+      await Portail.savePageDefaults('repair', data)
+      await refreshStatusBadges()
+      Portail.showStatus($('status'), true, 'Config enregistrée et mémorisée')
+    })
+
+    $('runBtn').addEventListener('click', async () => {
+      $('runBtn').disabled = true
+      $('console').textContent = 'Exécution en cours…\n'
+      setConsoleHint('En cours…', true)
+      const data = getPageData()
+      try {
+        const r = await fetch('/api/repair/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+        const res = await r.json()
+        $('console').textContent = res.output || res.error || '(vide)'
+        setConsoleHint(res.ok ? 'Terminé' : 'Échec', false)
+        if (res.ok) {
+          await Portail.savePageDefaults('repair', data)
+          await refreshStatusBadges()
+        }
+        Portail.showStatus($('status'), res.ok, res.ok ? 'Terminé avec succès' : `Échec (code ${res.code || '?'})`)
+      } catch (e) {
+        $('console').textContent = e.message
+        setConsoleHint('Erreur', false)
+        Portail.showStatus($('status'), false, 'Erreur réseau')
+      }
+      $('runBtn').disabled = false
+    })
+
+    $('verifyBtn').addEventListener('click', async () => {
+      try {
+        const res = await Portail.runVerify({ page: 'repair', config: getConfig() })
+        Portail.renderVerifyResults($('verifyResults'), res)
+        await refreshStatusBadges()
+        Portail.showStatus($('status'), res.ok, res.ok ? 'Environnement prêt' : 'Points à corriger')
+      } catch (e) {
+        Portail.showStatus($('status'), false, e.message)
+      }
+    })
+
+    Portail.init('repair', getPageData, loadPage, () => ({ page: 'repair', config: getConfig() }))
+  </script>
+</body>
+</html>

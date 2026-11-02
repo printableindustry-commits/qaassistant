@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-k6-wizard page-k6-wizard-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Wizard k6 Performance</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.30.3" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.30.3" />
+</head>
+<body class="page-k6-wizard page-k6-wizard-compact">
+  <div class="wrap hub-app">
+    <section id="k6HubView" class="k6-hub-view" aria-label="Campagnes k6">
+      <div class="hub-hero hub-hero--page hub-hero--page-sm k6-hero-layout">
+        <div class="hub-hero-page-logo">
+          <img src="/assets/logo-k6.png" alt="k6" width="40" height="40" />
+        </div>
+        <div class="hub-hero-page-body">
+          <div class="k6-hero-toolbar">
+            <div class="npmrc-hero-head k6-hero-head">
+              <h1>Wizard k6 — tests de performance</h1>
+              <span class="file-badge file-badge-ok" id="k6WizardBadge">…</span>
+            </div>
+            <nav class="hub-hero-nav hub-hero-nav--k6" aria-label="Navigation k6">
+              <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+              <a href="/k6-install.html" class="btn-hub-secondary">Installation k6</a>
+              <a href="/wiki.html#k6" class="btn-hub-secondary">Wiki k6</a>
+            </nav>
+          </div>
+          <p class="hub-hero-lead" id="k6HubLead">Arborescence des campagnes — questionnaire pas à pas.</p>
+          <div id="k6ProjectContextBanner" class="k6-project-context-banner" hidden>
+            <p class="hint hint-tight" id="k6ProjectContextLine"></p>
+            <p class="hint hint-tight k6-demo-data-warn" id="k6DemoDataWarn" hidden>
+              Libellé « démo » détecté — mettez à jour l'application dans la
+              <a href="/">Prise de connaissance</a> ou <strong>Paramètres projet</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section class="card card-compact npmrc-card stack-install-cta-card k6-wizard-cta-card">
+        <div class="stack-install-cta stack-install-cta--k6">
+          <img class="stack-install-cta-logo" src="/assets/logo-k6.png" alt="k6" width="56" height="56" />
+          <p class="stack-install-cta-lead">Questionnaire pas à pas — profils, scénarios et campagnes de charge k6.</p>
+          <button type="button" class="btn-stack-install btn-stack-install--k6 btn-stack-install--has-icon" id="k6TreeNew">
+            <img class="btn-stack-install-icon" src="/assets/logo-k6.png" alt="" width="32" height="32" aria-hidden="true" />
+            <span>Nouvelle campagne</span>
+          </button>
+          <p class="hint hint-tight stack-install-config-hint">Profils enregistrés dans <code>.wizard-qa/conf/k6-profiles/</code></p>
+        </div>
+      </section>
+
+      <section class="card card-compact npmrc-card k6-campaign-tree-card">
+        <h2 class="form-section-title" id="k6CampaignTreeTitle">Campagnes k6 enregistrées</h2>
+        <p class="hint hint-tight k6-campaign-tree-lead">Arborescence Tribu → Produit → Solution — campagnes et actions par solution.</p>
+        <div id="k6RunPanel" class="k6-run-panel" hidden aria-live="polite"></div>
+        <div id="k6CampaignTree" class="k6-campaign-tree">Chargement…</div>
+      </section>
+    </section>
+
+    <section id="k6OnboardingView" class="hub-onboarding k6-onboarding-view" hidden aria-label="Questionnaire campagne k6">
+      <div class="k6-wizard-flow-hero" role="banner">
+        <img class="k6-wizard-flow-hero-logo" src="/assets/logo-k6.png" alt="k6" width="48" height="48" />
+        <div class="k6-wizard-flow-hero-text">
+          <h1 id="k6OnboardingHeroTitle">Assistant de configuration de campagne K6</h1>
+          <p class="k6-wizard-flow-hero-lead" id="k6OnboardingHeroLead"></p>
+        </div>
+      </div>
+      <nav class="hub-onboarding-nav" aria-label="Navigation questionnaire">
+        <button type="button" class="btn-secondary btn-sm" id="k6ObHub">Arborescence</button>
+        <button type="button" class="btn-secondary btn-sm" id="k6ObCancel">Annuler</button>
+      </nav>
+      <div id="k6WizardSteps" class="k6-wizard-steps"></div>
+    </section>
+
+    <div id="status" class="status wizard-unified-status" style="display:none"></div>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.30.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.30.3"></script>
+  <script src="/assets/wizard-footer.js?v=1.30.3"></script>
+  <script src="/assets/k6-wizard-page.js?v=1.30.3"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — commandes assistant « Initialiser k6 »
+  // Copié vers .wizard-qa/conf/k6-install.conf.json si absent.
+  // runner : scaffold | npm | npx | k6 | shell
+  // Binaire k6 : installez Grafana k6 (winget / choco / téléchargement) si verify échoue.
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Scaffold k6/, types @types/k6 et vérification du binaire k6.",
+  "projectDir": ".",
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:verify-debut
+  "verify": {
+    "id": "verify",
+    "label": "k6 version",
+    "runner": "k6",
+    "args": ["version"]
+  },
+  // @wizard-qa:verify-fin
+
+  // @wizard-qa:commandes-debut
+  "steps": [
+    {
+      "id": "scaffold",
+      "label": "Création arborescence k6/ et script smoke",
+      "runner": "scaffold",
+      "args": []
+    },
+    {
+      "id": "types",
+      "label": "npm install -D @types/k6",
+      "runner": "npm",
+      "args": ["install", "-D", "@types/k6"]
+    },
+    {
+      "id": "winget",
+      "label": "winget install Grafana.k6 (optionnel — admin)",
+      "runner": "shell",
+      "args": ["winget", "install", "-e", "--id", "Grafana.k6", "--accept-package-agreements", "--accept-source-agreements"]
+    }
+  ]
+  // @wizard-qa:commandes-fin
+}

@@ -1,0 +1,168 @@
+{
+  "toolsComparison": [
+    {
+      "id": "cypress",
+      "label": "Cypress",
+      "purpose": "Tests de bout en bout dans le navigateur — idéal pour valider des parcours utilisateur sur une application web.",
+      "pros": [
+        {
+          "label": "Prise en main rapide pour les QA",
+          "weight": 4
+        },
+        {
+          "label": "Interface visuelle et exécution en direct",
+          "weight": 3
+        },
+        {
+          "label": "Rapports avec captures d'écran",
+          "weight": 4
+        },
+        {
+          "label": "Intégré à l'écosystème Wizard QA (JIRA / hook)",
+          "weight": 5
+        }
+      ],
+      "cons": [
+        {
+          "label": "Orienté navigateur (Chrome / Edge principalement)",
+          "weight": 4
+        },
+        {
+          "label": "Peu adapté aux tests API seuls",
+          "weight": 3
+        },
+        {
+          "label": "Moins pertinent pour le multi-navigateurs avancé",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "robot",
+      "label": "Robot Framework",
+      "purpose": "Tests fonctionnels en langage naturel (mots-clés) — adapté aux équipes métier et aux processus variés.",
+      "pros": [
+        {
+          "label": "Scénarios lisibles par les profils fonctionnels",
+          "weight": 5
+        },
+        {
+          "label": "Syntaxe Gherkin (étant donné / quand / alors)",
+          "weight": 4
+        },
+        {
+          "label": "Couvre web, API, fichiers, bases…",
+          "weight": 4
+        },
+        {
+          "label": "Écosystème Python largement utilisé en QA",
+          "weight": 3
+        }
+      ],
+      "cons": [
+        {
+          "label": "Moins visuel que Cypress au démarrage",
+          "weight": 3
+        },
+        {
+          "label": "Configuration initiale plus structurée",
+          "weight": 3
+        },
+        {
+          "label": "Rapports moins « grand public »",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "id": "playwright",
+      "label": "Playwright",
+      "purpose": "Tests web modernes multi-navigateurs — pour des campagnes robustes et parallèles en CI/CD.",
+      "pros": [
+        {
+          "label": "Chrome, Firefox, Safari, Edge",
+          "weight": 5
+        },
+        {
+          "label": "Exécution parallèle rapide en chaîne CI",
+          "weight": 5
+        },
+        {
+          "label": "Émulation mobile et tablette",
+          "weight": 4
+        },
+        {
+          "label": "Très fiable sur les interfaces dynamiques",
+          "weight": 4
+        }
+      ],
+      "cons": [
+        {
+          "label": "Demande plus de compétences techniques",
+          "weight": 4
+        },
+        {
+          "label": "Mise en place initiale plus exigeante",
+          "weight": 3
+        },
+        {
+          "label": "Moins orienté « clic et enregistre »",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "postman",
+      "label": "Postman",
+      "purpose": "Tests et documentation d'API — pour valider des services sans interface graphique.",
+      "pros": [
+        {
+          "label": "Très simple pour tester des API REST",
+          "weight": 5
+        },
+        {
+          "label": "Collections partageables sans coder",
+          "weight": 4
+        },
+        {
+          "label": "Idéal pour fumée / contrôles rapides backend",
+          "weight": 4
+        },
+        {
+          "label": "Documentation API intégrée",
+          "weight": 3
+        }
+      ],
+      "cons": [
+        {
+          "label": "Ne teste pas les parcours utilisateur web",
+          "weight": 5
+        },
+        {
+          "label": "Pas de scénarios bout-en-bout navigateur",
+          "weight": 4
+        },
+        {
+          "label": "Complémentaire plutôt que solution unique UI",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "id": "k6",
+      "label": "k6",
+      "purpose": "Tests de charge Grafana k6 — simuler des utilisateurs virtuels et mesurer la tenue en charge.",
+      "pros": [
+        { "label": "Scripts JavaScript, métriques p95/p99", "weight": 5 },
+        { "label": "Campagnes smoke → charge → stress", "weight": 4 },
+        { "label": "CLI et intégration CI/CD", "weight": 4 },
+        { "label": "Complément des tests fonctionnels", "weight": 4 }
+      ],
+      "cons": [
+        { "label": "Binaire k6 hors npm (winget/choco)", "weight": 3 },
+        { "label": "Ne remplace pas les tests UI", "weight": 5 },
+        { "label": "Environnement de charge à préparer", "weight": 3 }
+      ]
+    }
+  ]
+}

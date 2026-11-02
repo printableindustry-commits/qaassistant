@@ -1,0 +1,35 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — commandes de l'assistant « Installer Playwright »
+  // Copié vers .wizard-qa/conf/playwright-install.conf.json si absent.
+  // Modifiez label (affichage) et args (commande réelle) — runner : npm | npx
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Commandes npm/npx exécutées par l'assistant Installer Playwright.",
+  "projectDir": ".",
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:vscode-debut — extension VS Code (boutons après installation npm)
+  "vscodeExtensionId": "ms-playwright.playwright",
+  "vscodeInstallCommand": "ms-playwright.playwright.install",
+  // @wizard-qa:vscode-fin
+
+  // @wizard-qa:commandes-debut
+  "steps": [
+    {
+      "id": "package",
+      "label": "npm install -D @playwright/test@latest",
+      "runner": "npm",
+      "args": ["install", "-D", "@playwright/test@latest"]
+    },
+    {
+      "id": "browsers",
+      "label": "npx playwright install",
+      "runner": "npx",
+      "args": ["playwright", "install"]
+    }
+  ]
+  // @wizard-qa:commandes-fin
+}

@@ -1,0 +1,15 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — paramètres du scaffold Postman (collections / environnements)
+  // Copié vers .wizard-qa/conf/postman-init.conf.json si absent.
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Paramètres de génération des fichiers Postman — modifiez .wizard-qa/conf/postman-init.conf.json.",
+  "projectName": "MonProjet-API",
+  "baseUrl": "https://api-recette.example.com",
+  "environmentLabel": "recette",
+  "postmanDir": "postman"
+  // @wizard-qa:configuration-fin
+}

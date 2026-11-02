@@ -1,0 +1,51 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — installation npm après « Générer npmrc »
+  // Copié vers .wizard-qa/conf/npm-install.conf.json si absent.
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Dépendances npm et runtime Node/Volta — modifiez .wizard-qa/conf/npm-install.conf.json.",
+  // @wizard-qa:configuration-fin
+
+  "projectDir": ".",
+  "installCommand": "install",
+  "preferCi": false,
+
+  // @wizard-qa:runtime-debut — Node, npm, Volta (versions {current}/{target} dans les pop-ups)
+  "runtime": {
+    "targetNodeVersion": "22.12.0",
+    "targetNpmVersion": "10.9.0",
+    "nodeMajorMin": 20,
+    "nodeMajorMax": 26,
+    "voltaHome": "%LOCALAPPDATA%\\Volta",
+    "voltaNodeInventoryRel": "tools/inventory/node",
+    "voltaNodeImageRel": "tools/image/node",
+    "nodeDistBaseUrl": "https://nodejs.org/dist",
+    "packageJsonTemplateFile": "package.json.cypress.template.json",
+    "voltaInstallShell": "volta install node@{nodeVersion} & setx VOLTA_NODE_VERSION {nodeVersion} & volta install npm@bundle"
+  },
+  // @wizard-qa:runtime-fin
+
+  // @wizard-qa:packages-debut
+  "packages": [
+    { "name": "@cats-cdf/e2e", "version": "^2.12.0", "dev": false },
+    { "name": "axios", "version": "^1.7.7", "dev": false },
+    { "name": "cypress", "version": "^14.0.3", "dev": true },
+    { "name": "cypress-axe", "version": "^1.7.0", "dev": true },
+    { "name": "cypress-real-events", "version": "^1.15.0", "dev": true },
+    { "name": "sharp", "version": "^0.33.5", "dev": true }
+  ],
+  // @wizard-qa:packages-fin
+
+  "steps": [
+    { "id": "packageJson", "label": "Vérification du package.json" },
+    { "id": "node", "label": "Vérification Node / Volta" },
+    { "id": "npm", "label": "Vérification npm" },
+    { "id": "npmrc", "label": "Vérification du .npmrc utilisateur" },
+    { "id": "config", "label": "Lecture de npm-install.conf.json" },
+    { "id": "install", "label": "Exécution npm install" },
+    { "id": "verify", "label": "Contrôle node_modules" }
+  ]
+}

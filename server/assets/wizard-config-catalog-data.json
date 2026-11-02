@@ -1,0 +1,443 @@
+{
+  "confDir": ".wizard-qa/conf",
+  "hookDir": "0_Hook_Synchro_Ticket_Test_JIRA",
+  "files": [
+    {
+      "id": "wizardDefaults",
+      "title": "wizard.defaults.json",
+      "relativePath": ".wizard-qa/conf/wizard.defaults.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Profil projet central (prise de connaissance, plans JIRA, stack recommandée, chemins).",
+      "readBy": [
+        "Accueil — catalogue et tuiles",
+        "Prise de connaissance — reprise du profil",
+        "Hook Git — repli credentials si .env vide",
+        "Sync JIRA — profil et arborescences"
+      ],
+      "writtenBy": [
+        "Fin de la prise de connaissance (POST /api/project/onboarding/complete)",
+        "Paramètres projet (POST /api/project/settings/update)",
+        "Questionnaire stack (POST /api/project/stack-recommendation)",
+        "Connexion JIRA (POST /api/project/jira-sync)"
+      ]
+    },
+    {
+      "id": "projectVariables",
+      "title": "project.variables.json",
+      "relativePath": ".wizard-qa/conf/project.variables.json",
+      "exists": true,
+      "secrets": true,
+      "role": "Variables métier ($PRODUIT, $SOLUTION, $GIT_REPOSITORY, credentials JIRA/Xray) pour la documentation QA et les livrables.",
+      "readBy": [
+        "Documentation QA — génération des livrables",
+        "Prompts Copilot — contexte debug",
+        "Export / import configuration Wizard"
+      ],
+      "writtenBy": [
+        "Fin de la prise de connaissance",
+        "Mise à jour des paramètres projet",
+        "Sauvegarde connexion JIRA (POST /api/project/jira-sync)"
+      ]
+    },
+    {
+      "id": "onboardingSnapshot",
+      "title": "onboarding.snapshot.json",
+      "relativePath": ".wizard-qa/conf/onboarding.snapshot.json",
+      "exists": true,
+      "secrets": true,
+      "role": "Archive complète de la prise de connaissance et du questionnaire d'orientation stack (réponses, scores, recommandation).",
+      "readBy": [
+        "Accueil — halo tuile recommandée",
+        "Questionnaire stack — reprise des réponses"
+      ],
+      "writtenBy": [
+        "Fin de la prise de connaissance",
+        "Questionnaire « Définir votre application de test automatisée »",
+        "Choix manuel sur les camemberts de résultat"
+      ]
+    },
+    {
+      "id": "stackQuestionnaire",
+      "title": "stack-questionnaire.conf.json",
+      "relativePath": ".wizard-qa/conf/stack-questionnaire.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Fichier actif du questionnaire stack. Chaque entrée du tableau questions = une page du wizard. Modifiez uniquement ce fichier pour ajouter, retirer ou adapter des questions.",
+      "readBy": [
+        "Questionnaire stack (lecture directe du fichier à chaque lancement)",
+        "GET /api/project/stack-questionnaire"
+      ],
+      "writtenBy": [
+        "Vous — édition manuelle du tableau questions",
+        "Création initiale automatique si le fichier n'existe pas encore (copie depuis la référence extension)"
+      ],
+      "wikiPath": "/wiki.html#stack-questionnaire-guide"
+    },
+    {
+      "id": "stackQuestionnaireReference",
+      "title": "stack-questionnaire.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/stack-questionnaire.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée livrée avec l'extension. Copiée une seule fois vers .wizard-qa/conf/ si le fichier actif est absent. Consultez ce modèle pour la structure des questions ; éditez stack-questionnaire.conf.json pour personnaliser votre dépôt.",
+      "readBy": [
+        "ensureStackQuestionnaireConfig — copie initiale vers .wizard-qa/conf/",
+        "Documentation — exemple commenté des questions et pondérations"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA (mise à jour lors des releases)"
+      ],
+      "wikiPath": "/wiki.html#stack-questionnaire-guide"
+    },
+    {
+      "id": "uiWording",
+      "title": "ui-wording.conf.json",
+      "relativePath": ".wizard-qa/conf/ui-wording.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Textes des pop-ups disclaimer (template unique : logo loader, panneau, boutons). Chaque entrée de popups avec template \"disclaimer\" partage le même rendu visuel.",
+      "readBy": [
+        "Accueil — disclaimer au lancement (GET /api/wizard/ui-wording)"
+      ],
+      "writtenBy": [
+        "Vous — édition manuelle des libellés et paragraphes",
+        "Création initiale automatique si le fichier n'existe pas encore (copie depuis la référence extension)"
+      ]
+    },
+    {
+      "id": "uiWordingReference",
+      "title": "ui-wording.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/ui-wording.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée des textes de pop-ups. Copiée une seule fois vers .wizard-qa/conf/ si le fichier actif est absent. Modèle commenté pour identifier chaque pop-up.",
+      "readBy": [
+        "ensureUiWordingConfig — copie initiale vers .wizard-qa/conf/",
+        "Documentation — structure des pop-ups"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA (mise à jour lors des releases)"
+      ]
+    },
+    {
+      "id": "uiWordingPreferences",
+      "title": "ui-wording.preferences.json",
+      "relativePath": ".wizard-qa/conf/ui-wording.preferences.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Pop-ups masqués définitivement (« Ne plus afficher le pop-up »). Un identifiant par pop-up (launchDisclaimer, onboardingIntroPrompt, etc.).",
+      "readBy": [
+        "GET /api/wizard/ui-wording — liste hiddenPopups",
+        "Affichage des disclaimers (wizard-disclaimer.js)"
+      ],
+      "writtenBy": [
+        "POST /api/wizard/ui-wording/preferences/hide — clic « Ne plus afficher le pop-up »",
+        "Création automatique du fichier au premier masquage"
+      ]
+    },
+    {
+      "id": "npmInstall",
+      "title": "npm-install.conf.json",
+      "relativePath": ".wizard-qa/conf/npm-install.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Versions des dépendances npm installées après « Générer npmrc ». Liste des paquets, dossier projet et libellés des étapes d'installation.",
+      "readBy": [
+        "Page .npmrc — installation npm (GET /api/npm/install-config, POST /api/npm/install)"
+      ],
+      "writtenBy": [
+        "Vous — édition des versions et de la liste packages",
+        "Création initiale automatique si le fichier n'existe pas encore (copie depuis la référence extension)"
+      ]
+    },
+    {
+      "id": "npmInstallReference",
+      "title": "npm-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/npm-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée des dépendances npm. Modèle commenté copié une fois vers .wizard-qa/conf/npm-install.conf.json.",
+      "readBy": [
+        "ensureNpmInstallConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "cypressInstall",
+      "title": "cypress-install.conf.json",
+      "relativePath": ".wizard-qa/conf/cypress-install.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Commandes npm de l'assistant Installer Cypress — modifiez label et args de chaque step.",
+      "readBy": [
+        "loadCypressInstallConfig — exécution /api/cypress/install",
+        "Page cypress-install.html — assistant visuel"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis cypress-install.conf.reference.json",
+        "Vous — personnalisation des commandes"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "cypressInstallReference",
+      "title": "cypress-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/cypress-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée des commandes Cypress. Copiée une fois vers .wizard-qa/conf/cypress-install.conf.json.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "playwrightInstall",
+      "title": "playwright-install.conf.json",
+      "relativePath": ".wizard-qa/conf/playwright-install.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Commandes npm/npx de l'assistant Installer Playwright — modifiez label, runner (npm|npx) et args.",
+      "readBy": [
+        "loadPlaywrightInstallConfig — exécution /api/playwright/install",
+        "Page playwright-install.html — assistant visuel"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis playwright-install.conf.reference.json",
+        "Vous — personnalisation des commandes"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "playwrightInstallReference",
+      "title": "playwright-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/playwright-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée des commandes Playwright. Copiée une fois vers .wizard-qa/conf/playwright-install.conf.json.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "robotInstall",
+      "title": "robot-install.conf.json",
+      "relativePath": ".wizard-qa/conf/robot-install.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Commandes pip/python/robot de l'assistant Installer Robot Framework — modifiez label, runner (pip|python|robot) et args.",
+      "readBy": [
+        "loadRobotInstallConfig — exécution /api/robot/install",
+        "Page robot-install.html — assistant visuel"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis robot-install.conf.reference.json",
+        "Vous — personnalisation des commandes"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "robotInstallReference",
+      "title": "robot-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/robot-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée des commandes Robot Framework. Copiée une fois vers .wizard-qa/conf/robot-install.conf.json.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "postmanInit",
+      "title": "postman-init.conf.json",
+      "relativePath": ".wizard-qa/conf/postman-init.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Paramètres scaffold Postman (nom projet, baseUrl, environnement).",
+      "readBy": [
+        "loadPostmanInitConfig — scaffold /api/postman/install"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis postman-init.conf.reference.json",
+        "Page postman-install.html"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "postmanInitReference",
+      "title": "postman-init.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/postman-init.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence des paramètres Postman scaffold.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "postmanInstall",
+      "title": "postman-install.conf.json",
+      "relativePath": ".wizard-qa/conf/postman-install.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Commandes scaffold / npm / npx de l'assistant Postman — Newman et reporters.",
+      "readBy": [
+        "loadPostmanInstallConfig — /api/postman/install"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis postman-install.conf.reference.json"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "postmanInstallReference",
+      "title": "postman-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/postman-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée Postman/Newman. Copiée vers .wizard-qa/conf/postman-install.conf.json.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "k6Init",
+      "title": "k6-init.conf.json",
+      "relativePath": ".wizard-qa/conf/k6-init.conf.json",
+      "exists": false,
+      "secrets": false,
+      "role": "Paramètres scaffold k6 (URL cible, VUs, durée, seuils p95).",
+      "readBy": [
+        "loadK6InitConfig — scaffold /api/k6/install"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis k6-init.conf.reference.json",
+        "Page k6-install.html"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "k6InitReference",
+      "title": "k6-init.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/k6-init.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence des paramètres k6 scaffold.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "k6Install",
+      "title": "k6-install.conf.json",
+      "relativePath": ".wizard-qa/conf/k6-install.conf.json",
+      "exists": false,
+      "secrets": false,
+      "role": "Commandes scaffold / npm / k6 / shell de l'assistant k6.",
+      "readBy": [
+        "loadK6InstallConfig — /api/k6/install"
+      ],
+      "writtenBy": [
+        "Copie initiale depuis k6-install.conf.reference.json"
+      ],
+      "wikiPath": "/wiki.html#config-files"
+    },
+    {
+      "id": "k6InstallReference",
+      "title": "k6-install.conf.reference.json",
+      "relativePath": "00_Scripts_Implementation/05_wizard-qa-vscode/server/conf/k6-install.conf.reference.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Référence versionnée k6. Copiée vers .wizard-qa/conf/k6-install.conf.json.",
+      "readBy": [
+        "ensureConfig — copie initiale"
+      ],
+      "writtenBy": [
+        "Mainteneurs de l'extension Wizard QA"
+      ]
+    },
+    {
+      "id": "wizardPaths",
+      "title": "wizard.paths.json",
+      "relativePath": ".wizard-qa/conf/wizard.paths.json",
+      "exists": false,
+      "secrets": false,
+      "role": "Surcharge optionnelle des chemins (dossier hook, réparation, documentation).",
+      "readBy": [
+        "Serveur Wizard — résolution des chemins (paths.mjs)"
+      ],
+      "writtenBy": [
+        "Configuration manuelle avancée (fichier optionnel)"
+      ]
+    },
+    {
+      "id": "hookEnv",
+      "title": ".env (Hook Git)",
+      "relativePath": "0_Hook_Synchro_Ticket_Test_JIRA/.env",
+      "exists": true,
+      "secrets": true,
+      "role": "Credentials JIRA / Xray et proxy pour hook-run.mjs — même source que la prise de connaissance.",
+      "readBy": [
+        "Hook Git — assistant et dry-run",
+        "Sync JIRA — analyse et synchronisation",
+        "Profil projet — repli si wizard.defaults incomplet"
+      ],
+      "writtenBy": [
+        "Prise de connaissance — synchronisation automatique des URL et tokens",
+        "Assistant Hook Git — enregistrement étape JIRA / Xray",
+        "POST /api/hook/config"
+      ]
+    },
+    {
+      "id": "hooksConf",
+      "title": "hooks.conf",
+      "relativePath": "0_Hook_Synchro_Ticket_Test_JIRA/hooks.conf",
+      "exists": true,
+      "secrets": false,
+      "role": "Plans de test, suites .feature, dossiers VS Code et Testing Board JIRA.",
+      "readBy": [
+        "Hook Git — scan des dossiers et dry-run",
+        "Sync JIRA — correspondance plans locaux / JIRA"
+      ],
+      "writtenBy": [
+        "Assistant Hook Git — étapes hooks.conf, plans et Testing Board",
+        "POST /api/hook/config, /api/hook/plans/board"
+      ]
+    },
+    {
+      "id": "repairConf",
+      "title": "repair.conf.json",
+      "relativePath": "00_Scripts_Implementation/01_reparation-poste-travail/repair.conf.json",
+      "exists": true,
+      "secrets": false,
+      "role": "Configuration de la préparation du poste (Node offline, Cypress, npm).",
+      "readBy": [
+        "Page Pré-configuration poste — repair.html"
+      ],
+      "writtenBy": [
+        "Assistant réparation / initialisation Cypress"
+      ]
+    }
+  ],
+  "syncNote": "Export accueil = bundle wizard.defaults.json + fichiers .wizard-qa/conf (assistants stack, questionnaire, pop-ups). Les URL JIRA et tokens Xray saisis lors de la prise de connaissance sont recopiés automatiquement dans le .env du Hook Git à chaque enregistrement."
+}

@@ -1,0 +1,485 @@
+{
+  "version": 1,
+  "description": "Libellés et pondérations du questionnaire stack — modifiez les textes librement. Les ids (mainGoal, web, etc.) ne doivent pas changer.",
+  "questions": [
+    {
+      "id": "mainGoal",
+      "title": "Objectif principal",
+      "question": "Quel est le principal objectif de vos tests automatisés ?",
+      "hint": "Pensez à ce que vous devez vérifier au quotidien.",
+      "options": [
+        {
+          "id": "web",
+          "label": "Vérifier un site ou une application web (écrans, formulaires, parcours)",
+          "weights": {
+            "cypress": 3,
+            "playwright": 3
+          }
+        },
+        {
+          "id": "api",
+          "label": "Tester des services ou API (sans interface graphique)",
+          "weights": {
+            "postman": 5
+          }
+        },
+        {
+          "id": "process",
+          "label": "Couvrir des processus métier complets (web, fichiers, intégrations…)",
+          "weights": {
+            "robot": 4,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "unsure",
+          "label": "Je ne sais pas encore — j'ai besoin d'être guidé",
+          "weights": {
+            "cypress": 1,
+            "robot": 1,
+            "playwright": 1,
+            "postman": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "authors",
+      "title": "Qui écrit les tests ?",
+      "question": "Qui rédigera et maintiendra les scénarios de test ?",
+      "hint": "Il n'y a pas de mauvaise réponse — cela aide à cibler le bon niveau de simplicité.",
+      "options": [
+        {
+          "id": "functional",
+          "label": "Des testeurs métier / fonctionnels (peu à l'aise avec le code)",
+          "weights": {
+            "robot": 4,
+            "postman": 2,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "qa",
+          "label": "Des QA avec quelques bases techniques",
+          "weights": {
+            "cypress": 4,
+            "postman": 3,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "dev",
+          "label": "Des développeurs ou profils très techniques",
+          "weights": {
+            "playwright": 4,
+            "cypress": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "descriptionStyle",
+      "title": "Style de description",
+      "question": "Comment préférez-vous décrire vos tests ?",
+      "options": [
+        {
+          "id": "gherkin",
+          "label": "En langage métier (ex. « étant donné / quand / alors »)",
+          "weights": {
+            "robot": 4,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "record",
+          "label": "En enregistrant mes actions dans le navigateur",
+          "weights": {
+            "cypress": 5
+          }
+        },
+        {
+          "id": "script",
+          "label": "En écrivant des scripts plus techniques",
+          "weights": {
+            "playwright": 4,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "forms",
+          "label": "Via des formulaires ou collections simples",
+          "weights": {
+            "postman": 4,
+            "robot": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "browsers",
+      "title": "Navigateurs",
+      "question": "Sur quels navigateurs devez-vous tester ?",
+      "options": [
+        {
+          "id": "single",
+          "label": "Un seul navigateur (Chrome ou Edge) suffit",
+          "weights": {
+            "cypress": 4
+          }
+        },
+        {
+          "id": "multi",
+          "label": "Plusieurs navigateurs (Chrome, Firefox, Safari…)",
+          "weights": {
+            "playwright": 5
+          }
+        },
+        {
+          "id": "none",
+          "label": "Pas de navigateur — uniquement des API",
+          "weights": {
+            "postman": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "jiraLink",
+      "title": "Lien JIRA / Xray",
+      "question": "Vos tests doivent-ils être reliés aux tickets JIRA / Xray ?",
+      "options": [
+        {
+          "id": "required",
+          "label": "Oui, c'est indispensable pour notre squad",
+          "weights": {
+            "cypress": 5,
+            "robot": 3
+          }
+        },
+        {
+          "id": "nice",
+          "label": "C'est un plus mais pas obligatoire",
+          "weights": {
+            "cypress": 2,
+            "robot": 2,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "no",
+          "label": "Non, pas pour l'instant",
+          "weights": {
+            "postman": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "volume",
+      "title": "Volume de tests",
+      "question": "Quel volume de tests anticipez-vous ?",
+      "options": [
+        {
+          "id": "smoke",
+          "label": "Quelques tests de fumée / contrôles rapides",
+          "weights": {
+            "postman": 3,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "medium",
+          "label": "Une campagne moyenne (dizaines de scénarios)",
+          "weights": {
+            "cypress": 4,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "large",
+          "label": "Un large référentiel de régression",
+          "weights": {
+            "playwright": 4,
+            "robot": 3,
+            "cypress": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "cicd",
+      "title": "Exécution automatique",
+      "question": "Les tests seront-ils exécutés souvent en chaîne d'intégration (CI/CD) ?",
+      "options": [
+        {
+          "id": "often",
+          "label": "Oui, automatiquement à chaque livraison",
+          "weights": {
+            "playwright": 4,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "sometimes",
+          "label": "Occasionnellement",
+          "weights": {
+            "cypress": 3,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "manual",
+          "label": "Principalement à la demande / manuellement",
+          "weights": {
+            "postman": 2,
+            "robot": 2,
+            "cypress": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "mobile",
+      "title": "Mobile / tablette",
+      "question": "Avez-vous besoin de tester sur mobile ou tablette ?",
+      "options": [
+        {
+          "id": "yes",
+          "label": "Oui",
+          "weights": {
+            "playwright": 4,
+            "robot": 2
+          }
+        },
+        {
+          "id": "no",
+          "label": "Non",
+          "weights": {
+            "cypress": 2,
+            "playwright": 1
+          }
+        },
+        {
+          "id": "na",
+          "label": "Sans objet (tests API uniquement)",
+          "weights": {
+            "postman": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "reporting",
+      "title": "Rapports",
+      "question": "Quel niveau de rapport attendez-vous pour les parties prenantes ?",
+      "options": [
+        {
+          "id": "visual",
+          "label": "Rapports visuels avec captures d'écran à chaque étape",
+          "weights": {
+            "cypress": 4,
+            "playwright": 3
+          }
+        },
+        {
+          "id": "summary",
+          "label": "Rapports synthétiques passé / échoué",
+          "weights": {
+            "robot": 3,
+            "postman": 2
+          }
+        },
+        {
+          "id": "any",
+          "label": "Peu importe",
+          "weights": {}
+        }
+      ]
+    },
+    {
+      "id": "teamSkills",
+      "title": "Compétences existantes",
+      "question": "Votre équipe a-t-elle déjà une compétence particulière ?",
+      "options": [
+        {
+          "id": "python",
+          "label": "Python",
+          "weights": {
+            "robot": 5
+          }
+        },
+        {
+          "id": "js",
+          "label": "JavaScript / TypeScript",
+          "weights": {
+            "cypress": 4,
+            "playwright": 4
+          }
+        },
+        {
+          "id": "none",
+          "label": "Aucune préférence — à définir ensemble",
+          "weights": {
+            "cypress": 1,
+            "postman": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "apiMix",
+      "title": "API et interface",
+      "question": "Votre application combine-t-elle interface web et appels API ?",
+      "options": [
+        {
+          "id": "both",
+          "label": "Oui, il faut tester l'UI et les API",
+          "weights": {
+            "cypress": 3,
+            "playwright": 2,
+            "postman": 2
+          }
+        },
+        {
+          "id": "ui",
+          "label": "Non, surtout l'interface utilisateur",
+          "weights": {
+            "cypress": 3,
+            "playwright": 3
+          }
+        },
+        {
+          "id": "apiOnly",
+          "label": "Uniquement des API / services backend",
+          "weights": {
+            "postman": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "simplicity",
+      "title": "Simplicité",
+      "question": "Quelle priorité accordez-vous à la simplicité de prise en main ?",
+      "options": [
+        {
+          "id": "high",
+          "label": "Très importante — je veux démarrer vite",
+          "weights": {
+            "cypress": 4,
+            "postman": 3
+          }
+        },
+        {
+          "id": "medium",
+          "label": "Moyenne — j'accepte un effort initial",
+          "weights": {
+            "cypress": 2,
+            "robot": 2,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "low",
+          "label": "Secondaire — la puissance prime",
+          "weights": {
+            "playwright": 3,
+            "robot": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "legacyUi",
+      "title": "Application existante",
+      "question": "Votre application comporte-t-elle des écrans anciens ou plusieurs technologies (legacy, iframe…) ?",
+      "hint": "Les interfaces complexes influencent le choix de l'outil web.",
+      "options": [
+        {
+          "id": "modern",
+          "label": "Application web moderne et homogène",
+          "weights": {
+            "cypress": 3,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "mixed",
+          "label": "Mélange d'écrans anciens et récents",
+          "weights": {
+            "playwright": 4,
+            "robot": 2
+          }
+        },
+        {
+          "id": "na",
+          "label": "Sans interface graphique",
+          "weights": {
+            "postman": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "collaboration",
+      "title": "Travail en équipe",
+      "question": "Plusieurs testeurs doivent-ils maintenir les mêmes scénarios ?",
+      "options": [
+        {
+          "id": "yes",
+          "label": "Oui, en équipe sur un référentiel commun",
+          "weights": {
+            "robot": 3,
+            "playwright": 2,
+            "cypress": 2
+          }
+        },
+        {
+          "id": "solo",
+          "label": "Non, surtout un référent QA principal",
+          "weights": {
+            "cypress": 3,
+            "postman": 2
+          }
+        },
+        {
+          "id": "unsure",
+          "label": "Pas encore défini",
+          "weights": {}
+        }
+      ]
+    },
+    {
+      "id": "perfLoad",
+      "title": "Performance",
+      "question": "Avez-vous besoin de contrôles de performance ou de temps de réponse ?",
+      "hint": "Cette question oriente le périmètre UI/API — pas les outils de charge dédiés.",
+      "options": [
+        {
+          "id": "no",
+          "label": "Non, pas dans ce projet",
+          "weights": {
+            "cypress": 1,
+            "playwright": 1
+          }
+        },
+        {
+          "id": "light",
+          "label": "Quelques contrôles de temps de réponse API",
+          "weights": {
+            "postman": 4,
+            "playwright": 2
+          }
+        },
+        {
+          "id": "yes",
+          "label": "Oui, campagne performance importante",
+          "weights": {
+            "playwright": 3,
+            "robot": 2
+          }
+        }
+      ]
+    }
+  ]
+}

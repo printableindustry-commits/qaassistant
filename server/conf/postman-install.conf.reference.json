@@ -1,0 +1,45 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — commandes assistant « Initialiser Postman / Newman »
+  // Copié vers .wizard-qa/conf/postman-install.conf.json si absent.
+  // runner : scaffold | npm | npx
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Scaffold Postman puis installation Newman pour exécution CLI / CI.",
+  "projectDir": ".",
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:verify-debut
+  "verify": {
+    "id": "verify",
+    "label": "npx newman --version",
+    "runner": "npx",
+    "args": ["newman", "--version"]
+  },
+  // @wizard-qa:verify-fin
+
+  // @wizard-qa:commandes-debut
+  "steps": [
+    {
+      "id": "scaffold",
+      "label": "Création arborescence postman/ et fichiers modèles",
+      "runner": "scaffold",
+      "args": []
+    },
+    {
+      "id": "newman",
+      "label": "npm install -D newman@latest",
+      "runner": "npm",
+      "args": ["install", "-D", "newman@latest"]
+    },
+    {
+      "id": "htmlextra",
+      "label": "npm install -D newman-reporter-htmlextra@latest",
+      "runner": "npm",
+      "args": ["install", "-D", "newman-reporter-htmlextra@latest"]
+    }
+  ]
+  // @wizard-qa:commandes-fin
+}

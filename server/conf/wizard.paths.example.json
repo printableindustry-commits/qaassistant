@@ -1,0 +1,15 @@
+{
+  "scriptsDir": "00_Scripts_Implementation",
+  "repairDir": "00_Scripts_Implementation/01_reparation-poste-travail",
+  "docQaDir": "00_Scripts_Implementation/02_documentation-qa",
+  "hookDir": "0_Hook_Synchro_Ticket_Test_JIRA",
+  "docReportsDir": "2_Documentation/doc-reports",
+  "livrablesDir": "2_Documentation/Livrables",
+  "livrablesOverridesDir": "2_Documentation/Livrables/overrides",
+  "templateDir": "2_Documentation/Livrables/modele_livrable_CA-TS",
+  "localConfDir": ".wizard-qa/conf",
+  "legacyDefaultsFile": "00_Scripts_Implementation/00_portail-poste-travail/conf/wizard.defaults.json",
+  "repairConfFile": "repair.conf.json",
+  "hooksConfFile": "hooks.conf",
+  "npmrcDisplay": "%USERPROFILE%\\.npmrc"
+}

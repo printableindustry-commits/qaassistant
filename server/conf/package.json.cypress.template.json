@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "@cats-cdf/e2e": "^2.12.0",
+    "axios": "^1.7.7"
+  },
+  "cypress-cucumber-preprocessor": {
+    "json": {
+      "enabled": true,
+      "output": "cypress/cucumber-report/cucumber-report.json"
+    },
+    "stepDefinitions": [
+      "node_modules/@cats-cdf/e2e/dist/src/step-definitions/**/*.{js,ts}",
+      "my-step-definition/steps/**/*.ts",
+      "!my-step-definition/steps/poubelle.ts"
+    ]
+  },
+  "scripts": {
+    "start": "cypress open",
+    "cypress-run": "cypress run --headless"
+  },
+  "devDependencies": {
+    "cypress": "^14.0.3",
+    "cypress-axe": "^1.7.0",
+    "cypress-real-events": "^1.15.0",
+    "sharp": "^0.33.5"
+  },
+  "volta": {
+    "node": "22.12.0"
+  }
+}

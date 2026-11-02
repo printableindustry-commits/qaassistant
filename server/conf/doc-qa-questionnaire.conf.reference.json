@@ -1,0 +1,152 @@
+{
+  "version": "1.0.0",
+  "description": "Questionnaire Documentation QA — champs libres et choix guidés pour pré-remplir les livrables Word.",
+  "sections": [
+    {
+      "id": "campagne",
+      "title": "Campagne et version",
+      "fields": [
+        {
+          "id": "releaseLabel",
+          "type": "text",
+          "label": "Libellé de la release / lot documenté",
+          "hint": "Ex. Lot 1 MVP, RC2 sprint 14, hotfix sécurité mars 2026",
+          "required": true,
+          "placeholder": "Lot 1 — recette fonctionnelle"
+        },
+        {
+          "id": "versionTestee",
+          "type": "text",
+          "label": "Version ou build testée",
+          "hint": "Numéro applicatif, tag Git ou build CI réellement validé",
+          "required": true,
+          "placeholder": "3.2.0-rc2 (build 1847)"
+        },
+        {
+          "id": "environnements",
+          "type": "text",
+          "label": "Environnements de test",
+          "hint": "Recette, préproduction, isolation données…",
+          "required": true,
+          "placeholder": "RECETTE-SEC / PREPROD-SEC"
+        },
+        {
+          "id": "docScope",
+          "type": "choice",
+          "label": "Périmètre du pack documentaire",
+          "question": "Quels livrables devez-vous produire pour cette campagne ?",
+          "required": true,
+          "options": [
+            { "id": "full", "label": "Pack complet 00 à 12 (recette formelle)" },
+            { "id": "core", "label": "Noyau 01, 02, 03, 06, 09 (stratégie, exigences, traçabilité, campagne, PV)" },
+            { "id": "automation", "label": "Focus automatisation 04, 05, 08, 11, 12" },
+            { "id": "subset", "label": "Sous-ensemble précisé dans les notes ci-dessous" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sources",
+      "title": "Sources métier et traçabilité",
+      "fields": [
+        {
+          "id": "specReference",
+          "type": "text",
+          "label": "Référence DDF / cahier des charges / wiki",
+          "required": true,
+          "placeholder": "DDF_Application_v1.4 — Wiki fonctionnel"
+        },
+        {
+          "id": "jiraScope",
+          "type": "text",
+          "label": "Périmètre JIRA / Xray (plans, epics, filtres)",
+          "placeholder": "EPIC SEC-100, plan Xray SEC-RC-2026-Q2"
+        },
+        {
+          "id": "traceabilityRule",
+          "type": "choice",
+          "label": "Niveau de traçabilité attendu",
+          "question": "Quelle granularité de lien exigences → tests → résultats ?",
+          "required": true,
+          "options": [
+            { "id": "strict", "label": "Strict — chaque exigence critique reliée à au moins un test et un résultat" },
+            { "id": "standard", "label": "Standard — matrice consolidée, écarts justifiés" },
+            { "id": "light", "label": "Allégé — focus PV et campagne, matrice simplifiée" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strategie",
+      "title": "Stratégie QA et outils",
+      "fields": [
+        {
+          "id": "testApproach",
+          "type": "choice",
+          "label": "Approche de test dominante",
+          "question": "Comment la campagne combine-t-elle manuel, auto et API ?",
+          "required": true,
+          "options": [
+            { "id": "auto_first", "label": "Automatisation E2E/BDD en premier, manuel pour zones instables" },
+            { "id": "balanced", "label": "Équilibre manuel / automatisation selon criticité" },
+            { "id": "manual_first", "label": "Recette manuelle dominante, automatisation ciblée smoke" },
+            { "id": "api_heavy", "label": "Fort volume API / contrats, IHM complémentaire" }
+          ]
+        },
+        {
+          "id": "stackDetail",
+          "type": "text",
+          "label": "Stack de test (détail)",
+          "hint": "Complète la recommandation stack de la prise de connaissance si besoin",
+          "placeholder": "Playwright + Gherkin, JIRA/Xray, GitLab CI, Postman, Allure"
+        },
+        {
+          "id": "reportingExpectation",
+          "type": "choice",
+          "label": "Reporting et preuves",
+          "question": "Quelles preuves d'exécution sont exigées pour le PV ?",
+          "required": true,
+          "options": [
+            { "id": "xray_ci", "label": "Export campagne Xray/JIRA + artefacts CI (rapports, traces)" },
+            { "id": "ci_only", "label": "Pipeline CI + captures en cas d'échec" },
+            { "id": "manual_log", "label": "Compte-rendu manuel structuré + captures" },
+            { "id": "mixed", "label": "Mix selon le type de test (préciser en notes)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contenu",
+      "title": "Contenu attendu des livrables",
+      "fields": [
+        {
+          "id": "businessDomains",
+          "type": "textarea",
+          "label": "Domaines fonctionnels couverts",
+          "hint": "Lister les modules ou parcours métier à documenter (1 par ligne ou phrases courtes)",
+          "required": true,
+          "placeholder": "Inventaire actifs, scoring CVSS, workflow remédiation, tableaux de bord RSSI…"
+        },
+        {
+          "id": "criticalRisks",
+          "type": "textarea",
+          "label": "Risques QA majeurs à mentionner",
+          "placeholder": "Données instables, dépendance scanner externe, habilitations SOC…"
+        },
+        {
+          "id": "knownReserves",
+          "type": "textarea",
+          "label": "Réserves ou hors périmètre connus",
+          "placeholder": "Tests de charge exclus, module legacy non livré…"
+        },
+        {
+          "id": "additionalNotes",
+          "type": "textarea",
+          "label": "Notes pour l'agent IA / le rédacteur",
+          "hint": "Ton, public lecteur, contraintes de format, documents prioritaires",
+          "placeholder": "Prioriser 01 et 03 avant comité du 20/06 ; vocabulaire RSSI ; exemple VulnGuard en référence de niveau de détail"
+        }
+      ]
+    }
+  ]
+}

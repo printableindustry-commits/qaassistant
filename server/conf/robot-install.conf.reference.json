@@ -1,0 +1,58 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — commandes de l'assistant « Installer Robot Framework »
+  // Copié vers .wizard-qa/conf/robot-install.conf.json si absent.
+  // runner : pip | python | robot — modifiez label et args pour adapter
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Installation Robot Framework via pip (Python 3.10+ recommandé).",
+  "projectDir": ".",
+  "pythonMinMajor": 3,
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:verify-debut — contrôle final après les étapes pip
+  "verify": {
+    "id": "verify",
+    "label": "robot --version",
+    "runner": "robot",
+    "args": ["--version"]
+  },
+  // @wizard-qa:verify-fin
+
+  // @wizard-qa:commandes-debut
+  "steps": [
+    {
+      "id": "pipUpgrade",
+      "label": "python -m pip install --upgrade pip",
+      "runner": "pip",
+      "args": ["install", "--upgrade", "pip"]
+    },
+    {
+      "id": "robotCore",
+      "label": "pip install robotframework==7.1.1",
+      "runner": "pip",
+      "args": ["install", "robotframework==7.1.1"]
+    },
+    {
+      "id": "seleniumLib",
+      "label": "pip install robotframework-seleniumlibrary==6.6.1",
+      "runner": "pip",
+      "args": ["install", "robotframework-seleniumlibrary==6.6.1"]
+    },
+    {
+      "id": "requestsLib",
+      "label": "pip install robotframework-requests==0.9.7",
+      "runner": "pip",
+      "args": ["install", "robotframework-requests==0.9.7"]
+    },
+    {
+      "id": "pyyaml",
+      "label": "pip install PyYAML==6.0.2",
+      "runner": "pip",
+      "args": ["install", "PyYAML==6.0.2"]
+    }
+  ]
+  // @wizard-qa:commandes-fin
+}

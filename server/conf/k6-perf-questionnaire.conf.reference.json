@@ -1,0 +1,25 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — questionnaire wizard k6 (tests de performance)
+  // Copié vers .wizard-qa/conf/k6-perf-questionnaire.conf.json si absent.
+  // Chaque question = une étape du wizard. Types : single | multi | text | number | url | textarea | lines
+  // ===========================================================================
+
+  "version": 1,
+  "description": "Questionnaire complet k6 — modifiez .wizard-qa/conf/k6-perf-questionnaire.conf.json.",
+
+  "sections": [
+    { "id": "contexte", "title": "Contexte & objectifs", "order": 1 },
+    { "id": "cible", "title": "Cible & périmètre", "order": 2 },
+    { "id": "charge", "title": "Profil de charge", "order": 3 },
+    { "id": "seuils", "title": "Seuils & SLA", "order": 4 },
+    { "id": "auth", "title": "Authentification", "order": 5 },
+    { "id": "donnees", "title": "Données & scénarios", "order": 6 },
+    { "id": "reseau", "title": "Réseau & sécurité", "order": 7 },
+    { "id": "reporting", "title": "Reporting & observabilité", "order": 8 },
+    { "id": "cicd", "title": "CI/CD & planification", "order": 9 },
+    { "id": "gouvernance", "title": "Gouvernance & risques", "order": 10 }
+  ],
+
+  "questions": []
+}

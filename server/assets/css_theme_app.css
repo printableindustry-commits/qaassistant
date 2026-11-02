@@ -1,0 +1,1316 @@
+/* =============================================================================
+ * css_theme_app.css — THÈME UNIQUE EXTENSION VS CODE (webview embed)
+ * =============================================================================
+ * Source de vérité pour tout le rendu en mode embed (html.vscode-app).
+ *
+ * RÈGLES :
+ * - Ne PAS ajouter de règles html.vscode-app dans home-hub.css ni theme.css
+ * - Modifier UNIQUEMENT ce fichier pour titres, boutons, tuiles, footer, etc.
+ * - Ordre de chargement : theme.css → home-hub.css → css_theme_app.css (priorité max)
+ * ============================================================================= */
+
+html.vscode-app {
+  --wizard-bg: #eef1f3;
+  --wizard-surface: #ffffff;
+  --wizard-border: #d4dbe0;
+  --wizard-text: #1f2d32;
+  --wizard-muted: #5b6770;
+  --cats-green: #007d4f;
+  --cats-green-dark: #005a3a;
+  --qa-teal: #009597;
+  --qa-blue: #0070C0;
+  --qa-blue-dark: #005a99;
+  --brand-gradient: linear-gradient(135deg, #007d4f 0%, #009597 52%, #0070C0 100%);
+  --brand-gradient-h: linear-gradient(90deg, #007d4f 0%, #009597 50%, #0070C0 100%);
+  --bg: var(--wizard-bg);
+  --surface: var(--wizard-surface);
+  --surface2: #f7f9fa;
+  --border: var(--wizard-border);
+  --text: var(--wizard-text);
+  --muted: var(--wizard-muted);
+  --green: var(--cats-green);
+  --green-dark: var(--cats-green-dark);
+  --teal: var(--qa-teal);
+  --teal-light: #e6f5f5;
+  --ok: var(--cats-green);
+  --err: #c0392b;
+  --shadow: 0 2px 10px rgba(31, 45, 50, 0.06);
+  --shadow-hover: 0 6px 20px rgba(31, 45, 50, 0.1);
+  --radius: 8px;
+  --radius-sm: 6px;
+  --transition-fast: 0.18s ease;
+  --transition-smooth: 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.vscode-app {
+  height: auto;
+  min-height: 100%;
+}
+
+html.vscode-app body {
+  background: var(--wizard-bg) !important;
+  background-image: none !important;
+  color: var(--wizard-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0 !important;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html.embed-mode body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html.vscode-app .wrap,
+html.vscode-app .wrap-home,
+html.embed-mode .wrap,
+html.embed-mode .wrap-home {
+  flex: 1 1 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+html.embed-mode .wizard-brand-bar,
+html.vscode-app .wizard-brand-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  margin: 0 0 16px;
+  background: var(--wizard-surface);
+  border-bottom: 1px solid var(--wizard-border);
+  position: relative;
+}
+
+html.embed-mode .wizard-brand-bar::after,
+html.vscode-app .wizard-brand-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--brand-gradient-h);
+  opacity: 0.85;
+}
+
+html.vscode-app .wizard-brand-spacer {
+  flex: 1;
+}
+
+html.vscode-app .wizard-logo-cats {
+  height: 40px;
+  width: auto;
+  max-width: min(420px, 55vw);
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
+html.vscode-app .wizard-logo-qa {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+html.vscode-app .wrap,
+html.vscode-app .wrap-home {
+  max-width: none;
+  padding: 0 20px;
+}
+
+html.vscode-app .site-header,
+html.vscode-app .breadcrumb {
+  display: none !important;
+}
+
+html.vscode-app .card,
+html.vscode-app .wizard-unified-panel,
+html.vscode-app .dashboard-compact,
+html.vscode-app .site-header-compact {
+  background: var(--wizard-surface);
+  border: 1px solid var(--wizard-border);
+  box-shadow: none;
+  border-radius: var(--radius);
+}
+
+html.vscode-app .wizard-toolbar-portail {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--wizard-surface);
+  border: 1px solid var(--wizard-border);
+  border-radius: var(--radius);
+  box-shadow: none;
+  margin-bottom: 12px;
+}
+
+html.vscode-app h1 {
+  color: var(--cats-green);
+  font-size: 1.28rem;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+html.vscode-app h2,
+html.vscode-app .form-section-title {
+  color: var(--cats-green);
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+html.vscode-app .hint,
+html.vscode-app .step-msg {
+  color: var(--wizard-muted);
+}
+
+html.vscode-app .btn-primary {
+  border: 1px solid #008a8c;
+  background: var(--qa-teal, #009597);
+  background-image: none;
+  color: #fff;
+  min-height: 28px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  box-shadow: 0 1px 4px rgba(0, 149, 151, 0.28);
+  transition: background var(--transition-fast), box-shadow var(--transition-smooth), border-color var(--transition-fast);
+}
+
+html.vscode-app .btn-primary:hover:not(:disabled) {
+  background: #008285;
+  box-shadow: 0 2px 8px rgba(0, 149, 151, 0.35);
+  filter: none;
+}
+
+html.vscode-app .btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+html.vscode-app .btn-secondary:not(.btn-hub-home) {
+  background: #fff;
+  color: var(--wizard-muted, #5b6770);
+  border: 1px solid var(--wizard-border, #c5cdd3);
+  min-height: 28px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color var(--transition-smooth), color var(--transition-smooth), background var(--transition-fast);
+}
+
+html.vscode-app .btn-secondary:not(.btn-hub-home):hover:not(:disabled) {
+  border-color: #008a8c;
+  color: var(--qa-teal, #009597);
+  background: rgba(0, 149, 151, 0.06);
+}
+
+html.vscode-app input[type="text"],
+html.vscode-app input[type="password"],
+html.vscode-app input[type="email"],
+html.vscode-app input[type="number"],
+html.vscode-app textarea,
+html.vscode-app select {
+  background: var(--wizard-surface);
+  color: var(--wizard-text);
+  border: 1px solid var(--wizard-border);
+  border-radius: var(--radius-sm);
+}
+
+html.vscode-app input:focus,
+html.vscode-app textarea:focus,
+html.vscode-app select:focus {
+  outline: 2px solid var(--qa-teal);
+  outline-offset: 0;
+  border-color: var(--qa-teal);
+}
+
+html.vscode-app .status.ok {
+  background: #e8f5ef;
+  border-color: var(--cats-green);
+  color: var(--wizard-text);
+}
+
+html.vscode-app .status.err {
+  background: #fdecea;
+  border-color: var(--err);
+  color: var(--err);
+}
+
+html.vscode-app .step-card {
+  background: var(--wizard-surface);
+  border: 1px solid var(--wizard-border);
+  box-shadow: none;
+}
+
+html.vscode-app .step-card:hover {
+  border-color: var(--qa-teal);
+  box-shadow: none;
+}
+
+html.vscode-app .tab.active {
+  background: var(--cats-green);
+  color: #fff;
+  border-color: var(--cats-green);
+}
+
+html.vscode-app .tab {
+  background: var(--wizard-surface);
+  color: var(--wizard-text);
+  border: 1px solid var(--wizard-border);
+}
+
+html.vscode-app code,
+html.vscode-app .page-status-path {
+  background: #e8ecef;
+  color: var(--wizard-text);
+  border-radius: 3px;
+}
+
+html.vscode-app .progress-track {
+  background: #dde3e7;
+}
+
+html.vscode-app .progress-fill {
+  background: var(--brand-gradient-h);
+  background-size: 200% 100%;
+}
+
+html.vscode-app .tribu-label {
+  display: none !important;
+}
+
+html.embed-mode .wizard-footer,
+html.vscode-app .wizard-footer {
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: auto;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px 11px;
+  min-height: 40px;
+  background: var(--wizard-surface);
+  border-top: 1px solid var(--wizard-border);
+  box-shadow: 0 -1px 4px rgba(31, 45, 50, 0.06);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: visible;
+}
+
+html.embed-mode .wizard-footer-version,
+html.vscode-app .wizard-footer-version {
+  order: 1;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  overflow: visible;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--wizard-text, #1f2d32);
+  white-space: nowrap;
+  text-align: left;
+  line-height: 1.3;
+}
+
+html.embed-mode .wizard-footer-label,
+html.vscode-app .wizard-footer-label {
+  order: 2;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--qa-blue);
+  text-align: right;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+}
+
+@media (max-width: 520px) {
+  html.embed-mode .wizard-footer,
+  html.vscode-app .wizard-footer {
+    gap: 10px;
+    padding: 8px 12px 9px;
+  }
+
+  html.embed-mode .wizard-footer-label,
+  html.vscode-app .wizard-footer-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.01em;
+  }
+}
+
+html.vscode-app details,
+html.vscode-app .help-collapsible {
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .doc-qa-vars-table th,
+html.vscode-app .doc-qa-vars-table td {
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .doc-livrables-link:hover {
+  background: var(--surface2);
+}
+
+html.vscode-app .previewBox,
+html.vscode-app .doc-preview,
+html.vscode-app .hooks-conf-preview {
+  background: #f7f9fa;
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .page-status-bar {
+  background: var(--wizard-surface);
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .badge-ok,
+html.vscode-app .step-badge.badge-ok {
+  background: var(--cats-green);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  html.vscode-app .wizard-brand-bar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  html.vscode-app .wizard-logo-cats {
+    height: 32px;
+    max-width: 100%;
+  }
+
+  html.vscode-app .wizard-logo-qa {
+    height: 28px;
+  }
+
+  html.vscode-app .wizard-brand-spacer {
+    display: none;
+  }
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr);
+}
+
+html.vscode-app .hub-tile--dry-run {
+  border-color: rgba(0, 112, 192, 0.35);
+}
+
+html.vscode-app .hub-tile--dry-run .hub-tile-badge.ok {
+  background: #e8f4fd;
+  color: #0070C0;
+}
+
+html.vscode-app .hub-version-badge {
+  font-size: 0.58rem;
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 0.95fr) 22px minmax(0, 1fr);
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr);
+}
+
+html.vscode-app .hub-tile--dry-run {
+  border-color: rgba(0, 112, 192, 0.35);
+}
+
+html.vscode-app .hub-tile--dry-run .hub-tile-badge.ok {
+  background: #e8f4fd;
+  color: #0070C0;
+}
+
+html.vscode-app .hub-version-badge {
+  font-size: 0.58rem;
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 0.95fr) 22px minmax(0, 1fr);
+}
+
+html.vscode-app.page-home .wrap-home {
+  padding: 0 12px;
+}
+
+html.vscode-app .wizard-brand-bar {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+html.vscode-app .wizard-logo-cats {
+  height: 30px;
+}
+
+html.vscode-app .wizard-logo-qa {
+  height: 26px;
+}
+
+html.vscode-app body.page-home {
+  padding-bottom: 36px !important;
+}
+
+html.vscode-app .hub-hero--compact {
+  margin-bottom: 6px;
+  padding: 10px 12px 10px 18px;
+}
+
+html.vscode-app .hub-hero--compact::before {
+  top: 8px;
+  bottom: 8px;
+}
+
+html.vscode-app .hub-hero--compact h1 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+html.vscode-app .hub-hero-head {
+  gap: 10px;
+}
+
+html.vscode-app .hub-hero-meta--compact {
+  margin-top: 6px;
+  gap: 4px 6px;
+  font-size: 0.68rem;
+}
+
+html.vscode-app .hub-hero-meta--compact span {
+  padding: 2px 7px;
+}
+
+html.vscode-app .hub-hero-note--compact {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+html.vscode-app .hub-hero-lead--compact {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+html.vscode-app .hub-toolbar {
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  gap: 6px;
+}
+
+html.vscode-app .hub-toolbar .home-wizard-label {
+  font-size: 0.72rem;
+}
+
+html.vscode-app .hub-toolbar .chk-inline,
+html.vscode-app .hub-toolbar #applyAll {
+  display: none;
+}
+
+html.vscode-app .hub-toolbar .btn-sm {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+html.vscode-app #homeStatus:empty,
+html.vscode-app #homeStatus[style*="display: none"],
+html.vscode-app #homeStatus:not(.ok):not(.err) {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.vscode-app .hub-section--dense {
+  margin-bottom: 8px;
+}
+
+html.vscode-app .hub-section--dense .hub-section-head {
+  margin-bottom: 5px;
+}
+
+html.vscode-app .hub-section--dense .hub-section-head h2 {
+  font-size: 0.78rem;
+}
+
+html.vscode-app .hub-tiles--dense {
+  gap: 6px;
+}
+
+html.vscode-app .hub-tiles--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html.vscode-app .hub-tile {
+  min-height: 108px;
+  padding: 8px 9px;
+}
+
+html.vscode-app .hub-tile-top {
+  margin-bottom: 4px;
+}
+
+html.vscode-app .hub-tile-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+html.vscode-app .hub-tile-badge {
+  padding: 2px 6px;
+  font-size: 0.6rem;
+}
+
+html.vscode-app .hub-tile-title {
+  font-size: 0.8rem;
+  margin-bottom: 1px;
+}
+
+html.vscode-app .hub-tile-msg {
+  margin-bottom: 4px;
+  font-size: 0.66rem;
+  -webkit-line-clamp: 1;
+}
+
+html.vscode-app .hub-tile-lock {
+  margin-bottom: 4px;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+html.vscode-app .hub-tile-actions .hub-tile-link:nth-child(n+3) {
+  display: none;
+}
+
+html.vscode-app .hub-tile--hook-git {
+  min-height: 118px;
+}
+
+html.vscode-app .hub-tile--hook-git .hub-tile-actions .hub-tile-link {
+  display: block;
+  flex: 1 1 calc(50% - 3px);
+  font-size: 0.6rem;
+  padding: 3px 4px;
+}
+
+html.vscode-app .hub-tile--sync-jira {
+  min-height: 132px;
+  padding: 9px 10px 8px;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-title {
+  font-size: 0.76rem;
+  line-height: 1.22;
+  margin-bottom: 5px;
+  display: block;
+  overflow: visible;
+  color: var(--cats-green, #007d4f);
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-msg {
+  font-size: 0.64rem;
+  line-height: 1.42;
+  -webkit-line-clamp: 4;
+  margin-bottom: 4px;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-status-hint {
+  font-size: 0.58rem;
+  line-height: 1.3;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-lock {
+  font-size: 0.58rem;
+  line-height: 1.35;
+  margin-bottom: 0;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-actions {
+  display: none;
+}
+
+html.vscode-app .hub-tile-pair {
+  margin-top: 0;
+  padding-top: 6px;
+  gap: 6px;
+  grid-template-columns: minmax(0, 0.92fr) 20px minmax(0, 1.08fr);
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr);
+}
+
+html.vscode-app .hub-tile--dry-run {
+  border-color: rgba(0, 112, 192, 0.35);
+}
+
+html.vscode-app .hub-tile--dry-run .hub-tile-badge.ok {
+  background: #e8f4fd;
+  color: #0070C0;
+}
+
+html.vscode-app .hub-version-badge {
+  font-size: 0.58rem;
+}
+
+html.vscode-app .hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 0.95fr) 22px minmax(0, 1fr);
+}
+
+html.vscode-app.page-home .wrap-home {
+  padding: 0 12px;
+}
+
+html.vscode-app .wizard-brand-bar {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+html.vscode-app .wizard-logo-cats {
+  height: 30px;
+}
+
+html.vscode-app .wizard-logo-qa {
+  height: 26px;
+}
+
+html.vscode-app body.page-home {
+  padding-bottom: 36px !important;
+}
+
+html.vscode-app .hub-hero--compact {
+  margin-bottom: 6px;
+  padding: 10px 12px 10px 18px;
+}
+
+html.vscode-app .hub-hero--compact::before {
+  top: 8px;
+  bottom: 8px;
+}
+
+html.vscode-app .hub-hero--compact h1 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+html.vscode-app .hub-hero-head {
+  gap: 10px;
+}
+
+html.vscode-app .hub-hero-meta--compact {
+  margin-top: 6px;
+  gap: 4px 6px;
+  font-size: 0.68rem;
+}
+
+html.vscode-app .hub-hero-meta--compact span {
+  padding: 2px 7px;
+}
+
+html.vscode-app .hub-hero-note--compact {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+html.vscode-app .hub-hero-lead--compact {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+html.vscode-app .hub-toolbar {
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  gap: 6px;
+}
+
+html.vscode-app .hub-toolbar .home-wizard-label {
+  font-size: 0.72rem;
+}
+
+html.vscode-app .hub-toolbar .chk-inline,
+html.vscode-app .hub-toolbar #applyAll {
+  display: none;
+}
+
+html.vscode-app .hub-toolbar .btn-sm {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+html.vscode-app #homeStatus:empty,
+html.vscode-app #homeStatus[style*="display: none"],
+html.vscode-app #homeStatus:not(.ok):not(.err) {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.vscode-app .hub-section--dense {
+  margin-bottom: 8px;
+}
+
+html.vscode-app .hub-section--dense .hub-section-head {
+  margin-bottom: 5px;
+}
+
+html.vscode-app .hub-section--dense .hub-section-head h2 {
+  font-size: 0.78rem;
+}
+
+html.vscode-app .hub-tiles--dense {
+  gap: 6px;
+}
+
+html.vscode-app .hub-tiles--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html.vscode-app .hub-tile {
+  min-height: 108px;
+  padding: 8px 9px;
+}
+
+html.vscode-app .hub-tile-top {
+  margin-bottom: 4px;
+}
+
+html.vscode-app .hub-tile-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+html.vscode-app .hub-tile-badge {
+  padding: 2px 6px;
+  font-size: 0.6rem;
+}
+
+html.vscode-app .hub-tile-title {
+  font-size: 0.8rem;
+  margin-bottom: 1px;
+}
+
+html.vscode-app .hub-tile-msg {
+  margin-bottom: 4px;
+  font-size: 0.66rem;
+  -webkit-line-clamp: 1;
+}
+
+html.vscode-app .hub-tile-lock {
+  margin-bottom: 4px;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+html.vscode-app .hub-tile-actions .hub-tile-link:nth-child(n+3) {
+  display: none;
+}
+
+html.vscode-app .hub-tile--hook-git {
+  min-height: 118px;
+}
+
+html.vscode-app .hub-tile--hook-git .hub-tile-actions .hub-tile-link {
+  display: block;
+  flex: 1 1 calc(50% - 3px);
+  font-size: 0.6rem;
+  padding: 3px 4px;
+}
+
+html.vscode-app .hub-tile--sync-jira {
+  min-height: 132px;
+  padding: 9px 10px 8px;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-title {
+  font-size: 0.76rem;
+  line-height: 1.22;
+  margin-bottom: 5px;
+  display: block;
+  overflow: visible;
+  color: var(--cats-green, #007d4f);
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-msg {
+  font-size: 0.64rem;
+  line-height: 1.42;
+  -webkit-line-clamp: 4;
+  margin-bottom: 4px;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-status-hint {
+  font-size: 0.58rem;
+  line-height: 1.3;
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-lock {
+  font-size: 0.58rem;
+  line-height: 1.35;
+  margin-bottom: 0;
+}
+
+html.vscode-app .hub-tile--sync-jira .hub-tile-actions {
+  display: none;
+}
+
+html.vscode-app .hub-tile-pair {
+  margin-top: 0;
+  padding-top: 6px;
+  gap: 6px;
+  grid-template-columns: minmax(0, 0.92fr) 20px minmax(0, 1.08fr);
+}
+
+html.vscode-app .hub-tile-pair.hub-tile-pair--3,
+html.vscode-app.page-home .hub-tile-pair.hub-tile-pair--3 {
+  grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr);
+}
+
+html.vscode-app .hub-tile-link {
+  padding: 3px 5px;
+  font-size: 0.64rem;
+  line-height: 1.2;
+  flex: 1 1 calc(50% - 3px);
+}
+
+html.vscode-app .hub-tile-pair::before {
+  top: -7px;
+  left: 8px;
+  font-size: 0.58rem;
+  padding: 0 6px;
+}
+
+html.vscode-app .hub-tile-connector {
+  width: 22px;
+}
+
+html.vscode-app .hub-tile-connector-arrow {
+  font-size: 0.85rem;
+  margin-top: -8px;
+}
+
+html.vscode-app .hub-app .card,
+html.vscode-app .hub-onboarding-card,
+html.vscode-app .hub-toolbar,
+html.vscode-app .hub-hero {
+  background: var(--wizard-surface);
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .hub-hero--page {
+  margin-bottom: 8px;
+  padding: 10px 12px 10px 18px;
+}
+
+html.vscode-app .hub-hero--page h1 {
+  font-size: 1.05rem;
+}
+
+html.vscode-app .hub-hero--page .hub-hero-lead {
+  font-size: 0.75rem;
+}
+
+html.vscode-app .hub-hero-page-logo img {
+  width: 40px;
+  height: 40px;
+}
+
+html.vscode-app .k6-wizard-field {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--wizard-border);
+}
+
+html.vscode-app .k6-wizard-field-caption {
+  color: var(--wizard-muted, #9aa5ad);
+}
+
+html.vscode-app .k6-wizard-input,
+html.vscode-app .k6-wizard-textarea {
+  background: var(--wizard-surface-raised, #1e1e1e);
+  border-color: var(--wizard-border);
+  color: var(--wizard-text);
+}
+
+html.vscode-app .hub-app .page-status-bar {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  box-shadow: none;
+}
+
+html.vscode-app .hub-app .card {
+  margin-bottom: 8px;
+  box-shadow: none;
+}
+
+html.vscode-app .hub-app .card-compact {
+  padding: 12px 14px;
+}
+
+html.vscode-app .page-npmrc .npmrc-artifactory-guide {
+  padding: 10px 12px;
+}
+
+html.vscode-app .page-npmrc .npmrc-token-steps {
+  font-size: 0.72rem;
+}
+
+html.vscode-app .hub-page-actions .btn-sm {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+html.vscode-app .hub-app .wrap {
+  max-width: none;
+  padding: 0 12px;
+}
+
+html.vscode-app .page-hook-compact .wrap {
+  padding: 0 8px;
+}
+
+html.vscode-app .page-hook-compact .hub-hero--page-sm {
+  margin-bottom: 6px;
+  padding: 8px 10px 8px 14px;
+}
+
+html.vscode-app .page-npmrc-compact .wrap {
+  padding: 0 10px;
+}
+
+html.vscode-app .page-npmrc-compact .npmrc-artifactory-logo {
+  height: 32px;
+}
+
+html.vscode-app .page-npmrc-compact .npmrc-token-steps {
+  font-size: 0.68rem;
+  margin: 6px 0 0;
+  padding-left: 1.1rem;
+}
+
+html.vscode-app .stack-quiz-flow .stack-quiz-card {
+  padding: 12px 14px;
+}
+
+html.vscode-app .stack-quiz-progress-wrap {
+  margin-bottom: 10px;
+}
+
+html.vscode-app .stack-quiz-progress-wrap .hub-progress-track {
+  height: 8px;
+}
+
+html.vscode-app .stack-quiz-option {
+  font-size: 0.78rem;
+  padding: 8px 10px;
+}
+
+html.vscode-app .stack-quiz-actions .btn-sm {
+  font-size: 0.72rem;
+  padding: 6px 12px;
+}
+
+html.vscode-app .hub-chart-grid {
+  grid-template-columns: 1fr;
+}
+
+html.vscode-app .hub-stack-winner {
+  padding: 12px;
+}
+
+html.vscode-app .hub-rank-row {
+  grid-template-columns: 22px 1fr minmax(60px, 100px) 40px;
+  font-size: 0.78rem;
+}
+
+html.vscode-app .hub-config-file-meta {
+  grid-template-columns: 1fr;
+}
+
+html.vscode-app .hub-hero-head-actions--stacked {
+  min-width: 148px;
+}
+
+html.vscode-app.page-home .hub-section--config .hub-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.vscode-app.page-home .hub-section--stacks .hub-tiles,
+html.vscode-app.page-home .hub-section--stacks .hub-tiles--stacks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.vscode-app .hub-npm-pyramid-top {
+  width: min(100%, 240px);
+}
+
+html.vscode-app .hub-npm-pyramid-bottom {
+  width: 100%;
+  gap: 8px;
+}
+
+html.vscode-app .hub-npm-pyramid-svg {
+  height: 28px;
+}
+
+html.vscode-app.page-home .hub-tile-title {
+  font-size: 0.82rem;
+}
+
+html.vscode-app.page-home .hub-tile-msg {
+  font-size: 0.65rem;
+}
+
+html.vscode-app.page-home .hub-tile-badge,
+html.vscode-app.page-home .hub-tile-rec-badge {
+  font-size: 0.62rem;
+  padding: 2px 8px;
+}
+
+/* Wiki — blocs <pre class="wiki-code"> : fond sombre (évite texte clair sur fond clair) */
+html.vscode-app pre.wiki-code {
+  background: #0d1117 !important;
+  color: #e6edf3 !important;
+  border: 1px solid #30363d !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html.vscode-app pre.wiki-code code {
+  background: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  box-shadow: none;
+}
+
+/* Wiki — code inline dans le corps (hors blocs pre) */
+html.vscode-app .wiki-section-body :not(pre) > code,
+html.vscode-app .wiki-callout code,
+html.vscode-app .wiki-table code {
+  background: #eef2f5 !important;
+  color: #14202a !important;
+  border: 1px solid rgba(20, 32, 42, 0.12);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+html.vscode-app .wiki-layout {
+  grid-template-columns: 168px 1fr;
+  gap: 8px;
+}
+
+html.vscode-app .wiki-sidebar {
+  position: sticky;
+  top: 4px;
+  max-height: calc(100vh - 80px);
+  padding: 8px 10px;
+}
+
+html.vscode-app .wiki-nav-list {
+  display: block;
+}
+
+html.vscode-app .wiki-nav-list li {
+  margin-bottom: 2px;
+}
+
+html.vscode-app .wiki-trail {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+
+/* Pop-up disclaimer accueil — hors .hub-app (transform) → directement sur body */
+html.vscode-app body > .hub-disclaimer-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+}
+
+html.vscode-app body > .hub-disclaimer-modal .hub-disclaimer-panel {
+  width: min(480px, 100%);
+  padding: 20px 22px 18px;
+}
+
+html.vscode-app body > .hub-disclaimer-modal .hub-disclaimer-title {
+  font-size: 0.95rem;
+}
+
+html.vscode-app body > .hub-disclaimer-modal .hub-disclaimer-body {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  padding: 12px 14px;
+}
+
+html.vscode-app body > .hub-disclaimer-modal .hub-disclaimer-close-btn {
+  font-size: 0.76rem;
+}
+
+html.vscode-app body > .hub-disclaimer-modal[hidden] {
+  display: none !important;
+}
+
+html.vscode-app body.hub-disclaimer-open {
+  overflow: hidden;
+}
+
+/* =============================================================================
+ * Accueil — pleine largeur (fallback : body.page-home / html.page-home sans vscode-app)
+ * Shell JS : wizard-home-shell.js (classes page-home, embed-mode, vscode-app)
+ * Bouton Accueil : <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+ * ============================================================================= */
+html.page-home .wrap,
+html.page-home .wrap-home,
+body.page-home > .wrap,
+body.page-home > .wrap.wrap-home {
+  max-width: none !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+html.page-home body.page-home,
+body.page-home {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html.page-home .hub-section--config .hub-tiles,
+body.page-home .hub-section--config .hub-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.page-home .hub-section--stacks .hub-tiles,
+html.page-home .hub-section--stacks .hub-tiles--stacks,
+body.page-home .hub-section--stacks .hub-tiles,
+body.page-home .hub-section--stacks .hub-tiles--stacks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html.page-home .wrap-home,
+body.page-home > .wrap.wrap-home {
+  padding: 0 12px;
+  flex: 1 1 auto;
+}
+
+html.page-home body.page-home {
+  padding-bottom: 36px !important;
+}
+
+/* Wizard k6 — priorité sur le thème teal VS Code (bouton Continuer, progression) */
+html.vscode-app body.page-k6-wizard .hub-progress-label span:last-child {
+  color: #7D64FF;
+}
+
+html.vscode-app body.page-k6-wizard .hub-app .btn-primary.k6-wizard-btn-primary:not(:disabled),
+html.vscode-app body.page-k6-wizard .hub-app .k6-wizard-steps .btn-primary:not(:disabled) {
+  border-color: #6b52e8;
+  background: linear-gradient(135deg, #a894ff 0%, #7D64FF 55%, #5c45d6 100%);
+  background-image: linear-gradient(135deg, #a894ff 0%, #7D64FF 55%, #5c45d6 100%);
+  box-shadow: 0 4px 14px rgba(125, 100, 255, 0.35);
+}
+
+html.vscode-app body.page-k6-wizard .hub-app .btn-primary.k6-wizard-btn-primary:hover:not(:disabled),
+html.vscode-app body.page-k6-wizard .hub-app .k6-wizard-steps .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b5a4ff 0%, #8a72ff 55%, #6b52e8 100%);
+  background-image: linear-gradient(135deg, #b5a4ff 0%, #8a72ff 55%, #6b52e8 100%);
+  border-color: #6b52e8;
+  box-shadow: 0 6px 18px rgba(125, 100, 255, 0.42);
+  filter: none;
+}
+
+html.vscode-app body.page-k6-wizard .hub-app .btn-primary.k6-wizard-btn-primary:active:not(:disabled),
+html.vscode-app body.page-k6-wizard .hub-app .k6-wizard-steps .btn-primary:active:not(:disabled) {
+  background: linear-gradient(135deg, #9680ff 0%, #6b52e8 55%, #4e38c4 100%);
+  background-image: linear-gradient(135deg, #9680ff 0%, #6b52e8 55%, #4e38c4 100%);
+  border-color: #5c45d6;
+  box-shadow: 0 2px 8px rgba(125, 100, 255, 0.28);
+  filter: none;
+}
+
+html.vscode-app body.page-k6-wizard .k6-wizard-input,
+html.vscode-app body.page-k6-wizard .k6-wizard-textarea,
+html.vscode-app body.page-k6-wizard .k6-wizard-steps .hub-field input,
+html.vscode-app body.page-k6-wizard .k6-wizard-steps .hub-field textarea {
+  background: #fff;
+  color: #1f2d32;
+  border-color: var(--wizard-border, #d4dbe0);
+}
+
+html.vscode-app body.page-k6-wizard .k6-wizard-input:focus,
+html.vscode-app body.page-k6-wizard .k6-wizard-textarea:focus,
+html.vscode-app body.page-k6-wizard .k6-wizard-steps .hub-field input:focus,
+html.vscode-app body.page-k6-wizard .k6-wizard-steps .hub-field textarea:focus {
+  outline: 2px solid rgba(125, 100, 255, 0.45);
+  outline-offset: 0;
+  border-color: #7D64FF;
+  box-shadow: 0 0 0 3px rgba(125, 100, 255, 0.12);
+}
+
+html.vscode-app body.page-k6-wizard h1,
+html.vscode-app body.page-k6-wizard h2.hub-onboarding-title,
+html.vscode-app body.page-k6-wizard h2.form-section-title,
+html.vscode-app body.page-k6-wizard .k6-wizard-flow-hero h1 {
+  color: #5c45d6;
+}
+
+html.vscode-app body.page-k6-wizard .hub-onboarding-card .hub-onboarding-title::before {
+  background: linear-gradient(180deg, #a894ff 0%, #7D64FF 50%, #5c45d6 100%);
+}
+
+html.vscode-app body.page-k6-wizard .hub-app .hub-field input:focus,
+html.vscode-app body.page-k6-wizard .hub-app .hub-field textarea:focus {
+  outline-color: #7D64FF;
+  border-color: #7D64FF;
+}

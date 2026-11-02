@@ -1,0 +1,30 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — commandes de l'assistant « Installer Cypress »
+  // Copié vers .wizard-qa/conf/cypress-install.conf.json si absent.
+  // Modifiez label (affichage) et args (commande réelle) — runner : npm | npx
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Commandes npm exécutées par l'assistant Installer Cypress.",
+  "projectDir": ".",
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:commandes-debut
+  "steps": [
+    {
+      "id": "e2e",
+      "label": "npm install @cats-cdf/e2e",
+      "runner": "npm",
+      "args": ["install", "@cats-cdf/e2e"]
+    },
+    {
+      "id": "cypress",
+      "label": "npm install -D cypress@14.0.3",
+      "runner": "npm",
+      "args": ["install", "-D", "cypress@14.0.3"]
+    }
+  ]
+  // @wizard-qa:commandes-fin
+}

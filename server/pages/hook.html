@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Hook JIRA / Xray</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+</head>
+<body class="page-hook">
+  <script>
+    (function () {
+      var target = '/hook-git.html' + (location.search || '') + (location.hash || '')
+      if (window.__WIZARD_API_BASE__ && window.__wizardVsCodeApi) {
+        window.__wizardVsCodeApi.postMessage({ type: 'navigate', path: target })
+      } else {
+        location.replace(target)
+      }
+    })()
+  </script>
+  <div class="wrap">
+    <header class="site-header site-header-compact">
+      <div class="logo"><img src="/assets/logo-cats.png" alt="CATS" /></div>
+      <div class="title">
+        <h1>Hook JIRA / Xray</h1>
+        <p>Variables · hooks.conf · post-commit git</p>
+      </div>
+      <p class="tribu-label tribu-label-sm tribu-label-header">TRIBU IT pour CA-TS</p>
+    </header>
+    <nav class="breadcrumb"><a href="/">Accueil</a> › Hook JIRA/Xray</nav>
+
+    <div class="page-status-bar">
+      <div class="page-status-main">
+        <span class="page-status-label">Dossier</span>
+        <code class="page-status-path">{{paths.hookDir}}</code>
+        <span class="file-badge" id="badgeHook">…</span>
+        <span class="file-badge" id="badgeEnv">…</span>
+        <span class="file-badge" id="badgeConf">…</span>
+      </div>
+      <p class="page-status-hint" id="installHint">Ne commitez jamais .env ni tokens.</p>
+    </div>
+
+    <div class="card card-compact hook-quick-actions">
+      <h2 class="form-section-title">Actions rapides</h2>
+      <div class="form-grid form-grid-2">
+        <div class="field">
+          <label for="newPlanKey">N° ticket plan JIRA <span class="req">*</span></label>
+          <input id="newPlanKey" type="text" placeholder="P0326-1234" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="newPlanName">Nom du dossier VS Code <span class="req">*</span></label>
+          <input id="newPlanName" type="text" placeholder="[CA-TS]_Mon_Plan_Test" autocomplete="off" />
+        </div>
+        <div class="field field-full" id="suiteSelectWrap" hidden>
+          <label for="newPlanSuite">Suite parente</label>
+          <select id="newPlanSuite"></select>
+        </div>
+        <div class="field field-full">
+          <p class="hint hint-tight" id="folderPreview">Dossier créé : <code>—</code></p>
+        </div>
+      </div>
+      <div class="action-bar action-bar-tight">
+        <button type="button" class="btn-primary btn-sm" id="createPlanFolderBtn">Créer dossier VS Code</button>
+        <button type="button" class="btn-secondary btn-sm" id="forceSyncBtn">Forcer synchro JIRA</button>
+      </div>
+      <div id="quickStatus" class="status"></div>
+    </div>
+
+    <details class="console-wrap" id="syncConsoleWrap">
+      <summary>Synchro JIRA <span class="console-hint" id="syncConsoleHint">Prêt</span></summary>
+      <pre class="console console-compact" id="syncConsole">Lancez « Forcer synchro JIRA » pour exécuter hook-run.mjs --force</pre>
+    </details>
+
+    <div class="tabs tabs-compact">
+      <button type="button" class="tab active" data-tab="simple">Simple</button>
+      <button type="button" class="tab" data-tab="advanced">Avancé</button>
+      <button type="button" class="tab" data-tab="hooksconf">hooks.conf</button>
+      <button type="button" class="tab" data-tab="install">Installation</button>
+    </div>
+
+    <!-- Simple -->
+    <div id="tab-simple" class="tab-panel active">
+      <div class="card card-compact hook-card">
+        <form autocomplete="off" onsubmit="return false">
+          <section class="form-section">
+            <h2 class="form-section-title">Connexion JIRA / Xray</h2>
+            <div class="form-grid form-grid-2">
+              <div class="field field-full">
+                <label for="JIRA_BASE_URL">JIRA_BASE_URL <span class="req">*</span></label>
+                <input id="JIRA_BASE_URL" type="url" placeholder="https://jira…" />
+              </div>
+              <div class="field">
+                <label for="JIRA_EMAIL">JIRA_EMAIL</label>
+                <input id="JIRA_EMAIL" type="email" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="HTTPS_PROXY">HTTPS_PROXY</label>
+                <input id="HTTPS_PROXY" type="text" placeholder="http://proxy…" />
+              </div>
+              <div class="field field-full">
+                <label for="JIRA_TOKEN">JIRA_TOKEN</label>
+                <div class="input-group">
+                  <input id="JIRA_TOKEN" type="password" autocomplete="off" placeholder="Token API JIRA" />
+                  <button type="button" class="btn-input-addon toggle-secret" data-target="JIRA_TOKEN" title="Afficher">👁</button>
+                </div>
+              </div>
+            </div>
+            <details class="form-advanced form-advanced-inline">
+              <summary>Credentials Xray</summary>
+              <div class="form-grid form-grid-2">
+                <div class="field">
+                  <label for="XRAY_CLIENT_ID">XRAY_CLIENT_ID</label>
+                  <input id="XRAY_CLIENT_ID" type="text" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label for="XRAY_CLIENT_SECRET">XRAY_CLIENT_SECRET</label>
+                  <div class="input-group">
+                    <input id="XRAY_CLIENT_SECRET" type="password" autocomplete="off" />
+                    <button type="button" class="btn-input-addon toggle-secret" data-target="XRAY_CLIENT_SECRET" title="Afficher">👁</button>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section class="form-section">
+            <h2 class="form-section-title">hooks.conf [defaults]</h2>
+            <div class="form-grid form-grid-2">
+              <div class="field">
+                <label for="project">project</label>
+                <input id="project" type="text" />
+              </div>
+              <div class="field">
+                <label for="label">label</label>
+                <input id="label" type="text" />
+              </div>
+              <div class="field field-full">
+                <label for="exclude_dirs">exclude_dirs</label>
+                <input id="exclude_dirs" type="text" placeholder="dossiers exclus, séparés par virgule" />
+              </div>
+              <div class="field">
+                <label for="jira_indexation_delay_sec">Délai indexation (s)</label>
+                <input id="jira_indexation_delay_sec" type="number" />
+              </div>
+              <div class="field">
+                <label for="suite_link_type">suite_link_type</label>
+                <input id="suite_link_type" type="text" />
+              </div>
+              <div class="field field-full">
+                <label for="terminal_mode">terminal_mode</label>
+                <select id="terminal_mode">
+                  <option value="0">0 — Silencieux</option>
+                  <option value="A">A — Résumé fichier</option>
+                  <option value="B">B — Verbose (défaut)</option>
+                  <option value="C">C — Compact</option>
+                  <option value="D">D — Notification Windows</option>
+                  <option value="E">E — Statut JSON</option>
+                </select>
+              </div>
+            </div>
+            <section class="terminal-mode-panel" id="terminalModePanel" aria-live="polite">
+              <h3 class="terminal-mode-panel-title">Aperçu terminal — mode <span id="terminalModePreviewId">B</span></h3>
+              <p class="hint hint-tight" id="terminalModePreviewSummary"></p>
+              <pre class="terminal-preview-console" id="terminalModePreviewText"></pre>
+              <details class="terminal-mode-catalog">
+                <summary>Tous les modes et exemples d'affichage</summary>
+                <div id="terminalModeCatalog" class="terminal-mode-catalog-grid"></div>
+              </details>
+            </section>
+          </section>
+
+          <div class="action-bar">
+            <button type="button" class="btn-primary btn-sm" id="saveSimpleBtn">Enregistrer .env + hooks.conf</button>
+            <div class="action-bar-secondary">
+              <button type="button" class="btn-secondary btn-sm" id="verifySimpleBtn">Vérifier</button>
+            </div>
+          </div>
+        </form>
+        <div id="statusSimple" class="status"></div>
+        <div id="verifyResultsSimple" class="verify-results"></div>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div id="tab-advanced" class="tab-panel">
+      <div class="card card-compact hook-card">
+        <div class="steps steps-compact" id="stepNav"></div>
+        <div id="msgAdv" class="status"></div>
+
+        <div class="panel active" data-step="0">
+          <h2 class="form-section-title">Dossier hook</h2>
+          <label class="check-chip check-chip-inline"><input type="checkbox" id="createNew" /><span>Créer un nouveau dossier</span></label>
+          <label class="check-chip check-chip-inline" id="overwriteRow" hidden><input type="checkbox" id="overwriteOnCopy" /><span>Écraser si existe</span></label>
+          <div class="form-grid form-grid-2">
+            <div class="field field-full"><label for="repoRoot">Racine dépôt git</label><input id="repoRoot" type="text" /></div>
+            <div class="field"><label for="hookDirName">Nom dossier hook</label><input id="hookDirName" type="text" /></div>
+          </div>
+        </div>
+        <div class="panel" data-step="1">
+          <h2 class="form-section-title">Environnement JIRA</h2>
+          <div class="form-grid form-grid-2">
+            <div class="field"><label for="environment">Environnement</label>
+              <select id="environment"><option value="prod">Production</option><option value="recette">Recette</option><option value="dev">Dev</option></select>
+            </div>
+            <div class="field"><label for="jiraBaseUrl">URL JIRA</label><input id="jiraBaseUrl" type="url" /></div>
+            <div class="field"><label for="advProject">Projet</label><input id="advProject" type="text" /></div>
+            <div class="field"><label for="advLabel">Label</label><input id="advLabel" type="text" /></div>
+            <div class="field"><label for="httpsProxy">Proxy</label><input id="httpsProxy" type="text" /></div>
+            <div class="field"><label for="advExcludeDirs">exclude_dirs</label><input id="advExcludeDirs" type="text" /></div>
+            <div class="field"><label for="indexationDelay">Délai (s)</label><input id="indexationDelay" type="number" value="9" /></div>
+            <div class="field"><label for="advSuiteLinkType">suite_link_type</label><input id="advSuiteLinkType" type="text" value="Relates" /></div>
+          </div>
+        </div>
+        <div class="panel" data-step="2">
+          <h2 class="form-section-title">Credentials</h2>
+          <label class="check-chip check-chip-inline"><input type="checkbox" id="fillCredentials" /><span>Renseigner maintenant</span></label>
+          <div id="credFields" class="form-grid form-grid-2" hidden>
+            <div class="field"><label for="jiraEmail">JIRA_EMAIL</label><input id="jiraEmail" type="email" /></div>
+            <div class="field"><label for="jiraToken">JIRA_TOKEN</label><input id="jiraToken" type="password" /></div>
+            <div class="field"><label for="xrayClientId">XRAY_CLIENT_ID</label><input id="xrayClientId" type="text" /></div>
+            <div class="field"><label for="xrayClientSecret">XRAY_CLIENT_SECRET</label><input id="xrayClientSecret" type="password" /></div>
+          </div>
+        </div>
+        <div class="panel" data-step="3">
+          <h2 class="form-section-title">Suites</h2>
+          <div id="suitesList"></div>
+          <button type="button" class="btn-secondary btn-sm" id="addSuite">+ Suite</button>
+        </div>
+        <div class="panel" data-step="4">
+          <h2 class="form-section-title">Plans</h2>
+          <div id="plansList"></div>
+          <button type="button" class="btn-secondary btn-sm" id="addPlan">+ Plan</button>
+        </div>
+        <div class="panel" data-step="5">
+          <h2 class="form-section-title">Génération</h2>
+          <pre class="recap recap-compact" id="recapPreview"></pre>
+          <label class="check-chip check-chip-inline"><input type="checkbox" id="dryRun" /><span>Dry-run (simulation)</span></label>
+        </div>
+
+        <div class="action-bar action-bar-wizard">
+          <button type="button" class="btn-secondary btn-sm" id="btnPrev" hidden>← Précédent</button>
+          <button type="button" class="btn-primary btn-sm" id="btnNext">Suivant →</button>
+          <button type="button" class="btn-primary btn-sm" id="btnGenerate" hidden>Générer hooks.conf</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- hooks.conf editor -->
+    <div id="tab-hooksconf" class="tab-panel">
+      <div class="card card-compact hook-card">
+        <div class="conf-editor-toolbar">
+          <div class="conf-editor-toolbar-left">
+            <button type="button" class="btn-secondary btn-sm" data-conf-view="both">Sections + texte</button>
+            <button type="button" class="btn-secondary btn-sm" data-conf-view="structured">Sections seules</button>
+            <button type="button" class="btn-secondary btn-sm" data-conf-view="raw">Texte seul</button>
+            <span class="hint hint-tight" id="confStats"></span>
+            <span class="conf-dirty" id="confDirty" hidden>modifié</span>
+          </div>
+          <div class="conf-editor-toolbar-right">
+            <button type="button" class="btn-secondary btn-sm" id="confEmptyTemplate" title="[defaults] de votre fichier, sans suite ni plan">Modèle vide</button>
+            <button type="button" class="btn-secondary btn-sm" id="confGenerateEmpty" title="Écrit hooks.conf minimal sur le disque">Générer hooks.conf vide</button>
+            <button type="button" class="btn-secondary btn-sm" id="confAddSuite">+ [suite]</button>
+            <button type="button" class="btn-secondary btn-sm" id="confAddPlan">+ [plan]</button>
+            <button type="button" class="btn-secondary btn-sm" id="confReload">Recharger</button>
+            <button type="button" class="btn-primary btn-sm" id="confSave">Enregistrer</button>
+          </div>
+        </div>
+        <div id="rawConfWrap" class="conf-raw-wrap conf-raw-wrap-top">
+          <div class="conf-raw-head" id="conf-sec-raw">
+            <div class="conf-raw-head-left">
+              <h3 class="form-section-title conf-raw-title">Fichier complet — hooks.conf</h3>
+              <span class="hint hint-tight" id="confRawMeta"></span>
+            </div>
+            <div class="conf-raw-head-actions">
+              <button type="button" class="btn-secondary btn-sm" id="confJumpRaw" title="Afficher uniquement le texte">Texte plein écran</button>
+              <button type="button" class="btn-secondary btn-sm" id="confSyncRawToSections">Appliquer texte → sections</button>
+            </div>
+          </div>
+          <textarea id="rawConfEditor" class="conf-raw-editor" spellcheck="false" aria-label="hooks.conf texte complet" placeholder="Chargement du fichier…"></textarea>
+        </div>
+        <div id="structuredConfEditor" class="conf-structured"></div>
+        <div id="confStatus" class="status"></div>
+      </div>
+    </div>
+
+    <!-- Install -->
+    <div id="tab-install" class="tab-panel">
+      <div class="card card-compact hook-card">
+        <p id="installStatus" class="install-summary">Chargement…</p>
+        <div class="action-bar">
+          <button type="button" class="btn-primary btn-sm" id="installBtn">Installer post-commit</button>
+          <div class="action-bar-secondary">
+            <button type="button" class="btn-secondary btn-sm" id="testBtn">Tester dry-run</button>
+            <button type="button" class="btn-secondary btn-sm" id="verifyBtn">Vérifier</button>
+          </div>
+        </div>
+        <div id="statusInstall" class="status"></div>
+        <div id="verifyResults" class="verify-results"></div>
+      </div>
+      <details class="console-wrap" id="consoleWrap">
+        <summary>Console test <span class="console-hint" id="consoleHint">Prêt</span></summary>
+        <pre class="console console-compact" id="consoleInstall">Prêt.</pre>
+      </details>
+    </div>
+
+    <div class="page-help-source" hidden aria-hidden="true">
+      <dl>
+        <dt>Enregistrer</dt><dd><code>.env</code> + <code>[defaults]</code> hooks.conf</dd>
+        <dt>Générer</dt><dd>hooks.conf, suites et plans (assistant)</dd>
+        <dt>Installer</dt><dd>Hook <code>post-commit</code> git</dd>
+        <dt>Dry-run</dt><dd>Sync JIRA/Xray simulée</dd>
+        <dt>Créer dossier</dt><dd>Dossier <code>P0326-xxxx</code> + bloc <code>[plan]</code></dd>
+        <dt>Forcer synchro</dt><dd><code>hook-run.mjs --force</code></dd>
+        <dt>Éditeur hooks.conf</dt><dd>Sections + texte · backup <code>.bak</code></dd>
+        <dt>Modèle vide</dt><dd><code>[defaults]</code> conservés · sans <code>[suite]</code> ni <code>[plan]</code></dd>
+        <dt>terminal_mode</dt><dd>0 silencieux · A résumé · B verbose · C compact · D toast · E JSON</dd>
+      </dl>
+    </div>
+  </div>
+
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/hooks-conf-editor.js"></script>
+  <script>
+    const $ = id => document.getElementById(id)
+    const STEPS = ['Dossier', 'JIRA', 'Credentials', 'Suites', 'Plans', 'Générer']
+    let currentStep = 0
+    let apiDefaults = null
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+        tab.classList.add('active')
+        $('tab-' + tab.dataset.tab).classList.add('active')
+        if (tab.dataset.tab === 'hooksconf') {
+          HooksConfEditor.init()
+          document.getElementById('rawConfWrap')?.scrollIntoView({ behavior: 'instant', block: 'start' })
+        }
+      })
+    })
+
+    document.querySelectorAll('.toggle-secret').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = $(btn.dataset.target)
+        if (!input) return
+        const show = input.type === 'password'
+        input.type = show ? 'text' : 'password'
+        btn.textContent = show ? '🙈' : '👁'
+      })
+    })
+
+    function setBadge(el, ok, okText, koText) {
+      el.textContent = ok ? okText : koText
+      el.className = 'file-badge ' + (ok ? 'file-badge-ok' : 'file-badge-missing')
+    }
+
+    async function refreshStatusBadges() {
+      try {
+        const [verify, config] = await Promise.all([
+          Portail.runVerify({ page: 'hook' }),
+          fetch('/api/hook/config').then(r => r.json()),
+        ])
+        const hook = verify.checks?.find(c => c.name === 'Hook post-commit')
+        const env = verify.checks?.find(c => c.name === 'Fichier .env')
+        const conf = verify.checks?.find(c => c.name === 'hooks.conf')
+        if (hook) setBadge($('badgeHook'), hook.ok, 'Hook OK', 'Hook KO')
+        if (env) setBadge($('badgeEnv'), env.ok, '.env OK', '.env absent')
+        if (conf) setBadge($('badgeConf'), conf.ok, 'conf OK', 'conf absent')
+        const s = config.install
+        $('installHint').textContent = s.repoRoot
+          ? `Dépôt : ${s.repoRoot.split(/[/\\]/).pop()} · post-commit ${s.valid ? 'valide' : s.installed ? 'à réinstaller' : 'absent'}`
+          : 'Ne commitez jamais .env ni tokens.'
+      } catch {
+        ;['badgeHook', 'badgeEnv', 'badgeConf'].forEach(id => { $(id).textContent = '?' })
+      }
+    }
+
+    async function runVerifyUI(statusEl, resultsEl) {
+      const res = await Portail.runVerify({ page: 'hook' })
+      Portail.renderVerifyResults(resultsEl, res)
+      Portail.showStatus(statusEl, res.ok, res.ok ? 'Hook prêt' : 'Points à corriger')
+      await refreshStatusBadges()
+      return res
+    }
+
+    function getSimpleData() {
+      const env = {}
+      ;['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_TOKEN', 'HTTPS_PROXY', 'XRAY_CLIENT_ID', 'XRAY_CLIENT_SECRET']
+        .forEach(k => { env[k] = $(k)?.value?.trim() || '' })
+      const defs = {}
+      ;['project', 'label', 'exclude_dirs', 'jira_indexation_delay_sec', 'suite_link_type', 'terminal_mode']
+        .forEach(k => { defs[k] = $(k)?.value?.trim() || '' })
+      return { env, defaults: defs }
+    }
+
+    function setSimpleData(simple) {
+      if (!simple) return
+      for (const [k, v] of Object.entries(simple.env || {})) { if ($(k)) $(k).value = v || '' }
+      for (const [k, v] of Object.entries(simple.defaults || {})) { if ($(k)) $(k).value = v || '' }
+    }
+
+    let terminalModes = []
+
+    function renderTerminalPreview(modeId) {
+      const mode = terminalModes.find(m => m.id === String(modeId || 'B').toUpperCase())
+        || terminalModes.find(m => m.id === 'B')
+      if (!mode) return
+      $('terminalModePreviewId').textContent = mode.id
+      $('terminalModePreviewSummary').textContent = `${mode.label} — ${mode.summary}`
+      $('terminalModePreviewText').textContent = mode.example
+    }
+
+    function renderTerminalCatalog() {
+      const root = $('terminalModeCatalog')
+      if (!root || !terminalModes.length) return
+      root.innerHTML = terminalModes.map(m => `
+        <article class="terminal-mode-card" data-mode="${m.id}">
+          <header><strong>${m.id}</strong> — ${esc(m.label)}</header>
+          <p class="hint hint-tight">${esc(m.summary)}</p>
+          <pre class="terminal-preview-console terminal-preview-console-sm">${esc(m.example)}</pre>
+          <button type="button" class="btn-secondary btn-sm terminal-mode-apply" data-mode="${m.id}">Utiliser ce mode</button>
+        </article>`).join('')
+      root.querySelectorAll('.terminal-mode-apply').forEach(btn => {
+        btn.addEventListener('click', () => {
+          $('terminal_mode').value = btn.dataset.mode
+          renderTerminalPreview(btn.dataset.mode)
+        })
+      })
+    }
+
+    async function loadTerminalModes() {
+      try {
+        const data = await (await fetch('/api/hook/terminal-modes')).json()
+        terminalModes = data.modes || []
+        renderTerminalCatalog()
+        renderTerminalPreview($('terminal_mode')?.value || 'B')
+      } catch { /* preview optionnel */ }
+    }
+
+    $('terminal_mode')?.addEventListener('change', () => renderTerminalPreview($('terminal_mode').value))
+
+    async function loadSimple() {
+      const saved = await Portail.fetchDefaults('hook')
+      if (saved.data?.simple) setSimpleData(saved.data.simple)
+      else {
+        const data = await (await fetch('/api/hook/config')).json()
+        setSimpleData({ env: data.env, defaults: data.defaults })
+      }
+      renderTerminalPreview($('terminal_mode')?.value || 'B')
+    }
+
+    $('saveSimpleBtn').addEventListener('click', async () => {
+      const simple = getSimpleData()
+      const r = await fetch('/api/hook/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(simple),
+      })
+      const data = await r.json()
+      if (data.ok) {
+        const all = (await Portail.fetchDefaults('hook')).data || {}
+        await Portail.savePageDefaults('hook', { ...all, simple })
+        await refreshStatusBadges()
+      }
+      Portail.showStatus($('statusSimple'), data.ok, data.ok ? 'Enregistré et mémorisé' : (data.error || 'Erreur'))
+    })
+
+    $('verifySimpleBtn').addEventListener('click', async () => {
+      try {
+        await runVerifyUI($('statusSimple'), $('verifyResultsSimple'))
+      } catch (e) { Portail.showStatus($('statusSimple'), false, e.message) }
+    })
+
+    function setSyncConsoleHint(text, running) {
+      $('syncConsoleHint').textContent = text
+      $('syncConsoleHint').className = 'console-hint' + (running ? ' console-hint-run' : '')
+      if (running) $('syncConsoleWrap').open = true
+    }
+
+    function previewFolderName() {
+      const key = $('newPlanKey').value.trim()
+      const name = $('newPlanName').value.trim()
+      if (!key && !name) {
+        $('folderPreview').innerHTML = 'Dossier créé : <code>—</code>'
+        return
+      }
+      const safe = name.replace(/[<>:"/\\|?*]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_')
+      const m = key.match(/([A-Z][A-Z0-9]+-\d+)/i)
+      const k = m ? m[1].toUpperCase() : key.toUpperCase()
+      $('folderPreview').innerHTML = safe
+        ? `Dossier créé : <code>${k}_${safe}</code> (+ entrée dans hooks.conf)`
+        : `Dossier créé : <code>${k}_…</code>`
+    }
+
+    async function loadHookMeta() {
+      const meta = await (await fetch('/api/hook/meta')).json()
+      const wrap = $('suiteSelectWrap')
+      const sel = $('newPlanSuite')
+      sel.innerHTML = ''
+      if (meta.suites?.length > 1) {
+        wrap.hidden = false
+        meta.suites.forEach(s => {
+          const opt = document.createElement('option')
+          opt.value = s.suite_key
+          opt.textContent = s.name ? `${s.suite_key} — ${s.name}` : s.suite_key
+          sel.appendChild(opt)
+        })
+      } else {
+        wrap.hidden = true
+      }
+    }
+
+    $('newPlanKey').addEventListener('input', previewFolderName)
+    $('newPlanName').addEventListener('input', previewFolderName)
+
+    $('createPlanFolderBtn').addEventListener('click', async () => {
+      const planKey = $('newPlanKey').value.trim()
+      const name = $('newPlanName').value.trim()
+      if (!planKey || !name) {
+        Portail.showStatus($('quickStatus'), false, 'Renseignez le ticket JIRA et le nom du dossier')
+        return
+      }
+      $('createPlanFolderBtn').disabled = true
+      try {
+        const body = { planKey, name }
+        if (!$('suiteSelectWrap').hidden) body.suiteKey = $('newPlanSuite').value
+        const r = await fetch('/api/hook/create-plan-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error)
+        Portail.showStatus($('quickStatus'), true,
+          `Dossier ${data.folder} créé · plan ${data.plan_key} ajouté à hooks.conf`)
+        $('newPlanKey').value = ''
+        $('newPlanName').value = ''
+        previewFolderName()
+        await loadHookMeta()
+        await refreshStatusBadges()
+      } catch (e) {
+        Portail.showStatus($('quickStatus'), false, e.message)
+      }
+      $('createPlanFolderBtn').disabled = false
+    })
+
+    $('forceSyncBtn').addEventListener('click', async () => {
+      if (!confirm('Lancer la synchronisation JIRA/Xray complète (hook-run --force) ?\nCela peut prendre plusieurs minutes.')) return
+      $('forceSyncBtn').disabled = true
+      $('syncConsole').textContent = 'Exécution en cours…\n'
+      setSyncConsoleHint('En cours…', true)
+      try {
+        const r = await fetch('/api/hook/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        const data = await r.json()
+        $('syncConsole').textContent = data.output || data.error || '(vide)'
+        setSyncConsoleHint(data.ok ? 'Terminé' : 'Échec', false)
+        Portail.showStatus($('quickStatus'), data.ok, data.ok ? 'Synchro JIRA terminée' : `Échec (code ${data.code || '?'})`)
+        await refreshStatusBadges()
+      } catch (e) {
+        $('syncConsole').textContent = e.message
+        setSyncConsoleHint('Erreur', false)
+        Portail.showStatus($('quickStatus'), false, e.message)
+      }
+      $('forceSyncBtn').disabled = false
+    })
+
+    async function loadInstallStatus() {
+      const data = await (await fetch('/api/hook/config')).json()
+      const s = data.install
+      $('installStatus').textContent = s.repoRoot
+        ? `${s.repoRoot}\n${s.installed ? (s.valid ? '✓ Hook installé et valide' : '⚠ Hook présent — réinstaller recommandé') : '✗ Hook post-commit non installé'}`
+        : 'Pas de dépôt git détecté depuis le dossier hook.'
+      await refreshStatusBadges()
+    }
+
+    function setConsoleHint(text, running) {
+      $('consoleHint').textContent = text
+      $('consoleHint').className = 'console-hint' + (running ? ' console-hint-run' : '')
+      if (running) $('consoleWrap').open = true
+    }
+
+    $('installBtn').addEventListener('click', async () => {
+      const r = await fetch('/api/hook/install', { method: 'POST' })
+      const data = await r.json()
+      Portail.showStatus($('statusInstall'), data.ok, data.message || data.error || '')
+      await loadInstallStatus()
+    })
+
+    $('testBtn').addEventListener('click', async () => {
+      $('consoleInstall').textContent = 'Exécution…\n'
+      setConsoleHint('En cours…', true)
+      const r = await fetch('/api/hook/test', { method: 'POST' })
+      const data = await r.json()
+      $('consoleInstall').textContent = data.output || data.error || ''
+      setConsoleHint(data.ok ? 'OK' : 'Échec', false)
+      Portail.showStatus($('statusInstall'), data.ok, data.ok ? 'Dry-run OK' : 'Dry-run échoué')
+    })
+
+    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') }
+
+    function suiteHtml(i, data = {}) {
+      return `<div class="item-block item-block-compact"><div class="item-block-head"><h3>Suite ${i + 1}</h3>${i > 0 ? '<button type="button" class="btn-danger btn-sm rm-suite">×</button>' : ''}</div>
+        <div class="form-grid form-grid-2">
+          <div class="field"><label>URL ou clé</label><input class="suite-url" value="${esc(data.urlOrKey || '')}"></div>
+          <div class="field"><label>Nom</label><input class="suite-name" value="${esc(data.name || '')}"></div>
+        </div></div>`
+    }
+
+    function planHtml(i, data = {}) {
+      return `<div class="item-block item-block-compact"><div class="item-block-head"><h3>Plan ${i + 1}</h3>${i > 0 ? '<button type="button" class="btn-danger btn-sm rm-plan">×</button>' : ''}</div>
+        <div class="form-grid form-grid-2">
+          <div class="field"><label>Clé plan</label><input class="plan-url" value="${esc(data.planUrlOrKey || '')}"></div>
+          <div class="field"><label>Dossier VS Code</label><input class="plan-folder" value="${esc(data.folder || '')}"></div>
+          <div class="field"><label>Suite parente</label><input class="plan-suite" value="${esc(data.suite_key || '')}"></div>
+          <div class="field"><label>Testing Board URL</label><input class="plan-tb-url" value="${esc(data.testingBoardUrl || '')}"></div>
+          <div class="field field-full"><label>repository_path</label><input class="plan-repo-path" value="${esc(data.repositoryPath || '')}"></div>
+        </div></div>`
+    }
+
+    function addSuite(d) { $('suitesList').insertAdjacentHTML('beforeend', suiteHtml($('suitesList').children.length, d)) }
+    function addPlan(d) { $('plansList').insertAdjacentHTML('beforeend', planHtml($('plansList').children.length, d)) }
+
+    function collectAdvanced() {
+      const fill = $('fillCredentials').checked
+      return {
+        createNew: $('createNew').checked,
+        overwriteOnCopy: $('overwriteOnCopy').checked,
+        repoRoot: $('repoRoot').value.trim(),
+        hookDirName: $('hookDirName').value.trim(),
+        environment: $('environment').value,
+        jiraBaseUrl: $('jiraBaseUrl').value.trim(),
+        project: $('advProject').value.trim(),
+        label: $('advLabel').value.trim(),
+        httpsProxy: $('httpsProxy').value.trim(),
+        excludeDirs: $('advExcludeDirs').value.trim(),
+        indexationDelay: $('indexationDelay').value,
+        suiteLinkType: $('advSuiteLinkType').value.trim(),
+        fillCredentials: fill,
+        jiraEmail: fill ? $('jiraEmail').value.trim() : '',
+        jiraToken: fill ? $('jiraToken').value.trim() : '',
+        xrayClientId: fill ? $('xrayClientId').value.trim() : '',
+        xrayClientSecret: fill ? $('xrayClientSecret').value.trim() : '',
+        suites: [...$('suitesList').children].map(el => ({
+          urlOrKey: el.querySelector('.suite-url').value,
+          name: el.querySelector('.suite-name').value,
+        })),
+        plans: [...$('plansList').children].map(el => ({
+          planUrlOrKey: el.querySelector('.plan-url').value,
+          folder: el.querySelector('.plan-folder').value,
+          suite_key: el.querySelector('.plan-suite').value,
+          testingBoardUrl: el.querySelector('.plan-tb-url').value,
+          repositoryPath: el.querySelector('.plan-repo-path').value,
+        })),
+      }
+    }
+
+    function applyAdvanced(adv) {
+      if (!adv) return
+      $('createNew').checked = !!adv.createNew
+      $('overwriteOnCopy').checked = !!adv.overwriteOnCopy
+      $('overwriteRow').hidden = !adv.createNew
+      $('repoRoot').value = adv.repoRoot || ''
+      $('hookDirName').value = adv.hookDirName || ''
+      $('environment').value = adv.environment || 'prod'
+      $('jiraBaseUrl').value = adv.jiraBaseUrl || ''
+      $('advProject').value = adv.project || ''
+      $('advLabel').value = adv.label || ''
+      $('httpsProxy').value = adv.httpsProxy || ''
+      $('advExcludeDirs').value = adv.excludeDirs || ''
+      $('indexationDelay').value = adv.indexationDelay || '9'
+      $('advSuiteLinkType').value = adv.suiteLinkType || 'Relates'
+      $('fillCredentials').checked = !!adv.fillCredentials
+      $('credFields').hidden = !adv.fillCredentials
+      if (adv.fillCredentials) {
+        $('jiraEmail').value = adv.jiraEmail || ''
+        $('jiraToken').value = adv.jiraToken || ''
+        $('xrayClientId').value = adv.xrayClientId || ''
+        $('xrayClientSecret').value = adv.xrayClientSecret || ''
+      }
+      $('suitesList').innerHTML = ''
+      $('plansList').innerHTML = ''
+      ;(adv.suites?.length ? adv.suites : [{}]).forEach(s => addSuite(s))
+      ;(adv.plans?.length ? adv.plans : [{}]).forEach(p => addPlan(p))
+    }
+
+    function renderStepNav() {
+      $('stepNav').innerHTML = STEPS.map((s, i) => {
+        const c = 'step-dot' + (i === currentStep ? ' active' : '') + (i < currentStep ? ' done' : '')
+        return `<span class="${c}">${i + 1}. ${s}</span>`
+      }).join('')
+    }
+
+    function showStep(n) {
+      currentStep = n
+      document.querySelectorAll('#tab-advanced .panel').forEach(p =>
+        p.classList.toggle('active', Number(p.dataset.step) === n))
+      $('btnPrev').hidden = n <= 0
+      $('btnNext').hidden = n >= STEPS.length - 1
+      $('btnGenerate').hidden = n !== STEPS.length - 1
+      renderStepNav()
+      if (n === STEPS.length - 1) {
+        const c = collectAdvanced()
+        $('recapPreview').textContent = `Hook: ${c.hookDirName}\nRepo: ${c.repoRoot}\nPlans: ${c.plans.length} · Suites: ${c.suites.length}`
+      }
+    }
+
+    function showAdvMsg(t, ok) { Portail.showStatus($('msgAdv'), ok, t) }
+
+    $('createNew').addEventListener('change', () => { $('overwriteRow').hidden = !$('createNew').checked })
+    $('environment').addEventListener('change', () => {
+      const p = apiDefaults?.environments?.[$('environment').value]
+      if (p?.jiraBaseUrl) $('jiraBaseUrl').value = p.jiraBaseUrl
+    })
+    $('fillCredentials').addEventListener('change', () => { $('credFields').hidden = !$('fillCredentials').checked })
+    $('addSuite').addEventListener('click', () => addSuite({}))
+    $('addPlan').addEventListener('click', () => addPlan({}))
+    $('suitesList').addEventListener('click', e => { if (e.target.classList.contains('rm-suite')) e.target.closest('.item-block').remove() })
+    $('plansList').addEventListener('click', e => { if (e.target.classList.contains('rm-plan')) e.target.closest('.item-block').remove() })
+    $('btnPrev').addEventListener('click', () => showStep(currentStep - 1))
+    $('btnNext').addEventListener('click', () => showStep(currentStep + 1))
+
+    $('btnGenerate').addEventListener('click', async () => {
+      $('btnGenerate').disabled = true
+      const adv = collectAdvanced()
+      const cfg = { ...adv }
+      delete cfg.fillCredentials
+      if (!adv.fillCredentials) { cfg.jiraEmail = cfg.jiraToken = cfg.xrayClientId = cfg.xrayClientSecret = '' }
+      try {
+        const r = await fetch('/api/hook/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ config: cfg, dryRun: $('dryRun').checked }),
+        })
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error)
+        const all = (await Portail.fetchDefaults('hook')).data || {}
+        await Portail.savePageDefaults('hook', { ...all, simple: getSimpleData(), advanced: adv })
+        showAdvMsg(data.dryRun ? `Simulation OK — ${data.outputDir}` : `Généré dans ${data.outputDir}`, true)
+        if (data.recap) $('recapPreview').textContent = data.recap
+        await refreshStatusBadges()
+      } catch (e) { showAdvMsg(e.message, false) }
+      $('btnGenerate').disabled = false
+    })
+
+    async function initAdvanced() {
+      apiDefaults = await (await fetch('/api/hook/defaults')).json()
+      const saved = await Portail.fetchDefaults('hook')
+      if (saved.data?.advanced) applyAdvanced(saved.data.advanced)
+      else {
+        $('repoRoot').value = apiDefaults.repoRoot
+        $('hookDirName').value = apiDefaults.hookDirName
+        $('advProject').value = apiDefaults.defaults.project
+        $('advLabel').value = apiDefaults.defaults.label
+        $('advExcludeDirs').value = apiDefaults.defaults.excludeDirs
+        $('indexationDelay').value = apiDefaults.defaults.indexationDelay
+        $('advSuiteLinkType').value = apiDefaults.defaults.suiteLinkType
+        $('environment').value = apiDefaults.defaults.environment
+        $('jiraBaseUrl').value = apiDefaults.defaults.jiraBaseUrl
+        addSuite({})
+        addPlan({})
+      }
+      showStep(0)
+    }
+
+    function getHookPageData() {
+      return { simple: getSimpleData(), advanced: collectAdvanced() }
+    }
+
+    $('verifyBtn').addEventListener('click', async () => {
+      try {
+        await runVerifyUI($('statusInstall'), $('verifyResults'))
+      } catch (e) { Portail.showStatus($('statusInstall'), false, e.message) }
+    })
+
+    Portail.init('hook', getHookPageData, async () => {
+      await loadTerminalModes()
+      await loadSimple()
+      await loadInstallStatus()
+      await loadHookMeta()
+      await initAdvanced()
+    }, () => ({ page: 'hook' }))
+  </script>
+</body>
+</html>

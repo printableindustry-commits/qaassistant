@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-npmrc page-npmrc-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Configuration .npmrc</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.16.3" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.16.3" />
+</head>
+<body class="page-npmrc page-npmrc-compact">
+  <div class="wrap hub-app">
+    <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
+      <div class="hub-hero-nav">
+        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+        <button type="button" class="btn-hub-secondary" id="archiveNpmrcBtn" title="Renommer le .npmrc existant avec la date du jour">Archiver ancien .npmrc</button>
+      </div>
+      <div class="hub-hero-page-logo">
+        <img src="/assets/logo-npm.png" alt="npm" width="40" height="40" />
+      </div>
+      <div class="hub-hero-page-body">
+        <div class="npmrc-hero-head">
+          <h1>Configuration .npmrc</h1>
+          <span class="file-badge" id="npmrcFileBadge" aria-live="polite">…</span>
+        </div>
+        <p class="hub-hero-lead">Cet assistant vous permet de configurer votre <code>.npmrc</code>, de générer automatiquement le mot de passe encodé pour les variables <code>proxy</code> et <code>https-proxy</code>, puis de déposer le fichier dans <code>C:\%USERPROFILE%\.npmrc</code>.</p>
+      </div>
+    </div>
+
+    <div id="diffBanner" class="diff-banner diff-banner-compact hub-diff-banner" hidden></div>
+
+    <details class="npmrc-guide-fold card card-compact">
+      <summary>Guide — génération token Artifactory (JFrog)</summary>
+      <div class="npmrc-artifactory-guide npmrc-artifactory-guide--fold">
+        <div class="npmrc-artifactory-row">
+          <a
+            class="npmrc-artifactory-brand"
+            href="https://registry.saas.cagip.group.gna/ui/package"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Ouvrir JFrog Artifactory"
+          >
+            <img src="/assets/logo-jfrog-artifactory.png" alt="JFrog Artifactory" class="npmrc-artifactory-logo" />
+          </a>
+          <div class="npmrc-artifactory-body">
+            <h2 class="form-section-title" id="artifactoryGuideTitle">Génération de Token npm</h2>
+            <p class="npmrc-artifactory-url">
+              <a href="https://registry.saas.cagip.group.gna/ui/package" target="_blank" rel="noopener noreferrer">
+                registry.saas.cagip.group.gna/ui/package
+              </a>
+            </p>
+            <ol class="npmrc-token-steps">
+              <li>Connexion avec <code>MATRICULE@ZGIE.ZTECH</code></li>
+              <li>Sur le profil en haut à gauche — cliquer sur <strong>Set Me Up</strong></li>
+              <li>
+                Sélectionner <strong>npm</strong>
+                <img src="/assets/logo-npm.png" alt="npm" class="npmrc-inline-logo npmrc-inline-logo-npm" width="28" height="28" />
+              </li>
+              <li>Dans la liste déroulante <strong>Search for Repository</strong> — rechercher <code>cats-npm-virtual</code></li>
+              <li>Saisir son mot de passe et cliquer sur <strong>Generate Token &amp; Create Instruction</strong></li>
+              <li>Renseigner le <code>.npmrc</code> avec sa clé générée (champ ci-dessous)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <section class="card card-compact npmrc-card npmrc-form-card">
+      <form id="npmrcForm" autocomplete="off" onsubmit="return false">
+        <div class="npmrc-field-grid">
+          <div class="hub-field">
+            <label for="email">email <span class="req">*</span></label>
+            <input id="email" type="email" spellcheck="false" placeholder="prenom.nom@ca-ts.fr" />
+          </div>
+          <div class="hub-field">
+            <label for="registry">registry <span class="req">*</span></label>
+            <input id="registry" type="url" spellcheck="false" placeholder="https://registry.saas.cagip.group.gca/…" />
+          </div>
+          <div class="hub-field full">
+            <label for="authToken">_authToken <span class="req">*</span></label>
+            <div class="input-group">
+              <input id="authToken" type="password" autocomplete="off" spellcheck="false" placeholder="Token Artifactory" />
+              <button type="button" class="btn-input-addon toggle-secret" id="toggleToken" title="Afficher">👁</button>
+            </div>
+          </div>
+        </div>
+
+        <details class="hub-form-advanced npmrc-advanced" open>
+          <summary>Options (proxy, ssl, sass…)</summary>
+          <div class="npmrc-field-grid npmrc-field-grid--advanced">
+            <div class="hub-field">
+              <label for="alwaysAuth">always-auth <span class="req">*</span></label>
+              <select id="alwaysAuth">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <div class="hub-field">
+              <label for="strictSsl">strict-ssl <span class="req">*</span></label>
+              <select id="strictSsl">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+            <div class="hub-field full">
+              <label for="sassSite">SASS_BINARY_SITE <span class="req">*</span></label>
+              <input id="sassSite" type="url" spellcheck="false" />
+            </div>
+
+            <details class="npmrc-proxy-guide-fold full">
+              <summary>Guide — proxy entreprise ZGIE</summary>
+              <ol class="npmrc-token-steps npmrc-proxy-steps">
+                <li>Saisir le matricule (ex. <code>ET02935</code>) et le mot de passe ZGIE du poste</li>
+                <li>Cliquer <strong>Appliquer matricule et mot de passe</strong> — encodage automatique pour <code>proxy</code> et <code>https-proxy</code></li>
+                <li>Le mot de passe saisi est effacé après application (les URLs proxy restent masquées dans le formulaire)</li>
+              </ol>
+            </details>
+
+            <div class="npmrc-proxy-helper full">
+              <p class="npmrc-proxy-helper-title">Proxy entreprise (encodage automatique)</p>
+              <div class="npmrc-field-grid npmrc-field-grid--proxy">
+                <div class="hub-field">
+                  <label for="proxyMatricule">Matricule</label>
+                  <input id="proxyMatricule" type="text" spellcheck="false" placeholder="ET02935" autocomplete="off" />
+                </div>
+                <div class="hub-field">
+                  <label for="proxyPassword">Mot de passe</label>
+                  <div class="input-group">
+                    <input id="proxyPassword" type="password" autocomplete="off" spellcheck="false" placeholder="Mot de passe ZGIE" />
+                    <button type="button" class="btn-input-addon toggle-secret" id="toggleProxyPassword" title="Voir l'encodage URL">👁</button>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn-secondary btn-sm npmrc-apply-proxy-btn" id="applyProxyBtn">
+                Appliquer matricule et mot de passe aux variables proxy
+              </button>
+              <p class="hint hint-tight npmrc-proxy-hint">Format : <code>http://ZGIE%5C{matricule}:{password encodé}@muz11-wbsswsg.ca-technologies.fr:8080</code></p>
+            </div>
+
+            <div class="hub-field full">
+              <label for="proxy">proxy</label>
+              <div class="input-group">
+                <input id="proxy" type="password" spellcheck="false" autocomplete="off" />
+                <button type="button" class="btn-input-addon toggle-secret" id="toggleProxy" title="Afficher / masquer">👁</button>
+              </div>
+            </div>
+            <div class="hub-field full">
+              <label for="httpsProxy">https-proxy</label>
+              <div class="input-group">
+                <input id="httpsProxy" type="password" spellcheck="false" autocomplete="off" />
+                <button type="button" class="btn-input-addon toggle-secret" id="toggleHttpsProxy" title="Afficher / masquer">👁</button>
+              </div>
+            </div>
+            <div class="hub-field full">
+              <label for="noproxy">noproxy</label>
+              <input id="noproxy" type="text" spellcheck="false" autocomplete="off" placeholder="localhost,127.0.0.1,…" />
+            </div>
+          </div>
+        </details>
+
+        <div class="npmrc-generate-row">
+          <div class="npmrc-action-buttons">
+            <button type="button" class="btn-primary" id="generateBtn">Générer npmrc</button>
+            <button type="button" class="btn-ghost btn-sm" id="openProfileBtn" title="Ouvrir le dossier profil Windows">Ouvrir profil</button>
+          </div>
+          <p class="hint hint-tight npmrc-next-step"><a href="/node-install.html">→ Étape suivante : Installation Node.js</a></p>
+        </div>
+      </form>
+
+      <div id="status" class="status" style="display:none;margin-top:10px"></div>
+    </section>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.16.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.16.3"></script>
+  <script src="/assets/npmrc-page.js?v=1.16.3"></script>
+  <script src="/assets/wizard-footer.js?v=1.16.3"></script>
+</body>
+</html>

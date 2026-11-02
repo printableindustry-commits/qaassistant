@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-home">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.29.10" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.29.10" />
+</head>
+<body class="page-home">
+  <div class="wrap wrap-home hub-app">
+    <div id="hubBoot" class="hub-onboarding-card hub-loading-panel" aria-live="polite">
+      <div class="hub-loading-spinner" role="status" aria-label="Chargement">
+        <div class="hub-loading-spinner-ring" aria-hidden="true"></div>
+        <img class="hub-loading-spinner-logo" src="/assets/logo-qa.png" alt="" width="28" height="28" />
+      </div>
+      <h2 class="hub-onboarding-title">Chargement…</h2>
+      <p class="hub-onboarding-lead">Préparation de votre espace Wizard QA.</p>
+    </div>
+
+    <section id="onboardingView" class="hub-onboarding" hidden aria-label="Prise de connaissance">
+      <div class="hub-hero hub-hero--page-sm" style="margin-bottom:12px">
+      <h1>Prise de connaissance</h1>
+      <p class="hub-hero-lead">Outils QA Testeur CA-TS — pré-paramétrage de votre espace de travail.</p>
+      </div>
+      <nav id="onboardingNav" class="hub-onboarding-nav" aria-label="Navigation assistant">
+        <button type="button" class="btn-secondary btn-sm" id="obNavHome">Accueil</button>
+        <button type="button" class="btn-secondary btn-sm" id="obNavRestart">Recommencer le questionnaire</button>
+      </nav>
+      <div id="onboardingSteps"></div>
+    </section>
+
+    <section id="hubView" class="hub-main" hidden aria-label="Catalogue d'outils">
+      <div id="hubHero" class="hub-hero"></div>
+
+      <div class="hub-toolbar">
+        <span class="home-wizard-label">Configuration wizard — export bundle .wizard-qa/conf</span>
+        <div class="hub-toolbar-actions">
+          <button type="button" class="btn-secondary btn-sm" id="redoOnboarding" title="Relancer la prise de connaissance">Prise de connaissance</button>
+          <button type="button" class="btn-primary btn-sm" id="exportAll">Exporter</button>
+          <label class="btn-secondary btn-sm file-btn">Importer<input type="file" id="importAll" accept=".json" hidden></label>
+          <button type="button" class="btn-secondary btn-sm" id="applyAll">Appliquer</button>
+          <label class="chk-inline chk-inline-sm"><input type="checkbox" id="includeSecrets" checked> Secrets</label>
+          <label class="chk-inline chk-inline-sm"><input type="checkbox" id="applyOnImport"> Appliquer import</label>
+        </div>
+      </div>
+
+      <div id="homeStatus" class="status wizard-unified-status"></div>
+      <div id="wizardSettingsModal" class="hub-settings-modal" hidden aria-hidden="true"></div>
+      <div id="hubSections"></div>
+    </section>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.16.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/copilot-debug-prompt.js?v=1.7.16"></script>
+  <script src="/assets/home-hub.js?v=1.29.10"></script>
+  <script src="/assets/npm-chain-pyramid.js?v=1.26.2"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.26.2"></script>
+  <script src="/assets/wizard-footer.js?v=1.26.2"></script>
+</body>
+</html>

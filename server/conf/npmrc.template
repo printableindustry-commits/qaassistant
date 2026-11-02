@@ -1,0 +1,6 @@
+email=
+always-auth=true
+registry=https://registry.saas.cagip.group.gca/artifactory/api/npm/cats-npm-virtual/
+//registry.saas.cagip.group.gca/artifactory/api/npm/:_authToken=
+SASS_BINARY_SITE=https://repository.saas.cagip.group.gca/artifactory/npm-github-generic-remote/download
+strict-ssl=false

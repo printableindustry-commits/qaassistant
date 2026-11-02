@@ -1,0 +1,252 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — textes des pop-ups Wizard QA (snapshot extension)
+  // Copié vers .wizard-qa/conf/ui-wording.conf.json si ce fichier n'existe pas.
+  // Le wizard lit UNIQUEMENT le fichier .wizard-qa/conf/ (jamais écrasé ensuite).
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut — métadonnées (ne pas supprimer)
+  "version": 1,
+  "description": "Textes des pop-ups Wizard QA — modifiez .wizard-qa/conf/ui-wording.conf.json.",
+  // @wizard-qa:configuration-fin
+
+  // Libellé du bouton « ne plus afficher » — commun à tous les pop-ups (surcharge possible par pop-up)
+  "neverShowButton": "Ne plus afficher le pop-up",
+
+  // @wizard-qa:popups-debut — un objet = un pop-up identifiable par son id
+  // Template "disclaimer" : même rendu visuel (logo QA loader, panneau, bouton Fermer).
+  // Champs communs :
+  //   template    : "disclaimer" (obligatoire pour le template visuel)
+  //   showOn      : "pageLoad" (auto au chargement) | "manual" (via WizardDisclaimer.show('id'))
+  //   pages       : ["home"] | ["hookGit"] | ["*"] — page(s) cible(s)
+  //   order       : ordre d'affichage si plusieurs pop-ups sur la même page (1, 2, 3…)
+  //   enabled     : true | false
+  //   title, logo, logoAlt, paragraphs[], closeButton, confirmButton (optionnel), neverShowButton (optionnel)
+  //
+  // Pages reconnues : home, hookGit, hook, syncJira, npmrc, nodeInstall, npmInstall,
+  // cypressInstall, playwrightInstall, robotInstall, postmanInstall, repair, docQa, wiki
+  "popups": {
+
+    // ========== Pop-up N° 1 — Disclaimer accueil (id: launchDisclaimer) ==========
+    "launchDisclaimer": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["home"],
+      "order": 1,
+      "id": "launchDisclaimer",
+      "title": "Wizard QA Assistant",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Ceci est un assistant de configuration pour initier un environnement de test automatisé. Plusieurs Wizard seront proposés pour vous permettre d'installer votre logiciel de test automatisé, et synchroniser votre projet avec vos Board JIRA.",
+        "Il vous permettra également d'initier une documentation de référence à partir d'un modèle. Vous pourrez compléter les documents et vous aider des fonctionnalités présentes dans ce Wizard pour maintenir vos documentations à jour en fonction des tests que vous publierez sur JIRA.",
+        "Votre projet VS Code sera le projet de référence et conditionnera l'ensemble des fonctions de l'application pour synchroniser votre Local → Documentation → JIRA Xray."
+      ],
+      "closeButton": "Fermer"
+    },
+
+    // ========== Pop-up N° 2 — Après « Générer npmrc » (id: npmInstallPrompt) ==========
+    // Déclenché manuellement par la page .npmrc — showOn: "manual"
+    "npmInstallPrompt": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["npmrc", "npmInstall"],
+      "order": 1,
+      "id": "npmInstallPrompt",
+      "title": "Voulez-vous installer NPM ?",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Le fichier .npmrc a été généré avec succès.",
+        "Souhaitez-vous lancer npm install maintenant ? Les versions des paquets sont définies dans npm-install.conf.json."
+      ],
+      "closeButton": "Plus tard",
+      "confirmButton": "Installer NPM"
+    },
+
+    // ========== Pop-up N° 3 — Après disclaimer accueil (id: onboardingIntroPrompt) ==========
+    // Déclenché par l'accueil si la prise de connaissance n'est pas terminée — showOn: "manual"
+    "onboardingIntroPrompt": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["home"],
+      "order": 2,
+      "id": "onboardingIntroPrompt",
+      "title": "Prise de connaissance du projet de votre environnement",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Dans cet assistant, vous allez définir les informations propres à votre projet :",
+        "Product Owner, Business Analyst, Scrum Master, QA testeur, tribu / squad, codes produit et solution, URL JIRA, plans de test, etc.",
+        "Ces variables seront nécessaires au conditionnement des actions réalisées par l'outil."
+      ],
+      "closeButton": "Annuler",
+      "confirmButton": "Commencer la configuration du projet"
+    },
+
+    "packageJsonPrompt": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["npmrc"],
+      "id": "packageJsonPrompt",
+      "title": "Disposez-vous d'un package.json ?",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Un fichier package.json à la racine du projet est nécessaire pour npm install.",
+        "Si vous n'en avez pas encore, un modèle basé sur le projet Cypress de référence vous sera proposé."
+      ],
+      "closeButton": "Non",
+      "confirmButton": "Oui"
+    },
+
+    "nodeUpdatePrompt": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["nodeInstall"],
+      "id": "nodeUpdatePrompt",
+      "title": "Mise à jour Node",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Node est présent en version {current}.",
+        "Souhaitez-vous le mettre à jour avec la version {target} ?"
+      ],
+      "closeButton": "Conserver la version actuelle",
+      "confirmButton": "Mettre à jour"
+    },
+
+    "npmUpdatePrompt": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["npmInstall"],
+      "id": "npmUpdatePrompt",
+      "title": "Mise à jour npm",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "npm est présent en version {current}.",
+        "Souhaitez-vous le mettre à jour avec la version {target} ?"
+      ],
+      "closeButton": "Conserver la version actuelle",
+      "confirmButton": "Mettre à jour"
+    },
+
+    "npmInstallComplete": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "manual",
+      "pages": ["npmInstall"],
+      "id": "npmInstallComplete",
+      "title": "Installation complète",
+      "logo": "/assets/logo-qa.png",
+      "logoAlt": "QA",
+      "paragraphs": [
+        "Vous disposez désormais de :",
+        "Node : version {nodeVersion}",
+        "npm : version {npmVersion}"
+      ],
+      "closeButton": "Fermer"
+    },
+
+    "cypressInstallIntro": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["cypressInstall"],
+      "order": 1,
+      "id": "cypressInstallIntro",
+      "title": "Cypress — tests E2E navigateur",
+      "logo": "/assets/logo-cypress.png",
+      "logoAlt": "Cypress",
+      "paragraphs": [
+        "Cypress est un framework de tests de bout en bout (E2E) : il pilote un vrai navigateur pour simuler les parcours utilisateur sur votre application web.",
+        "À quoi ça sert : écrire des scénarios de régression UI, smoke tests après déploiement, et valider les écrans métier avec le framework CA-TS @cats-cdf/e2e.",
+        "Avantages : exécution rapide dans le navigateur, time-travel et captures à l'échec, intégration npm/Artifactory CA-TS, et compatibilité avec le hook Git JIRA/Xray sur les fichiers .feature."
+      ],
+      "closeButton": "Compris — lancer l'installation"
+    },
+
+    "playwrightInstallIntro": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["playwrightInstall"],
+      "order": 1,
+      "id": "playwrightInstallIntro",
+      "title": "Playwright — tests E2E multi-navigateurs",
+      "logo": "/assets/logo-playwright.png",
+      "logoAlt": "Playwright",
+      "paragraphs": [
+        "Playwright (Microsoft) automatise Chrome, Firefox et WebKit avec une API moderne en TypeScript/JavaScript.",
+        "À quoi ça sert : campagnes E2E cross-browser, tests parallèles, enregistrement de scénarios via l'extension VS Code, et industrialisation en CI.",
+        "Avantages : traces et vidéos de débogage, exécution stable, codegen intégré, et écosystème npm aligné sur Node CA-TS."
+      ],
+      "closeButton": "Compris — lancer l'installation"
+    },
+
+    "robotInstallIntro": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["robotInstall"],
+      "order": 1,
+      "id": "robotInstallIntro",
+      "title": "Robot Framework — tests keyword-driven",
+      "logo": "/assets/logo-robot.png",
+      "logoAlt": "Robot Framework",
+      "paragraphs": [
+        "Robot Framework est un framework Python orienté mots-clés : les scénarios (.robot) lisent comme du langage métier structuré.",
+        "À quoi ça sert : parcours web (SeleniumLibrary), API (Requests), fichiers et intégrations — idéal quand des testeurs fonctionnels participent à l'automatisation.",
+        "Avantages : syntaxe accessible, bibliothèques riches, rapports log.html/report.html détaillés, et bonne adéquation aux processus métier complets CA-TS."
+      ],
+      "closeButton": "Compris — lancer l'installation"
+    },
+
+    "postmanInstallIntro": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["postmanInstall"],
+      "order": 1,
+      "id": "postmanInstallIntro",
+      "title": "Postman & Newman — tests d'API REST",
+      "logo": "/assets/logo-postman.png",
+      "logoAlt": "Postman",
+      "paragraphs": [
+        "Postman (client lourd) sert à concevoir et exécuter des requêtes HTTP : collections de tests API, environnements (baseUrl, tokens…) et scripts de validation.",
+        "À quoi ça sert : tester des services sans interface graphique — smoke API, régression backend, contrats REST — puis versionner les exports JSON dans Git.",
+        "Newman est le moteur en ligne de commande (npm) qui rejoue vos collections Postman sans ouvrir l'interface : parfait pour CI/CD, rapports HTML/JUnit et campagnes planifiées.",
+        "Avantages : prise en main simple pour les QA API, séparation Desktop (conception) / Newman (automatisation), et scripts npm test:api:smoke générés par ce wizard."
+      ],
+      "closeButton": "Compris — initialiser Postman"
+    },
+
+    // ========== Pop-up N° 8 — Page Installer k6 (id: k6InstallIntro) ==========
+    "k6InstallIntro": {
+      "enabled": true,
+      "template": "disclaimer",
+      "showOn": "pageLoad",
+      "pages": ["k6Install"],
+      "order": 1,
+      "id": "k6InstallIntro",
+      "title": "k6 — tests de charge et performance",
+      "logo": "/assets/logo-k6.png",
+      "logoAlt": "k6",
+      "paragraphs": [
+        "k6 (Grafana) simule des utilisateurs virtuels pour mesurer temps de réponse, débit et stabilité sous charge.",
+        "À quoi ça sert : valider qu'une application ou API tient la charge attendue avant mise en production.",
+        "Ce wizard crée k6/ (script smoke, seuils), installe @types/k6 et configure le binaire Grafana k6.",
+        "Avantages : scripts JavaScript, métriques intégrées, CI/CD — complément des tests fonctionnels."
+      ],
+      "closeButton": "Compris — initialiser k6"
+    }
+  }
+  // @wizard-qa:popups-fin
+}

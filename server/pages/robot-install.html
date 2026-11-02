@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-robot-install page-robot-install-compact page-npm-install-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Installer Robot Framework</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.25.0" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.25.0" />
+</head>
+<body class="page-robot-install page-robot-install-compact page-npm-install-compact">
+  <div class="wrap hub-app">
+    <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
+      <div class="hub-hero-nav">
+        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+        <a href="/wiki.html#robot" class="btn-hub-secondary">← Wiki Robot</a>
+      </div>
+      <div class="hub-hero-page-logo">
+        <img src="/assets/logo-robot.png" alt="Robot Framework" width="40" height="40" />
+      </div>
+      <div class="hub-hero-page-body">
+        <div class="npmrc-hero-head">
+          <h1>Installer Robot Framework</h1>
+          <span class="file-badge" id="robotInstallBadge" aria-live="polite">…</span>
+        </div>
+        <p class="hub-hero-lead">Assistant guidé — <code>robotframework</code>, SeleniumLibrary, Requests et PyYAML via <strong>pip</strong>. Prérequis : Python 3.10+.</p>
+      </div>
+    </div>
+
+    <section class="card card-compact npmrc-card npmrc-form-card stack-install-cta-card">
+      <div class="stack-install-cta stack-install-cta--robot">
+        <img class="stack-install-cta-logo" src="/assets/logo-robot.png" alt="" width="56" height="56" />
+        <p class="stack-install-cta-lead">Assistant guidé en 6 étapes — framework Robot et bibliothèques courantes CA-TS.</p>
+        <button type="button" class="btn-stack-install btn-stack-install--robot" id="robotInstallBtn">Lancer l'installation Robot Framework</button>
+        <p class="hint hint-tight stack-install-config-hint">Commandes modifiables dans <code>.wizard-qa/conf/robot-install.conf.json</code></p>
+      </div>
+      <div id="robotInstallPanel" hidden></div>
+      <div id="status" class="status stack-install-status" style="display:none"></div>
+    </section>
+
+    <section class="card card-compact npmrc-card npm-page-bottom">
+      <div class="npmrc-generate-row">
+        <p class="hint hint-tight npmrc-next-step"><a href="/wiki.html#robot">→ Documentation Robot Framework</a></p>
+        <p class="hint hint-tight npmrc-next-step"><a href="/repair.html">→ Pré-configuration poste (offline)</a></p>
+      </div>
+    </section>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.25.0</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wizard-disclaimer.js?v=1.25.0"></script>
+  <script src="/assets/npm-wizard-shared.js?v=1.25.0"></script>
+  <script src="/assets/stack-install-wizard.js?v=1.25.0"></script>
+  <script src="/assets/wizard-footer.js?v=1.25.0"></script>
+  <script src="/assets/wizard-debug-copilot.js"></script>
+  <script src="/assets/wizard-debug-nav.js"></script>
+  <script src="/assets/wizard-debug-page-bindings.js"></script>
+  <script src="/assets/robot-install-page.js?v=1.25.0"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  // ===========================================================================
+  // MODÈLE DE RÉFÉRENCE — non lu par le Wizard (voir .wizard-qa/conf/…)
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut — métadonnées (ne pas supprimer)
+  "version": 1,
+  "description": "Fichier actif : .wizard-qa/conf/stack-questionnaire.conf.json",
+  // @wizard-qa:configuration-fin
+
+  // @wizard-qa:tools-debut — clés utilisées dans weights { cypress, robot, … }
+  "tools": {
+    "cypress": { "label": "Cypress", "color": "#58D0A8", "order": 1 },
+    "robot": { "label": "Robot Framework", "color": "#00C0B5", "order": 2 },
+    "playwright": { "label": "Playwright", "color": "#62BB46", "order": 3 },
+    "postman": { "label": "Postman", "color": "#FF6C37", "order": 4 }
+  },
+  // @wizard-qa:tools-fin
+
+  // @wizard-qa:questions-debut
+  "questions": [
+
+    // ========== Page de question N° 1 — Exemple (id: exemple) ==========
+    {
+      "id": "exemple",
+      "title": "Titre de l'étape",
+      "question": "Votre question ?",
+      "hint": "Optionnel",
+      "options": [
+        {
+          "id": "a",
+          "label": "Réponse A",
+          "weights": { "cypress": 4, "robot": 0, "playwright": 2, "postman": 0 }
+        }
+      ]
+    }
+
+    // ========== Fin du bloc questions — 1 page(s) au total ==========
+  ]
+  // @wizard-qa:questions-fin
+}

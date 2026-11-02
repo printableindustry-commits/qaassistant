@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-wiki page-wiki-compact">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard QA Assistant · Wiki</title>
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <link rel="stylesheet" href="/assets/home-hub.css?v=1.26.3" />
+  <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.26.3" />
+</head>
+<body class="page-wiki page-wiki-compact">
+  <div class="wrap hub-app wiki-app">
+    <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
+      <div class="hub-hero-nav">
+        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
+        <button type="button" class="btn-hub-secondary" id="wikiNavHome" title="Revenir à l'introduction">Introduction</button>
+      </div>
+      <div class="hub-hero-page-logo">
+        <img src="/assets/logo-wiki.png" alt="Wiki" width="40" height="40" />
+      </div>
+      <div class="hub-hero-page-body">
+        <div class="wiki-hero-head">
+          <h1>Wiki Wizard QA</h1>
+          <span class="file-badge file-badge-ok" id="wikiVersionBadge">v…</span>
+        </div>
+        <p class="hub-hero-lead">Documentation interactive — parcours d'installation, configuration poste, choix de stack (Cypress, Robot, Playwright, Postman), <span class="wiki-hook-inline"><img src="/assets/logo-git-hook.png" alt="" width="14" height="14" />Hook Git</span> JIRA / Xray et bonnes pratiques CA-TS.</p>
+      </div>
+    </div>
+
+    <div class="wiki-layout">
+      <aside class="wiki-sidebar card card-compact" aria-label="Sommaire">
+        <h2 class="form-section-title">Sommaire</h2>
+        <nav id="wikiNav" class="wiki-nav"></nav>
+      </aside>
+      <div class="wiki-main-col">
+        <section class="card card-compact wiki-trail-card" aria-label="Parcours Wizard">
+          <div class="wiki-trail-head">
+            <h2 class="form-section-title">Parcours recommandé</h2>
+            <p class="hint hint-tight wiki-trail-lead">Voici l'ordre chronologique de réalisation des actions.</p>
+          </div>
+          <p class="hint hint-tight wiki-trail-hint">Cliquez sur une étape pour ouvrir l'assistant correspondant dans le Wizard.</p>
+          <div id="wikiTrail" class="wiki-trail"></div>
+          <p class="hint hint-tight wiki-trail-stack-note" id="wikiTrailStackNote" hidden></p>
+        </section>
+        <main id="wikiMain" class="wiki-main wiki-page-view" aria-label="Contenu Wiki" aria-live="polite"></main>
+      </div>
+    </div>
+  </div>
+  <footer class="wizard-footer" role="contentinfo">
+    <span class="wizard-footer-version">v1.16.3</span>
+    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
+  </footer>
+  <script src="/assets/portail.js"></script>
+  <script src="/assets/wiki-section-node-npm-volta.js?v=1.16.3"></script>
+  <script src="/assets/wiki-stack-cypress.js?v=1.16.3"></script>
+  <script src="/assets/wiki-stack-robot.js?v=1.16.3"></script>
+  <script src="/assets/wiki-stack-playwright.js?v=1.16.3"></script>
+  <script src="/assets/wiki-stack-postman.js?v=1.27.0"></script>
+  <script src="/assets/wiki-stack-k6.js?v=1.27.0"></script>
+  <script src="/assets/wiki-sections-stacks.js?v=1.16.3"></script>
+  <script src="/assets/wiki-sections.js?v=1.16.4"></script>
+  <script src="/assets/wiki.js?v=1.16.3"></script>
+  <script src="/assets/wizard-footer.js?v=1.16.3"></script>
+</body>
+</html>

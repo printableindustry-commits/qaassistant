@@ -1,0 +1,17 @@
+{
+  // ===========================================================================
+  // RÉFÉRENCE — paramètres du scaffold k6 (scripts de charge)
+  // Copié vers .wizard-qa/conf/k6-init.conf.json si absent.
+  // ===========================================================================
+
+  // @wizard-qa:configuration-debut
+  "version": 1,
+  "description": "Paramètres de génération des scripts k6 — modifiez .wizard-qa/conf/k6-init.conf.json.",
+  "projectName": "MonProjet-perf",
+  "baseUrl": "https://app-recette.example.com",
+  "k6Dir": "k6",
+  "defaultVus": 5,
+  "defaultDuration": "30s",
+  "p95ThresholdMs": 500
+  // @wizard-qa:configuration-fin
+}
