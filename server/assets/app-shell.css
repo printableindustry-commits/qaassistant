@@ -150,6 +150,36 @@ html body.ks-on .wizard-footer {
 html body.ks-on .wizard-footer .wizard-footer-version { color: var(--ks-green); font-size: 12px; font-weight: 700; }
 html body.ks-on .wizard-footer .wizard-footer-label { color: #8a9e96; font-size: 10px; }
 
+/* Statuts de navigation */
+.ks-nav-label { flex: 1; min-width: 0; }
+.ks-nav-dot--done { background: var(--ks-green); }
+.ks-nav-dot--todo { background: #fff; box-shadow: inset 0 0 0 2px var(--ks-teal); }
+.ks-nav-dot--blocked { background: #c5d3ce; }
+.ks-nav-state { flex: 0 0 auto; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.ks-nav-state--done { background: #e3f4ed; color: var(--ks-green); }
+.ks-nav-state--todo { background: #e6f5f5; color: var(--ks-teal); }
+.ks-nav-state--blocked { background: #eef1f0; color: #7a9288; }
+
+/* Guide de page */
+.ks-guide { margin: 0 0 18px; background: #fff; border: 1px solid var(--ks-border); border-left: 4px solid var(--ks-teal); border-radius: 14px; box-shadow: 0 4px 16px rgba(0, 106, 78, 0.05); }
+.ks-guide > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding: 12px 18px; cursor: pointer; list-style: none; }
+.ks-guide > summary::-webkit-details-marker { display: none; }
+.ks-guide-kicker { flex: 1 0 100%; font-size: 11px; font-weight: 700; color: var(--ks-teal); }
+.ks-guide-title { font-size: 18px; font-weight: 700; color: var(--ks-text); }
+.ks-guide-body { padding: 0 18px 16px; }
+.ks-guide-goal { margin: 0 0 10px; font-size: 14px; color: var(--ks-text); }
+.ks-guide-label { margin: 0 0 4px; font-size: 11px; font-weight: 700; color: var(--ks-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.ks-guide-steps { margin: 0 0 10px; padding-left: 20px; color: #3d524a; }
+.ks-guide-steps li { margin: 2px 0; }
+.ks-guide-after { margin: 0; font-size: 12px; color: var(--ks-muted); }
+.ks-guide-blocked { margin: 10px 0 0; padding: 8px 12px; background: #fff7e6; border-radius: 8px; color: #8a5a00; font-size: 12px; }
+
+/* Barre étape suivante */
+.ks-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 24px; padding: 14px 18px; background: #fff; border: 1px dashed #c5ddd6; border-radius: 14px; }
+.ks-next.is-ready { border-style: solid; border-color: var(--ks-teal); background: #f0faf8; }
+.ks-next-text { font-size: 13px; color: var(--ks-muted); }
+.ks-next-btn { text-decoration: none; }
+
 /* Défilement discret */
 .ks-nav::-webkit-scrollbar, .ks-main::-webkit-scrollbar { width: 10px; }
 .ks-nav::-webkit-scrollbar-thumb { background: rgba(0, 106, 78, 0.18); border-radius: 6px; }

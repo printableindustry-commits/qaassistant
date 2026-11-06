@@ -1,57 +1,14 @@
 /**
- * Shell applicatif (en-tête de marque, navigation latérale, pied de page) — charte Kontext.AI.
- * Chargé par portail.js sur toutes les pages ; le contenu existant est déplacé dans .ks-main.
+ * Shell applicatif : en-tête de marque, navigation latérale, guide de page et étape suivante.
+ * La navigation, les guides et les statuts viennent de /api/app/model (registre app-registry.json) :
+ * aucun menu n'est codé ici.
  */
 ;(function (global) {
-  const NAV = [
-    {
-      title: 'Accueil',
-      help: "Vue d'ensemble et progression",
-      items: [{ label: 'Tableau de bord', href: '/', match: ['/', '/index.html'] }],
-    },
-    {
-      title: 'Poste de travail',
-      help: 'Node, registry npm et dépendances du projet',
-      items: [
-        { label: 'Installer Node', href: '/node-install.html' },
-        { label: 'Registry npm (.npmrc)', href: '/npmrc.html' },
-        { label: 'Installer NPM', href: '/npm-install.html' },
-        { label: 'Pré-configuration poste', href: '/repair.html' },
-      ],
-    },
-    {
-      title: 'Stack de test',
-      help: 'Tests end-to-end',
-      items: [{ label: 'Installer Playwright', href: '/playwright-install.html' }],
-    },
-    {
-      title: 'Performance k6',
-      help: 'Tests de charge Grafana k6',
-      items: [
-        { label: 'Wizard performance', href: '/k6-wizard.html' },
-        { label: 'Installation k6', href: '/k6-install.html' },
-      ],
-    },
-    {
-      title: 'JIRA et Git',
-      help: 'Synchronisation des tests avec JIRA / Xray',
-      items: [
-        { label: 'Hook Git', href: '/hook-git.html', match: ['/hook-git.html', '/hook.html'] },
-        { label: 'Sync JIRA', href: '/project.html' },
-      ],
-    },
-    {
-      title: 'Documentation',
-      help: 'Livrables QA et guides',
-      items: [
-        { label: 'Livrables QA', href: '/doc-qa.html' },
-        { label: 'Wiki', href: '/wiki.html' },
-      ],
-    },
-  ]
+  const STATE_LABEL = { done: 'Terminé', todo: 'À faire', blocked: 'Bloqué', info: '' }
+  const GUIDE_KEY = 'wizardQa.guideCollapsed'
 
   function esc(s) {
-    return String(s)
+    return String(s ?? '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -63,18 +20,35 @@
     return base ? `${base.replace(/\/$/, '')}${path}` : path
   }
 
-  function pageUrl(href) {
-    return global.Portail && typeof global.Portail.pageUrl === 'function' ? global.Portail.pageUrl(href) : href
-  }
-
   function currentPath() {
     const p = global.location.pathname || '/'
     return p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : p
   }
 
-  function isActive(item, path) {
-    const targets = item.match || [item.href]
-    return targets.includes(path) || (path === '/index.html' && targets.includes('/'))
+  function pageHref(page, journeyId) {
+    let href = page.path
+    if (journeyId) href += `${href.includes('?') ? '&' : '?'}journey=${encodeURIComponent(journeyId)}`
+    return global.Portail && typeof global.Portail.pageUrl === 'function' ? global.Portail.pageUrl(href) : href
+  }
+
+  function findPageId(model, path) {
+    return Object.keys(model.pages).find((id) => (model.pages[id].match || [model.pages[id].path]).includes(path)) || null
+  }
+
+  function journeyContext(model, pageId) {
+    const wanted = new URLSearchParams(global.location.search).get('journey')
+    const journeys = model.journeys.filter((j) => j.steps.includes(pageId))
+    return journeys.find((j) => j.id === wanted) || journeys[0] || null
+  }
+
+  function navSections(model) {
+    return model.nav.map((section) => {
+      const journey = section.journey ? model.journeys.find((j) => j.id === section.journey) : null
+      const ids = journey
+        ? journey.steps.filter((id) => !(section.skip || []).includes(id))
+        : (section.pages || [])
+      return { title: section.title, help: section.help, journeyId: journey?.id || null, ids: ids.filter((id) => model.pages[id]) }
+    })
   }
 
   function buildHeader() {
@@ -87,7 +61,7 @@
         <img class="ks-brand-logo" src="${esc(assetUrl('/assets/logo-qa.png'))}" alt="" width="36" height="36" />
         <div class="ks-brand-titles">
           <span class="ks-brand-name">Wizard QA Assistant</span>
-          <span class="ks-brand-sub">Installation et pilotage de la stack de test Playwright &mdash; poste CA-TS</span>
+          <span class="ks-brand-sub">Installez et pilotez votre stack de test pas à pas &mdash; poste CA-TS</span>
         </div>
         <span class="ks-brand-spacer"></span>
         <img class="ks-brand-ca" src="${esc(assetUrl('/assets/logo-cats-full.png'))}" alt="Crédit Agricole Technologies et Services" />
@@ -96,36 +70,109 @@
     return header
   }
 
-  function buildSidebar(path) {
+  function buildSidebarShell() {
     const aside = document.createElement('aside')
     aside.className = 'ks-sidebar'
     aside.setAttribute('aria-label', 'Navigation')
-
-    const sections = NAV.map((section) => {
-      const items = section.items
-        .map((item) => {
-          const active = isActive(item, path)
-          return `<a class="ks-nav-item${active ? ' is-active' : ''}" href="${esc(pageUrl(item.href))}"${active ? ' aria-current="page"' : ''}>
-            <span class="ks-nav-dot" aria-hidden="true"></span>${esc(item.label)}</a>`
-        })
-        .join('')
-      return `<div class="ks-nav-section"><div class="ks-nav-title" title="${esc(section.help)}">${esc(section.title)}</div>${items}</div>`
-    }).join('')
-
     aside.innerHTML = `
       <div class="ks-side-brand">
         <span class="ks-side-name">Wizard QA</span>
         <span class="ks-side-tagline">Assistant d'installation</span>
-        <span class="ks-badge">Mode poste local</span>
+        <span class="ks-badge" id="ksProjectBadge">Mode poste local</span>
       </div>
-      <nav class="ks-nav">${sections}</nav>
-      <div class="ks-side-footer"><span class="ks-chip">Playwright &middot; k6</span></div>`
+      <nav class="ks-nav" id="ksNav" aria-label="Parcours"></nav>
+      <div class="ks-side-footer"><span class="ks-chip">Copilot local &middot; sans serveur externe</span></div>`
     return aside
+  }
+
+  function renderNav(model, path) {
+    const activeId = findPageId(model, path)
+    const html = navSections(model).map((section) => {
+      const items = section.ids.map((id) => {
+        const page = model.pages[id]
+        const st = model.statuses[id] || { state: 'info', message: '' }
+        const active = id === activeId
+        const label = STATE_LABEL[st.state]
+        return `<a class="ks-nav-item${active ? ' is-active' : ''}" href="${esc(pageHref(page, section.journeyId))}"${active ? ' aria-current="page"' : ''} title="${esc(st.message || page.label)}">
+          <span class="ks-nav-dot ks-nav-dot--${esc(st.state)}" aria-hidden="true"></span>
+          <span class="ks-nav-label">${esc(page.label)}</span>
+          ${label ? `<span class="ks-nav-state ks-nav-state--${esc(st.state)}">${esc(label)}</span>` : ''}</a>`
+      }).join('')
+      return `<div class="ks-nav-section"><div class="ks-nav-title" title="${esc(section.help || '')}">${esc(section.title)}</div>${items}</div>`
+    }).join('')
+    const nav = document.getElementById('ksNav')
+    if (nav) nav.innerHTML = html
+
+    const badge = document.getElementById('ksProjectBadge')
+    if (badge && model.project?.name) badge.textContent = model.project.name
+  }
+
+  function guideCollapsed(pageId) {
+    try {
+      return Boolean(JSON.parse(global.localStorage.getItem(GUIDE_KEY) || '{}')[pageId])
+    } catch {
+      return false
+    }
+  }
+
+  function rememberGuide(pageId, collapsed) {
+    try {
+      const all = JSON.parse(global.localStorage.getItem(GUIDE_KEY) || '{}')
+      all[pageId] = collapsed
+      global.localStorage.setItem(GUIDE_KEY, JSON.stringify(all))
+    } catch { /* stockage indisponible */ }
+  }
+
+  function renderGuide(model, pageId, main) {
+    const page = model.pages[pageId]
+    if (!page?.guide) return
+    const journey = journeyContext(model, pageId)
+    const position = journey ? journey.steps.indexOf(pageId) + 1 : 0
+    const st = model.statuses[pageId]
+    const steps = (page.guide.youDo || []).map((s) => `<li>${esc(s)}</li>`).join('')
+
+    const section = document.createElement('details')
+    section.className = 'ks-guide'
+    section.open = !guideCollapsed(pageId)
+    section.innerHTML = `
+      <summary>
+        <span class="ks-guide-kicker">${journey ? `${esc(journey.title)} &middot; étape ${position} sur ${journey.steps.length}` : 'Guide'}</span>
+        <span class="ks-guide-title">${esc(page.label)}</span>
+        ${st && STATE_LABEL[st.state] ? `<span class="ks-nav-state ks-nav-state--${esc(st.state)}">${esc(STATE_LABEL[st.state])}</span>` : ''}
+      </summary>
+      <div class="ks-guide-body">
+        <p class="ks-guide-goal">${esc(page.guide.goal)}</p>
+        ${steps ? `<p class="ks-guide-label">Ce que vous avez à faire</p><ol class="ks-guide-steps">${steps}</ol>` : ''}
+        ${page.guide.after ? `<p class="ks-guide-after"><strong>Ensuite :</strong> ${esc(page.guide.after)}</p>` : ''}
+        ${st?.state === 'blocked' ? `<p class="ks-guide-blocked">${esc(st.message)}</p>` : ''}
+      </div>`
+    section.addEventListener('toggle', () => rememberGuide(pageId, !section.open))
+    main.insertBefore(section, main.firstChild)
+  }
+
+  function renderNextStep(model, pageId, main) {
+    const journey = journeyContext(model, pageId)
+    if (!journey) return
+    const next = journey.steps[journey.steps.indexOf(pageId) + 1]
+    if (!next || !model.pages[next]) return
+    const ready = model.statuses[pageId]?.state === 'done' || model.statuses[pageId]?.state === 'info'
+    const bar = document.createElement('div')
+    bar.className = `ks-next${ready ? ' is-ready' : ''}`
+    bar.innerHTML = `
+      <span class="ks-next-text">${ready ? 'Cette étape est terminée.' : 'Terminez cette étape pour continuer.'} Prochaine étape : <strong>${esc(model.pages[next].label)}</strong></span>
+      <a class="btn-primary btn-sm ks-next-btn" href="${esc(pageHref(model.pages[next], journey.id))}">Étape suivante</a>`
+    main.appendChild(bar)
+  }
+
+  async function fetchModel() {
+    const res = await fetch(assetUrl('/api/app/model'))
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
   }
 
   function build() {
     const body = document.body
-    if (!body || body.classList.contains('ks-on')) return
+    if (!body || body.classList.contains('ks-on')) return null
 
     body.querySelectorAll('.wizard-brand-bar').forEach((el) => el.remove())
 
@@ -139,9 +186,9 @@
     main.className = 'ks-main'
     movable.forEach((node) => main.appendChild(node))
 
+    const aside = buildSidebarShell()
     const row = document.createElement('div')
     row.className = 'ks-body'
-    const aside = buildSidebar(currentPath())
     row.append(aside, main)
 
     const header = buildHeader()
@@ -154,14 +201,36 @@
       const open = aside.classList.toggle('is-open')
       btn.setAttribute('aria-expanded', String(open))
     })
+    return main
   }
 
-  function boot() {
-    build()
+  const AppShell = { model: null, ready: null }
+
+  async function boot() {
+    const main = build()
+    if (!main) return
+    const path = currentPath()
+    AppShell.ready = fetchModel()
+      .then((model) => {
+        AppShell.model = model
+        renderNav(model, path)
+        const pageId = findPageId(model, path)
+        if (pageId) {
+          renderGuide(model, pageId, main)
+          renderNextStep(model, pageId, main)
+        }
+        global.dispatchEvent(new CustomEvent('appshell:ready', { detail: { model, pageId } }))
+        return model
+      })
+      .catch(() => {
+        global.dispatchEvent(new CustomEvent('appshell:ready', { detail: { model: null, pageId: null } }))
+        return null
+      })
+    await AppShell.ready
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot)
   else boot()
 
-  global.AppShell = { build, NAV }
+  global.AppShell = AppShell
 })(typeof window !== 'undefined' ? window : globalThis)

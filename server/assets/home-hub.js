@@ -371,19 +371,7 @@ window.HomeHub = {
   },
 
   async runHomeWelcomeFlow(needsOnboarding) {
-    if (typeof WizardDisclaimer === 'undefined') {
-      if (needsOnboarding) this.showOnboarding()
-      return
-    }
-    const shown = await WizardDisclaimer.show('launchDisclaimer', { force: true })
-    if (shown) await WizardDisclaimer.waitUntilClosed()
-    if (!needsOnboarding) return
-    const choice = await WizardDisclaimer.showConfirm('onboardingIntroPrompt', { force: true })
-    if (choice === 'confirm') {
-      this.showOnboarding()
-    } else {
-      this.showHub(this.applyHubCatalogPatches(this.state.catalog))
-    }
+    if (needsOnboarding) this.showOnboarding()
   },
 
   async showLaunchDisclaimer() {
@@ -1233,18 +1221,7 @@ window.HomeHub = {
       tick(isEdit ? 2 : 3)
       await this.sleep(300)
       this.state.editMode = false
-      if (isEdit) {
-        const catalog = await this.apiFetch('/api/home/catalog')
-        this.state.catalog = catalog
-        this.showHub(catalog)
-        Portail.showStatus(
-          document.getElementById('homeStatus'),
-          true,
-          `Paramètres mis à jour — ${res.configPath || '.wizard-qa/conf/project.variables.json'}`,
-        )
-        return
-      }
-      this.showOnboardingCompleteScreen(res)
+      Portail.navigateTo('/')
     } catch (err) {
       this.state.stepIndex = this.state.form.usesJiraPlans
         ? this.STEP_IDS.indexOf('plans')
@@ -1278,11 +1255,7 @@ window.HomeHub = {
         ${p.applicationLabel ? `<span class="hub-meta-app" title="${this.escape(p.applicationLabel)}"><strong>Application</strong> ${this.escape(p.applicationLabel)}</span>` : ''}
         ${p.gitRepository ? `<span class="hub-meta-repo" title="${this.escape(p.gitRepository)}"><strong>Dépôt Git</strong> ${this.escape(p.gitRepository)}</span>` : ''}`
 
-    const stackBanner = !catalog.stackRecommendationComplete ? `
-      <div class="hub-stack-banner${compact ? ' hub-stack-banner--compact' : ''}">
-        <p><strong>Étape suivante :</strong> définissez votre application de test automatisée.</p>
-        <button type="button" class="btn-primary btn-sm" id="hubStartStackQuiz">Définir votre application</button>
-      </div>` : ''
+    const stackBanner = ''
     const configPaths = `<p class="hub-config-path hint">Variables : <code>${this.escape(varsPath)}</code> · Profil : <code>${this.escape(defaultsPath)}</code>${catalog.onboardingSnapshotPath ? ` · Prise de connaissance : <code>${this.escape(catalog.onboardingSnapshotPath)}</code>` : ''}</p>`
 
     const settingsBtn = `<button type="button" class="btn-secondary btn-sm hub-btn-with-icon" id="openWizardSettings" title="Paramétrage du Wizard">

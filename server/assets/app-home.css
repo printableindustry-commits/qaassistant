@@ -1,0 +1,41 @@
+/* Accueil — objectifs guidés (charte Kontext : vert #006A4E, teal #009597). */
+.app-home { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.ah-hero h1 { margin: 0 0 6px; font-size: 26px; }
+.ah-hero p { margin: 0; font-size: 14px; color: #5a7268; }
+
+.ah-callout, .ah-focus { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 22px; background: #fff7e6; border: 1px solid #f1dcae; border-radius: 14px; }
+.ah-callout h2, .ah-focus h2 { margin: 0 0 4px; font-size: 16px; color: #1a2e28; }
+.ah-callout p, .ah-focus p { margin: 0; font-size: 13px; color: #5a7268; }
+.ah-focus { display: block; background: linear-gradient(to right, rgba(0, 149, 151, 0.1), rgba(0, 106, 78, 0.06)); border-color: rgba(0, 149, 151, 0.3); }
+.ah-focus .btn-primary { margin-top: 12px; display: inline-block; text-decoration: none; }
+.ah-focus--done { background: #e3f4ed; border-color: #b9e0cf; }
+.ah-kicker { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 700; color: #009597; text-transform: uppercase; letter-spacing: 0.04em; }
+.ah-callout .btn-primary, .ah-journey .btn-primary, .ah-journey .btn-secondary { text-decoration: none; display: inline-block; text-align: center; }
+
+.ah-journeys { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
+.ah-journey { display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #fff; border: 1px solid #dce8e4; border-radius: 14px; box-shadow: 0 4px 16px rgba(0, 106, 78, 0.05); }
+.ah-journey.is-complete { border-color: #b9e0cf; }
+.ah-journey-head { display: flex; gap: 14px; align-items: flex-start; }
+.ah-journey-head img { width: 36px; height: 36px; object-fit: contain; }
+.ah-journey-head h3 { margin: 0 0 2px; font-size: 16px; color: #1a2e28; }
+.ah-journey-head p { margin: 0; font-size: 13px; color: #5a7268; }
+.ah-progress { height: 6px; background: #e4efeb; border-radius: 4px; overflow: hidden; }
+.ah-progress-fill { height: 100%; background: linear-gradient(to right, #006a4e, #009597); }
+.ah-progress-label { margin: -4px 0 0; font-size: 11px; color: #7a9288; }
+.ah-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ah-step { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.ah-step a { color: #1a2e28; text-decoration: none; }
+.ah-step a:hover { color: #009597; text-decoration: underline; }
+.ah-step--blocked a { color: #7a9288; }
+.ah-step-msg { margin-left: auto; font-size: 11px; color: #7a9288; }
+.ah-step-icon { flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.ah-step-icon--done { background: #006a4e; color: #fff; }
+.ah-step-icon--todo { background: #fff; color: #009597; box-shadow: inset 0 0 0 2px #009597; }
+.ah-step-icon--blocked { background: #eef1f0; color: #7a9288; }
+.ah-journey > a:last-child { align-self: flex-start; margin-top: auto; }
+
+.ah-help { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.ah-help-card { padding: 16px 18px; background: #fff; border: 1px solid #dce8e4; border-radius: 14px; }
+.ah-help-card h3 { margin: 0 0 4px; font-size: 13px; color: #006a4e; }
+.ah-help-card p { margin: 0 0 8px; font-size: 12px; color: #5a7268; }
+.ah-help-card a { font-size: 12px; font-weight: 600; color: #009597; }

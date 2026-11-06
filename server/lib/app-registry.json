@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "_doc": "Source unique de la navigation et des parcours. Ajouter un menu = ajouter une entrée dans « pages », la référencer dans « nav » et, si besoin, dans un parcours de « journeys ». Le statut vient du fournisseur « status » déclaré dans server/lib/app-model.mjs.",
+  "pages": {
+    "home": {
+      "label": "Tableau de bord",
+      "path": "/",
+      "match": ["/", "/index.html"]
+    },
+    "projet": {
+      "label": "Mon projet",
+      "path": "/projet.html",
+      "status": "project",
+      "tracked": true,
+      "guide": {
+        "goal": "Dire à l'assistant qui vous êtes et sur quel projet vous travaillez.",
+        "youDo": [
+          "Renseignez votre équipe, le code produit et l'application testée.",
+          "Indiquez si vous utilisez des plans de test JIRA.",
+          "Validez : ces informations servent à préremplir tous les autres écrans."
+        ],
+        "after": "Vous pouvez ensuite choisir ce que vous voulez mettre en place."
+      }
+    },
+    "node-install": {
+      "label": "Préparer mon poste",
+      "path": "/node-install.html",
+      "status": "node",
+      "tracked": true,
+      "guide": {
+        "goal": "Installer le moteur (Node.js) qui fait tourner les outils de test.",
+        "youDo": [
+          "Choisissez la version proposée.",
+          "Cliquez sur le bouton d'installation et attendez la fin."
+        ],
+        "after": "Vous donnerez ensuite l'accès au dépôt d'entreprise."
+      }
+    },
+    "npmrc": {
+      "label": "Accès au dépôt d'entreprise",
+      "path": "/npmrc.html",
+      "status": "npmrc",
+      "tracked": true,
+      "requires": ["node-install"],
+      "guide": {
+        "goal": "Autoriser votre poste à télécharger les outils depuis le dépôt interne (Artifactory).",
+        "youDo": [
+          "Saisissez votre adresse e-mail et votre jeton d'accès.",
+          "Générez le fichier de configuration."
+        ],
+        "after": "Vous pourrez alors télécharger les outils du projet."
+      }
+    },
+    "npm-install": {
+      "label": "Télécharger les outils du projet",
+      "path": "/npm-install.html",
+      "status": "npmInstall",
+      "tracked": true,
+      "requires": ["node-install", "npmrc"],
+      "guide": {
+        "goal": "Récupérer tous les composants dont votre projet de test a besoin.",
+        "youDo": ["Lancez l'installation et laissez-la se terminer."],
+        "after": "L'outil de test peut ensuite être installé."
+      }
+    },
+    "playwright-install": {
+      "label": "Installer Playwright",
+      "path": "/playwright-install.html",
+      "status": "playwright",
+      "tracked": true,
+      "requires": ["node-install", "npmrc"],
+      "guide": {
+        "goal": "Installer Playwright, l'outil qui rejoue des parcours dans un navigateur à votre place.",
+        "youDo": [
+          "Lancez l'installation : les navigateurs nécessaires sont téléchargés automatiquement.",
+          "Installez ensuite l'extension VS Code proposée pour enregistrer vos tests."
+        ],
+        "after": "Vous pouvez enregistrer votre premier test dans VS Code."
+      }
+    },
+    "k6-install": {
+      "label": "Installer l'outil de charge",
+      "path": "/k6-install.html",
+      "status": "k6Install",
+      "tracked": true,
+      "guide": {
+        "goal": "Installer k6, l'outil qui simule de nombreux utilisateurs en même temps.",
+        "youDo": [
+          "Indiquez l'adresse de l'application à tester.",
+          "Lancez l'installation."
+        ],
+        "after": "Vous pourrez définir votre scénario de charge."
+      }
+    },
+    "k6-wizard": {
+      "label": "Préparer un test de charge",
+      "path": "/k6-wizard.html",
+      "status": "k6Wizard",
+      "requires": ["k6-install"],
+      "guide": {
+        "goal": "Décrire en quelques questions la charge à simuler (nombre d'utilisateurs, durée, seuils acceptables).",
+        "youDo": [
+          "Répondez aux questions, section par section.",
+          "Enregistrez le profil puis appliquez-le au projet."
+        ],
+        "after": "Lancez le test et consultez l'historique des résultats."
+      }
+    },
+    "hook-git": {
+      "label": "Connecter Git à JIRA",
+      "path": "/hook-git.html",
+      "match": ["/hook-git.html", "/hook.html"],
+      "status": "hook",
+      "tracked": true,
+      "guide": {
+        "goal": "Faire en sorte que vos tests enregistrés dans Git soient automatiquement suivis dans JIRA / Xray.",
+        "youDo": [
+          "Renseignez vos accès JIRA.",
+          "Lancez la vérification à blanc (aucune donnée n'est modifiée).",
+          "Activez la connexion."
+        ],
+        "after": "Vous pourrez synchroniser vos plans de test."
+      }
+    },
+    "sync-jira": {
+      "label": "Synchroniser avec JIRA",
+      "path": "/project.html",
+      "status": "jiraSync",
+      "requires": ["hook-git"],
+      "guide": {
+        "goal": "Comparer vos tests locaux avec JIRA et mettre JIRA à jour.",
+        "youDo": [
+          "Lancez l'analyse : elle liste les écarts sans rien modifier.",
+          "Si le résultat vous convient, lancez la synchronisation."
+        ],
+        "after": "Vos plans de test JIRA sont à jour."
+      }
+    },
+    "doc-qa": {
+      "label": "Générer les livrables QA",
+      "path": "/doc-qa.html",
+      "status": "docs",
+      "tracked": true,
+      "guide": {
+        "goal": "Produire vos documents QA (plan de test, rapports…) à partir de votre projet.",
+        "youDo": [
+          "Répondez aux questions sur votre contexte.",
+          "Copiez la demande générée dans Copilot, chapitre par chapitre."
+        ],
+        "after": "Vos livrables sont prêts à être relus et partagés."
+      }
+    },
+    "repair": {
+      "label": "Poste sans accès Internet",
+      "path": "/repair.html",
+      "guide": {
+        "goal": "Préparer un poste qui ne peut pas télécharger directement (installation hors ligne).",
+        "youDo": ["Chargez les fichiers demandés puis lancez la préparation."],
+        "after": "Reprenez le parcours « Tester mon application web »."
+      }
+    },
+    "wiki": {
+      "label": "Aide et documentation",
+      "path": "/wiki.html"
+    }
+  },
+  "journeys": [
+    {
+      "id": "playwright",
+      "title": "Tester mon application web",
+      "summary": "Automatiser des parcours dans le navigateur : clics, formulaires, vérifications.",
+      "logo": "/assets/logo-playwright.png",
+      "steps": ["node-install", "npmrc", "npm-install", "playwright-install"]
+    },
+    {
+      "id": "k6",
+      "title": "Mesurer la performance",
+      "summary": "Simuler de nombreux utilisateurs pour vérifier que l'application tient la charge.",
+      "logo": "/assets/logo-k6.png",
+      "steps": ["k6-install", "k6-wizard"]
+    },
+    {
+      "id": "jira",
+      "title": "Relier mes tests à JIRA",
+      "summary": "Suivre automatiquement vos tests dans JIRA / Xray, sans double saisie.",
+      "logo": "/assets/logo-jira.png",
+      "steps": ["projet", "hook-git", "sync-jira"]
+    },
+    {
+      "id": "docs",
+      "title": "Produire mes livrables QA",
+      "summary": "Générer plans de test et rapports avec l'aide de Copilot.",
+      "logo": "/assets/logo-qa.png",
+      "steps": ["projet", "doc-qa"]
+    }
+  ],
+  "nav": [
+    { "title": "Accueil", "help": "Vue d'ensemble et prochaine étape", "pages": ["home", "projet"] },
+    { "title": "Tester mon application web", "help": "Installer Playwright", "journey": "playwright" },
+    { "title": "Mesurer la performance", "help": "Tests de charge k6", "journey": "k6" },
+    { "title": "Relier mes tests à JIRA", "help": "Hook Git et synchronisation", "journey": "jira", "skip": ["projet"] },
+    { "title": "Produire mes livrables", "help": "Documents QA", "journey": "docs", "skip": ["projet"] },
+    { "title": "Ressources", "help": "Aide et cas particuliers", "pages": ["wiki", "repair"] }
+  ]
+}

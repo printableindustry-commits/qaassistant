@@ -137,7 +137,20 @@ function findVoltaExe(voltaHome) {
   return null
 }
 
-export function checkNpmRuntime() {
+/** État Node/Volta lu sur disque (aucun processus lancé) — pour les tableaux de bord fréquents. */
+export function checkVoltaNodeLight() {
+  const rt = getRuntimeConfig()
+  const imageVersions = listVersionDirs(voltaNodeImageDir(rt))
+  const inventoryVersions = listVersionDirs(voltaNodeInventoryDir(rt))
+  const versions = imageVersions.length ? imageVersions : inventoryVersions
+  return {
+    nodeInstalled: versions.length > 0,
+    nodeVersion: versions[versions.length - 1] || '',
+    packageJsonExists: fs.existsSync(getPackageJsonPath()),
+  }
+}
+
+export function checkNpmRuntime({ withNpm = true } = {}) {
   const rt = getRuntimeConfig()
   const inventoryRoot = voltaNodeInventoryDir(rt)
   const imageRoot = voltaNodeImageDir(rt)
@@ -145,7 +158,9 @@ export function checkNpmRuntime() {
   const imageVersions = listVersionDirs(imageRoot)
 
   const nodeRun = runCmd(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'node -v'], { shell: false })
-  const npmRun = runCmd(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npm -v'], { shell: false })
+  const npmRun = withNpm
+    ? runCmd(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npm -v'], { shell: false })
+    : { output: '' }
   const nodeVersion = parseSemverOutput(nodeRun.output)
   const npmVersion = parseSemverOutput(npmRun.output)
 

@@ -142,6 +142,7 @@ import {
 import { getDemoFormDefaults } from './lib/demo-defaults.mjs'
 import { getHomeCatalog } from './lib/home-catalog.mjs'
 import { beginAutofix, getAutofixResult, finishAutofix } from './lib/autofix-api.mjs'
+import { getAppModel } from './lib/app-model.mjs'
 import { writeDryRunLog, writeSyncLog, getWizardLogsDir, WIZARD_LOGS_REL, listWizardLogs } from './lib/wizard-logs.mjs'
 import {
   startPageDebugFlow,
@@ -1482,6 +1483,15 @@ const server = http.createServer(async (req, res) => {
     }
     return
   }
+  if (req.method === 'GET' && pathname === '/api/app/model') {
+    try {
+      sendJson(res, 200, getAppModel())
+    } catch (e) {
+      sendJson(res, 500, { ok: false, error: e.message })
+    }
+    return
+  }
+
   if (req.method === 'POST' && pathname === '/api/autofix/begin') {
     try {
       sendJson(res, 200, await beginAutofix(await readBody(req)))

@@ -10,7 +10,8 @@ export interface WizardPage {
 }
 
 export const WIZARD_PAGES: WizardPage[] = [
-  { id: 'accueil', label: 'Accueil', path: '/', description: 'Catalogue et prise de connaissance' },
+  { id: 'accueil', label: 'Accueil', path: '/', description: 'Parcours guidés et prochaine étape' },
+  { id: 'projet', label: 'Mon projet', path: '/projet.html', description: 'Équipe, application et sauvegarde de la configuration' },
   { id: 'hookGit', label: 'Hook Git', path: '/hook-git.html', description: '.env, hooks.conf, post-commit' },
   { id: 'project', label: 'Sync JIRA', path: '/project.html', description: 'Plans de test, Testing Board, Xray Cloud' },
   { id: 'npmrc', label: 'Éditer .npmrc', path: '/npmrc.html', description: 'Registry CATS et token npm' },
