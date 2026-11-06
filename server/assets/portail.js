@@ -643,19 +643,6 @@ const Portail = {
     document.head.appendChild(link)
   }
 
-  function ensureWizardBrandBar() {
-    if (document.querySelector('.wizard-brand-bar')) return
-    const prefix = assetBase()
-    const bar = document.createElement('header')
-    bar.className = 'wizard-brand-bar'
-    bar.setAttribute('role', 'banner')
-    bar.innerHTML = `
-      <img class="wizard-logo-cats" src="${prefix}/assets/logo-cats-full.png" alt="Crédit Agricole Technologies et Services" />
-      <span class="wizard-brand-spacer"></span>
-      <img class="wizard-logo-qa" src="${prefix}/assets/logo-qa.png" alt="QA" />`
-    document.body.insertBefore(bar, document.body.firstChild)
-  }
-
   function ensureWizardFooterScript() {
     if (document.querySelector('script[src*="wizard-footer.js"]')) return
     const prefix = assetBase()
@@ -668,7 +655,6 @@ const Portail = {
 
   function ensureWizardShell() {
     ensureVsCodeStyles()
-    ensureWizardBrandBar()
     ensureWizardFooterScript()
     if (window.WizardFooter && typeof WizardFooter.sync === 'function') {
       void WizardFooter.sync()
@@ -690,6 +676,24 @@ const Portail = {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run)
   else run()
+})()
+
+// Shell applicatif (en-tête, navigation latérale) : navigateur et webview VS Code.
+;(function initAppShell() {
+  const load = () => {
+    if (document.querySelector('script[src*="app-shell.js"]')) return
+    const base = (window.__WIZARD_API_BASE__ || '').replace(/\/$/, '')
+    const ver = window.__WIZARD_VERSION__ ? `?v=${encodeURIComponent(window.__WIZARD_VERSION__)}` : ''
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = `${base}/assets/app-shell.css${ver}`
+    document.head.appendChild(link)
+    const script = document.createElement('script')
+    script.src = `${base}/assets/app-shell.js${ver}`
+    document.body.appendChild(script)
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load)
+  else load()
 })()
 
 
