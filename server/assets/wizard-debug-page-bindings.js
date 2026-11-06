@@ -86,21 +86,6 @@
       }),
     })
 
-    global.WizardDebugPage.register('cypress-install', {
-      getPageLog: () => panelLog('cypressInstallLog', 'status'),
-      getLastExecution: () => preText('cypressInstallLog') || textOf('status'),
-      buildPromptOpts: () => ({
-        title: 'Debug Installation Cypress',
-        context: 'Installation @cats-cdf/e2e et cypress@14.0.3 via npm. Journal terminal : sorties des commandes npm (cypressInstallLog) et statut de la page.',
-        scope: 'cypress-install',
-        stepsToReproduce: [
-          'Configurer .npmrc et package.json',
-          'Lancer npm install @cats-cdf/e2e',
-          'Lancer npm install -D cypress@14.0.3',
-        ],
-      }),
-    })
-
     global.WizardDebugPage.register('playwright-install', {
       getPageLog: () => panelLog('playwrightInstallLog', 'playwrightVscodeHint', 'status'),
       getLastExecution: () => preText('playwrightInstallLog') || textOf('status'),
@@ -113,38 +98,6 @@
           'npm install -D @playwright/test@latest',
           'npx playwright install',
           'Installer l’extension Playwright Test for VSCode',
-        ],
-      }),
-    })
-
-    global.WizardDebugPage.register('robot-install', {
-      getPageLog: () => panelLog('robotInstallLog', 'status'),
-      getLastExecution: () => preText('robotInstallLog') || textOf('status'),
-      buildPromptOpts: () => ({
-        title: 'Debug Installation Robot Framework',
-        context: 'Installation robotframework et bibliothèques via pip (Python). Journal terminal : robotInstallLog.',
-        scope: 'robot-install',
-        stepsToReproduce: [
-          'Vérifier Python 3.10+ et pip',
-          'python -m pip install --upgrade pip',
-          'pip install robotframework robotframework-seleniumlibrary robotframework-requests PyYAML',
-          'robot --version',
-        ],
-      }),
-    })
-
-    global.WizardDebugPage.register('postman-install', {
-      getPageLog: () => panelLog('postmanInstallLog', 'status'),
-      getLastExecution: () => preText('postmanInstallLog') || textOf('status'),
-      buildPromptOpts: () => ({
-        title: 'Debug Initialisation Postman / Newman',
-        context: 'Scaffold postman/, installation Newman et newman-reporter-htmlextra. Journal : postmanInstallLog.',
-        scope: 'postman-install',
-        stepsToReproduce: [
-          'Configurer postman-init.conf.json (projectName, baseUrl)',
-          'Scaffold postman/collections et environments',
-          'npm install -D newman newman-reporter-htmlextra',
-          'npx newman --version',
         ],
       }),
     })

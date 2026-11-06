@@ -1,0 +1,30 @@
+/* Carte de correction automatique Copilot — charte Kontext (vert #006A4E, teal #009597). */
+.autofix-card {
+  display: flex;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #dce8e4;
+  border-left: 4px solid #009597;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 106, 78, 0.05);
+}
+.autofix-card[hidden] { display: none; }
+.autofix-card--error { border-left-color: #b42318; }
+.autofix-card--warn { border-left-color: #c8870a; }
+.autofix-card--ok { border-left-color: #006a4e; }
+.autofix-icon { flex: 0 0 12px; width: 12px; height: 12px; margin-top: 5px; border-radius: 50%; background: #009597; }
+.autofix-card--error .autofix-icon { background: #b42318; }
+.autofix-card--warn .autofix-icon { background: #c8870a; }
+.autofix-card--ok .autofix-icon { background: #006a4e; }
+.autofix-card--working .autofix-icon { animation: autofix-pulse 1.2s ease-in-out infinite; }
+@keyframes autofix-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(1.5); } }
+.autofix-body { flex: 1; min-width: 0; }
+.autofix-title { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: #1a2e28; }
+.autofix-text { margin: 0 0 8px; font-size: 13px; color: #5a7268; }
+.autofix-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.autofix-actions:empty { display: none; }
+.autofix-details { margin: 6px 0; font-size: 12px; color: #5a7268; }
+.autofix-details pre { max-height: 220px; overflow: auto; margin: 6px 0 0; padding: 10px; background: #f4faf8; border: 1px solid #e4efeb; border-radius: 8px; white-space: pre-wrap; }
+.autofix-changes { margin: 4px 0 0; padding-left: 18px; font-size: 12px; color: #3d524a; }

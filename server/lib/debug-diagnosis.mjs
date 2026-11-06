@@ -37,6 +37,21 @@ const SCOPE_HYPOTHESES = {
     'Dépendance absente ou version conflictuelle',
     '.npmrc non configuré avant npm install',
   ],
+  'playwright-install': [
+    'npm ou npx introuvable dans le PATH',
+    'Paquet @playwright/test absent ou en conflit de version',
+    'Téléchargement des navigateurs bloqué par le proxy',
+    'Dossier projet incorrect ou package.json absent',
+  ],
+  'k6-install': [
+    'Binaire k6 absent du PATH après installation',
+    'winget / choco indisponible ou bloqué',
+    'Droits insuffisants pour installer k6',
+  ],
+  'k6-wizard': [
+    'k6 introuvable ou version incompatible',
+    'Script k6 généré invalide ou chemin de rapport inaccessible',
+  ],
   'doc-qa': [
     'Snapshot projet obsolète ou incomplet',
     'Fichiers livrables manquants dans le dépôt',

@@ -93,6 +93,40 @@ const ADAPTERS = {
       ],
     }
   },
+  'playwright-install': () => ({
+    title: 'Installation Playwright',
+    keyFiles: {
+      packageJson: path.join(REPO_ROOT, 'package.json'),
+      playwrightConfig: path.join(REPO_ROOT, 'playwright.config.ts'),
+      npmInstallConf: path.join(CONF_DIR, 'playwright-install.conf.json'),
+    },
+    suggestedQuestions: [
+      'npm et npx sont-ils accessibles depuis le dossier du projet ?',
+      'Le paquet @playwright/test et les navigateurs sont-ils install\u00e9s ?',
+    ],
+  }),
+  'k6-install': () => ({
+    title: 'Installation k6',
+    keyFiles: {
+      k6Script: path.join(REPO_ROOT, 'k6', 'scripts', 'smoke.js'),
+      k6InstallConf: path.join(CONF_DIR, 'k6-install.conf.json'),
+    },
+    suggestedQuestions: [
+      'Le binaire k6 est-il install\u00e9 et pr\u00e9sent dans le PATH ?',
+      'winget ou choco sont-ils utilisables sur ce poste ?',
+    ],
+  }),
+  'k6-wizard': () => ({
+    title: 'Wizard k6 Performance',
+    keyFiles: {
+      k6Script: path.join(REPO_ROOT, 'k6', 'scripts', 'smoke.js'),
+      k6Profiles: path.join(CONF_DIR, 'k6-profiles'),
+    },
+    suggestedQuestions: [
+      'Le script k6 g\u00e9n\u00e9r\u00e9 est-il valide ?',
+      'Le rapport est-il \u00e9crit au bon endroit ?',
+    ],
+  }),
   'doc-qa': () => {
     const paths = getPathsForApi()
     return {

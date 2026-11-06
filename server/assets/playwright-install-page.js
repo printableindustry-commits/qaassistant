@@ -79,6 +79,7 @@
   function init() {
     wizard = StackInstallWizard.create({
       stackId: 'playwright',
+      debugScope: 'playwright-install',
       panelId: 'playwrightInstallPanel',
       launchBtnId: 'playwrightInstallBtn',
       statusId: 'status',

@@ -130,6 +130,26 @@ export class WizardAppPanel {
     }
   }
 
+  private static async openCopilotAgent(query: string): Promise<boolean> {
+    const attempts: Array<Record<string, unknown>> = [
+      { query, mode: 'agent', isPartialQuery: false },
+      { query, isPartialQuery: false },
+    ]
+    for (const args of attempts) {
+      try {
+        await vscode.commands.executeCommand('workbench.action.chat.open', args)
+        return true
+      } catch {
+        /* version de VS Code sans ce mode : essai suivant */
+      }
+    }
+    await vscode.env.clipboard.writeText(query)
+    vscode.window.showWarningMessage(
+      'Wizard QA — Copilot Chat indisponible : la demande est copiée dans le presse-papiers, collez-la dans le chat.',
+    )
+    return false
+  }
+
   private static async handleMessage(msg: {
     type?: string
     path?: string
@@ -137,7 +157,14 @@ export class WizardAppPanel {
     skipReload?: boolean
     extensionId?: string
     command?: string
+    query?: string
+    runId?: string
   }): Promise<void> {
+    if (msg.type === 'askCopilot' && msg.query) {
+      const ok = await WizardAppPanel.openCopilotAgent(msg.query)
+      void WizardAppPanel.panel?.webview.postMessage({ type: 'copilotOpened', ok, runId: msg.runId })
+      return
+    }
     if (msg.type === 'openExternal' && msg.relativePath) {
       const repoRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
       if (repoRoot) {

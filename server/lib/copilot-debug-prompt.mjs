@@ -202,7 +202,7 @@ ${ctx.logExcerpts.lastDryRunLog || '(vide ou absent)'}
 
   const body = `# ${title}
 
-Tu es **${agentModel}** en mode **agent** sur un poste de travail **Wizard QA / Cypress + Hook JIRA/Xray Cloud (CA-TS)**.
+Tu es **${agentModel}** en mode **agent** sur un poste de travail **Wizard QA / Playwright + k6 + Hook JIRA/Xray Cloud (CA-TS)**.
 Tu as accès au dépôt local, aux fichiers listés ci-dessous et tu peux proposer des modifications concrètes (y compris sur l'extension Wizard si pertinent).
 
 ${diagnosisBlock}

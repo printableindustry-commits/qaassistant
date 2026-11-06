@@ -103,7 +103,8 @@
     const version = $('nodeVersionSelect')?.value
     const logEl = $('nodeInstallLog')
     const btn = $('nodeDownloadBtn')
-    if (!version) return
+    if (!version) return { ok: false, error: 'Aucune version sélectionnée', log: '' }
+    window.InstallAutofix?.clear()
     if (btn) btn.disabled = true
     if (logEl) {
       logEl.hidden = false
@@ -120,6 +121,7 @@
         pageState.runtime?.nodePresent
         && pageState.runtime?.nodeNeedsUpdate
         && typeof WizardDisclaimer !== 'undefined'
+        && !window.InstallAutofix?.isActive()
       ) {
         const choice = await WizardDisclaimer.showConfirm('nodeUpdatePrompt', {
           force: true,
@@ -139,10 +141,20 @@
       await refreshRuntime()
       Portail.showStatus($('status'), true, `Node ${version} installé via Volta`)
       $('status').style.display = 'block'
+      return { ok: true }
     } catch (err) {
       if (logEl) logEl.textContent += `\n${err.message}`
       Portail.showStatus($('status'), false, err.message)
       $('status').style.display = 'block'
+      const outcome = { ok: false, error: err.message, log: logEl?.textContent || '' }
+      window.InstallAutofix?.offer({
+        scope: 'node-install',
+        error: outcome.error,
+        log: outcome.log,
+        anchorId: 'status',
+        rerun: downloadAndInstallNode,
+      })
+      return outcome
     } finally {
       if (btn) btn.disabled = false
     }

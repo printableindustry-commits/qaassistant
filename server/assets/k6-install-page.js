@@ -70,6 +70,7 @@
   function init() {
     wizard = StackInstallWizard.create({
       stackId: 'k6',
+      debugScope: 'k6-install',
       panelId: 'k6InstallPanel',
       launchBtnId: 'k6InstallBtn',
       statusId: 'status',

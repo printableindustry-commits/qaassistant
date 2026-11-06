@@ -12,6 +12,9 @@ export const DEBUG_SCOPES = new Set([
   'node-install',
   'npmrc',
   'npm-install',
+  'playwright-install',
+  'k6-install',
+  'k6-wizard',
   'doc-qa',
 ])
 
@@ -21,6 +24,9 @@ const SCOPE_LABELS = {
   'node-install': 'Node_Install',
   npmrc: 'Npmrc',
   'npm-install': 'Npm_Install',
+  'playwright-install': 'Playwright_Install',
+  'k6-install': 'K6_Install',
+  'k6-wizard': 'K6_Wizard',
   'doc-qa': 'Doc_QA',
 }
 

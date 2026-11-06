@@ -214,10 +214,11 @@ var StackInstallWizard = (function () {
     }
 
     async function runWizard() {
-      if (running) return
+      if (running) return { ok: false, error: 'Installation déjà en cours', log: '' }
       const panel = $(config.panelId)
-      if (!panel) return
+      if (!panel) return { ok: false, error: 'Panneau introuvable', log: '' }
 
+      window.InstallAutofix?.clear()
       const ready = await refreshBadge()
       if (!ready) {
         const prereqMsg = isPythonMode
@@ -225,7 +226,7 @@ var StackInstallWizard = (function () {
           : 'Prérequis manquants — voir Node, .npmrc et package.json'
         Portail.showStatus($(config.statusId), false, prereqMsg)
         $(config.statusId).style.display = 'block'
-        return
+        return { ok: false, error: prereqMsg, log: '' }
       }
 
       const installSteps = await resolveInstallSteps()
@@ -257,6 +258,7 @@ var StackInstallWizard = (function () {
       const logEl = document.getElementById(logId)
       const wizardRoot = panel.querySelector('.stack-install-wizard')
       let active = 0
+      let outcome = { ok: true }
 
       try {
         tick(items, 0, wizardRoot, stepDefs.length)
@@ -288,7 +290,7 @@ var StackInstallWizard = (function () {
         Portail.showStatus($(config.statusId), true, config.successMessage || 'Installation terminée avec succès')
         $(config.statusId).style.display = 'block'
 
-        if (typeof config.onSuccess === 'function') {
+        if (typeof config.onSuccess === 'function' && !window.InstallAutofix?.isActive()) {
           await config.onSuccess()
         }
       } catch (err) {
@@ -300,10 +302,21 @@ var StackInstallWizard = (function () {
         if (titleEl) titleEl.textContent = config.titleError || 'Installation interrompue'
         Portail.showStatus($(config.statusId), false, err.message)
         $(config.statusId).style.display = 'block'
+        outcome = { ok: false, error: err.message, log: logEl?.textContent || '' }
+        if (config.debugScope) {
+          window.InstallAutofix?.offer({
+            scope: config.debugScope,
+            error: outcome.error,
+            log: outcome.log,
+            anchorId: config.statusId,
+            rerun: runWizard,
+          })
+        }
       } finally {
         running = false
         await refreshBadge()
       }
+      return outcome
     }
 
     function bindLaunch() {

@@ -83,8 +83,9 @@
 
   async function runNpmInstallWizard() {
     const panel = $('npmInstallPanel')
-    if (!panel) return
+    if (!panel) return { ok: false, error: 'Panneau introuvable', log: '' }
 
+    window.InstallAutofix?.clear()
     panel.hidden = false
     let stepDefs = [
       { id: 'npm', label: 'Vérification npm' },
@@ -171,18 +172,34 @@
       )
       $('status').style.display = 'block'
 
-      if (data.ok && typeof WizardDisclaimer !== 'undefined') {
+      if (!data.ok) return reportFailure(data.error || 'Installation npm échouée', logEl)
+
+      if (typeof WizardDisclaimer !== 'undefined' && !window.InstallAutofix?.isActive()) {
         await WizardDisclaimer.showInfo('npmInstallComplete', {
           force: true,
           vars: { nodeVersion: finalNode, npmVersion: finalNpm },
         })
       }
+      return { ok: true }
     } catch (err) {
       if (logEl) logEl.textContent += `\n${err.message}`
       items[active]?.classList.add('is-error')
       Portail.showStatus($('status'), false, err.message)
       $('status').style.display = 'block'
+      return reportFailure(err.message, logEl)
     }
+  }
+
+  function reportFailure(error, logEl) {
+    const outcome = { ok: false, error, log: logEl?.textContent || '' }
+    window.InstallAutofix?.offer({
+      scope: 'npm-install',
+      error: outcome.error,
+      log: outcome.log,
+      anchorId: 'status',
+      rerun: runNpmInstallWizard,
+    })
+    return outcome
   }
 
   async function showNpmInstallPrompt() {
