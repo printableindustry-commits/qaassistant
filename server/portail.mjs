@@ -97,20 +97,7 @@ import {
   hideUiWordingPopup,
 } from './lib/ui-wording-preferences.mjs'
 import { executeNpmInstall, getNpmInstallConfigForApi } from './lib/npm-install-api.mjs'
-import { executeCypressInstall, getCypressInstallConfigForApi } from './lib/cypress-install-api.mjs'
 import { executePlaywrightInstall, getPlaywrightInstallConfigForApi } from './lib/playwright-install-api.mjs'
-import {
-  checkRobotRuntime,
-  executeRobotInstall,
-  getRobotInstallConfigForApi,
-} from './lib/robot-install-api.mjs'
-import {
-  checkPostmanRuntime,
-  executePostmanInstall,
-  getPostmanInitConfigForApi,
-  getPostmanInstallConfigForApi,
-  savePostmanInitConfig,
-} from './lib/postman-install-api.mjs'
 import {
   checkK6Runtime,
   executeK6Install,
@@ -500,25 +487,6 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-  if (req.method === 'GET' && pathname === '/api/cypress/install-config') {
-    try {
-      sendJson(res, 200, { ok: true, ...getCypressInstallConfigForApi() })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'POST' && pathname === '/api/cypress/install') {
-    try {
-      const body = await readBody(req)
-      const result = await executeCypressInstall(body?.step)
-      sendJson(res, 200, { ok: result.ok, ...result })
-    } catch (e) {
-      sendJson(res, 400, { ok: false, error: e.message })
-    }
-    return
-  }
-
   if (req.method === 'GET' && pathname === '/api/playwright/install-config') {
     try {
       sendJson(res, 200, { ok: true, ...getPlaywrightInstallConfigForApi() })
@@ -531,79 +499,6 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req)
       const result = await executePlaywrightInstall(body?.step)
-      sendJson(res, 200, { ok: result.ok, ...result })
-    } catch (e) {
-      sendJson(res, 400, { ok: false, error: e.message })
-    }
-    return
-  }
-
-  if (req.method === 'GET' && pathname === '/api/robot/runtime/check') {
-    try {
-      const runtime = await checkRobotRuntime()
-      sendJson(res, 200, { ok: true, ...runtime })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'GET' && pathname === '/api/robot/install-config') {
-    try {
-      sendJson(res, 200, { ok: true, ...getRobotInstallConfigForApi() })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'POST' && pathname === '/api/robot/install') {
-    try {
-      const body = await readBody(req)
-      const result = await executeRobotInstall(body?.step)
-      sendJson(res, 200, { ok: result.ok, ...result })
-    } catch (e) {
-      sendJson(res, 400, { ok: false, error: e.message })
-    }
-    return
-  }
-
-  if (req.method === 'GET' && pathname === '/api/postman/init-config') {
-    try {
-      sendJson(res, 200, { ok: true, ...getPostmanInitConfigForApi() })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'POST' && pathname === '/api/postman/init-config') {
-    try {
-      const body = await readBody(req)
-      const result = savePostmanInitConfig(body)
-      sendJson(res, 200, { ok: true, ...result })
-    } catch (e) {
-      sendJson(res, 400, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'GET' && pathname === '/api/postman/runtime/check') {
-    try {
-      sendJson(res, 200, { ok: true, ...checkPostmanRuntime() })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'GET' && pathname === '/api/postman/install-config') {
-    try {
-      sendJson(res, 200, { ok: true, ...getPostmanInstallConfigForApi() })
-    } catch (e) {
-      sendJson(res, 500, { ok: false, error: e.message })
-    }
-    return
-  }
-  if (req.method === 'POST' && pathname === '/api/postman/install') {
-    try {
-      const body = await readBody(req)
-      const result = await executePostmanInstall(body?.step)
       sendJson(res, 200, { ok: result.ok, ...result })
     } catch (e) {
       sendJson(res, 400, { ok: false, error: e.message })

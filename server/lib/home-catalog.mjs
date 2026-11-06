@@ -41,7 +41,7 @@ export function getHomeCatalog() {
 
   const k6State = getK6InstallStateSync()
 
-  const stackTileIds = ['cypress', 'robot', 'playwright', 'postman']
+  const stackTileIds = ['playwright']
 
   const withStackHighlight = (tile) => {
     if (!stackTileIds.includes(tile.id)) return tile
@@ -132,7 +132,7 @@ export function getHomeCatalog() {
             tileClass: 'hub-tile--wiki',
             actions: [
               { label: 'Ouvrir le Wiki', href: '/wiki.html' },
-              { label: 'Stacks de test', href: '/wiki.html#cypress' },
+              { label: 'Stacks de test', href: '/wiki.html#playwright' },
               { label: 'Hook Git', href: '/wiki.html#hook-install' },
             ],
           },
@@ -200,36 +200,14 @@ export function getHomeCatalog() {
       {
         id: 'stacks',
         title: 'Stacks de test',
-        subtitle: 'Parcours npm en pyramide — Robot Framework utilise Python / pip',
+        subtitle: 'Parcours npm en pyramide — Playwright',
         sectionClass: 'hub-section--stacks',
-        columns: 2,
+        columns: 1,
         tiles: [
           {
             id: '__npmPyramid__',
             renderAs: 'npmPyramid',
           },
-          withStackHighlight({
-            id: 'robot',
-            title: 'Robot Framework',
-            logo: '/assets/logo-robot.png',
-            logoAlt: 'Robot Framework',
-            status: 'ready',
-            message: 'Python / pip',
-            href: '/robot-install.html',
-            comingSoon: false,
-            actions: [{ label: 'Installer Robot', href: '/robot-install.html' }],
-          }),
-          withStackHighlight({
-            id: 'postman',
-            title: 'Postman',
-            logo: '/assets/logo-postman.png',
-            logoAlt: 'Postman',
-            status: 'ready',
-            message: 'API / Newman',
-            href: '/postman-install.html',
-            comingSoon: false,
-            actions: [{ label: 'Initialiser Postman', href: '/postman-install.html' }],
-          }),
         ],
       },
     ],

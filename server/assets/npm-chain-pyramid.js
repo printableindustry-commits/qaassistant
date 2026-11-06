@@ -1,5 +1,5 @@
 /**
- * Pyramide npm — Node / Registry → Installer NPM → Cypress / Playwright.
+ * Pyramide npm — Node / Registry → Installer NPM → Playwright.
  */
 // eslint-disable-next-line no-var
 var NpmChainPyramid = (function () {
@@ -27,14 +27,6 @@ var NpmChainPyramid = (function () {
       logoAlt: 'npm',
       href: '/npm-install.html?prompt=1',
       level: 2,
-    },
-    cypress: {
-      id: 'cypress',
-      title: 'Cypress',
-      logo: '/assets/logo-cypress.png',
-      logoAlt: 'Cypress',
-      href: '/cypress-install.html',
-      level: 3,
     },
     playwright: {
       id: 'playwright',
@@ -128,12 +120,6 @@ var NpmChainPyramid = (function () {
       current: current === 'npmInstall',
       hint: npmHint,
     })
-    const cypressStep = renderStep(STEPS.cypress, {
-      done: false,
-      locked: false,
-      current: false,
-      hint: stacksLocked ? 'Node + .npmrc' : 'E2E JS',
-    })
     const playwrightStep = renderStep(STEPS.playwright, {
       done: false,
       locked: false,
@@ -159,11 +145,9 @@ var NpmChainPyramid = (function () {
           ${npmStep}
         </div>
         <svg class="npm-wizard-pyramid-svg npm-wizard-pyramid-svg--l2" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
-          <line class="npm-wizard-pyramid-line npm-wizard-pyramid-line--cypress ${line2Cls}" x1="50" y1="2" x2="22" y2="26"/>
-          <line class="npm-wizard-pyramid-line npm-wizard-pyramid-line--playwright ${line2Cls}" x1="50" y1="2" x2="78" y2="26"/>
+          <line class="npm-wizard-pyramid-line npm-wizard-pyramid-line--playwright ${line2Cls}" x1="50" y1="2" x2="50" y2="26"/>
         </svg>
         <div class="npm-wizard-pyramid-level npm-wizard-pyramid-level--3">
-          ${cypressStep}
           ${playwrightStep}
         </div>
       </div>`

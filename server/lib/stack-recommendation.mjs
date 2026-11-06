@@ -4,7 +4,7 @@ import { getQuestionnaire, getStackToolMeta } from './stack-questionnaire-config
 
 export { getQuestionnaire }
 
-export const STACK_IDS = ['cypress', 'robot', 'playwright', 'postman', 'k6']
+export const STACK_IDS = ['playwright', 'k6']
 
 export const STACK_LABELS = {
   cypress: 'Cypress',

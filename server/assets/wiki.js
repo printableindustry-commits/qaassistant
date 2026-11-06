@@ -5,29 +5,11 @@ const WikiPage = {
   activeSection: 'intro',
 
   stackProfiles: {
-    cypress: {
-      logo: '/assets/logo-cypress.png',
-      label: 'Cypress',
-      href: '/repair.html',
-      desc: 'Node & dépendances',
-    },
-    robot: {
-      logo: '/assets/logo-robot.png',
-      label: 'Robot Framework',
-      href: '/',
-      desc: 'Initialisation stack',
-    },
     playwright: {
       logo: '/assets/logo-playwright.png',
       label: 'Playwright',
-      href: '/',
+      href: '/playwright-install.html',
       desc: 'Initialisation stack',
-    },
-    postman: {
-      logo: '/assets/logo-postman.png',
-      label: 'Postman',
-      href: '/postman-install.html',
-      desc: 'Collections API',
     },
     k6: {
       logo: '/assets/logo-k6.png',
@@ -38,8 +20,8 @@ const WikiPage = {
   },
 
   recommendedStack: {
-    id: 'cypress',
-    label: 'Cypress',
+    id: 'playwright',
+    label: 'Playwright',
   },
 
   trail: [
@@ -47,8 +29,8 @@ const WikiPage = {
     { id: 'npmrc', label: '.npmrc', href: '/npmrc.html', logo: '/assets/logo-npm.png', desc: 'Registry & proxy' },
     { id: 'nodeInstall', label: 'Node.js', href: '/node-install.html', logo: '/assets/logo-npm.png', desc: 'Volta & package.json' },
     { id: 'npmInstall', label: 'npm install', href: '/npm-install.html', logo: '/assets/logo-npm.png', desc: 'Dépendances projet' },
-    { id: 'stack', label: 'Stack test', href: '/wiki.html#cypress', logo: '/assets/logo-cypress.png', desc: 'Questionnaire orientation' },
-    { id: 'repair', label: 'Stack', href: '/repair.html', logo: '/assets/logo-cypress.png', desc: 'Initialiser la stack' },
+    { id: 'stack', label: 'Stack test', href: '/wiki.html#playwright', logo: '/assets/logo-playwright.png', desc: 'Questionnaire orientation' },
+    { id: 'repair', label: 'Stack', href: '/playwright-install.html', logo: '/assets/logo-playwright.png', desc: 'Initialiser la stack' },
     { id: 'hook', label: 'Hook Git', href: '/hook-git.html', logo: '/assets/logo-git-hook.png', desc: '.env, hooks.conf' },
     { id: 'sync', label: 'Sync JIRA', href: '/project.html', logo: '/assets/logo-jira.png', desc: 'Local ↔ Xray' },
     { id: 'doc', label: 'Livrables QA', href: '/doc-qa.html', logo: '/assets/logo-qa.png', desc: 'Documentation IA' },
@@ -58,7 +40,7 @@ const WikiPage = {
 
   buildSections() {
     const base = typeof WikiSections !== 'undefined' ? [...WikiSections] : []
-    if (base.some((s) => s.id === 'cypress')) return base
+    if (base.some((s) => s.id === 'playwright')) return base
 
     const stacks = typeof WikiStackSections !== 'undefined' ? WikiStackSections : []
     if (!stacks.length) return base
@@ -87,7 +69,7 @@ const WikiPage = {
   },
 
   applyRecommendedStackToTrail() {
-    const profile = this.stackProfiles[this.recommendedStack.id] || this.stackProfiles.cypress
+    const profile = this.stackProfiles[this.recommendedStack.id] || this.stackProfiles.playwright
     const label = this.recommendedStack.label || profile.label
 
     const stackStep = this.trail.find((s) => s.id === 'stack')
@@ -102,7 +84,7 @@ const WikiPage = {
       repairStep.logo = profile.logo
       repairStep.label = label
       repairStep.href = profile.href
-      repairStep.desc = this.recommendedStack.id === 'cypress' ? 'Node & dépendances' : 'Initialiser la stack'
+      repairStep.desc = 'Initialiser la stack'
     }
 
     const note = document.getElementById('wikiTrailStackNote')

@@ -28,24 +28,18 @@ window.HomeHub = {
   stackState: {
     stepIndex: 0,
     questions: [],
-    stackIds: ['cypress', 'robot', 'playwright', 'postman', 'k6'],
+    stackIds: ['playwright', 'k6'],
     toolsComparison: [],
     answers: {},
     result: null,
     snapshotPath: '',
     questionnaireConfigPath: '.wizard-qa/conf/stack-questionnaire.conf.json',
     chartColors: {
-      cypress: '#58D0A8',
-      robot: '#00C0B5',
       playwright: '#62BB46',
-      postman: '#FF6C37',
       k6: '#7D64FF',
     },
     stackLabels: {
-      cypress: 'Cypress',
-      robot: 'Robot Framework',
       playwright: 'Playwright',
-      postman: 'Postman',
       k6: 'k6',
     },
     chosenStack: null,
@@ -97,7 +91,7 @@ window.HomeHub = {
           if (!actions.length) {
             actions.push(
               { label: 'Ouvrir le Wiki', href: '/wiki.html' },
-              { label: 'Stacks de test', href: '/wiki.html#cypress' },
+              { label: 'Stacks de test', href: '/wiki.html#playwright' },
               { label: 'Hook Git', href: '/wiki.html#hook-install' },
             )
           }
@@ -143,7 +137,7 @@ window.HomeHub = {
   applyNpmChainLayout(catalog) {
     if (!catalog?.sections?.length) return catalog
 
-    const pyramidTileIds = new Set(['cypress', 'npmrc', 'playwright', 'nodeInstall', 'npmInstall'])
+    const pyramidTileIds = new Set(['npmrc', 'playwright', 'nodeInstall', 'npmInstall'])
 
     let npmFromConfig = null
     const sectionsSansNpmConfig = catalog.sections.map((section) => {
@@ -171,7 +165,7 @@ window.HomeHub = {
 
         return {
           ...section,
-          subtitle: section.subtitle || 'Parcours npm en pyramide — Cypress et Playwright partagent Node et le registry Artifactory',
+          subtitle: section.subtitle || 'Parcours npm en pyramide — Playwright partage Node et le registry Artifactory',
           tiles: [pyramidMarker, ...others],
         }
       }),
@@ -187,7 +181,7 @@ window.HomeHub = {
       || this.stackState.stackLabels[stackId]
       || catalog.project?.recommendedStackLabel
       || stackId
-    const stackTileIds = ['cypress', 'robot', 'playwright', 'postman', 'k6']
+    const stackTileIds = ['playwright', 'k6']
     return {
       ...catalog,
       recommendedStack: stackId,
@@ -790,7 +784,7 @@ window.HomeHub = {
         <p class="hub-onboarding-lead">Renseignez les informations relatives à votre produit et solution pour pré-paramétrer votre espace de travail.</p>
         <p class="hub-onboarding-sub">Cet assistant vous permettra de :</p>
         <ul class="hub-onboarding-list">
-          <li>Créer l'espace d'installation des solutions Cypress, Robot Framework, Playwright ou Postman</li>
+          <li>Créer l'espace d'installation de Playwright</li>
           <li>Générer une documentation QA pré-remplie avec les informations de votre projet</li>
           <li>Mettre à jour votre Tableau de Test JIRA</li>
           <li>Maintenir vos Tickets Tests et Plan de Test dans JIRA</li>
@@ -1417,7 +1411,7 @@ window.HomeHub = {
       },
       'npm-chain': {
         className: 'hub-tile-pair--npm',
-        connectorTitle: 'Cypress et Playwright s\'installent via npm (registry CA-TS)',
+        connectorTitle: 'Playwright s\'installe via npm (registry CA-TS)',
       },
     }
     return meta[pairGroup] || { className: '', connectorTitle: '' }
@@ -1585,7 +1579,7 @@ window.HomeHub = {
     this.stackState.questions = data.questions || []
     this.stackState.stackIds = data.stackIds?.length
       ? data.stackIds
-      : ['cypress', 'robot', 'playwright', 'postman']
+      : ['playwright']
     this.stackState.toolsComparison = data.toolsComparison || []
     this.stackState.snapshotPath = data.snapshotPath || '.wizard-qa/conf/onboarding.snapshot.json'
     this.stackState.questionnaireConfigPath = data.questionnaireConfigPath
@@ -1689,7 +1683,7 @@ window.HomeHub = {
           <li>Variables projet : <code>${this.escape(configPath)}</code></li>
           <li>Prise de connaissance : <code>${this.escape(snapshotPath)}</code></li>
         </ul>
-        <p class="hint hint-tight">Le questionnaire suivant vous aide à choisir entre Cypress, Robot Framework, Playwright et Postman — sans compétence technique requise.</p>
+        <p class="hint hint-tight">Le questionnaire suivant vous aide à choisir votre solution de test — sans compétence technique requise.</p>
         <div id="obCompleteStatus" class="status wizard-unified-status" style="display:none"></div>
         <div class="hub-onboarding-actions hub-complete-actions">
           <button type="button" class="btn-secondary btn-sm" id="obSkipStack">Quitter l'assistant et retour à l'accueil</button>
@@ -1885,7 +1879,7 @@ window.HomeHub = {
   computeStackRecommendationLocal(answers) {
     const stacks = this.stackState.stackIds?.length
       ? this.stackState.stackIds
-      : ['cypress', 'robot', 'playwright', 'postman']
+      : ['playwright']
     const scores = {}
     for (const id of stacks) scores[id] = 0
     const qMap = new Map((this.stackState.questions || []).map((q) => [q.id, q]))
@@ -1916,7 +1910,7 @@ window.HomeHub = {
       sharePercent: totalScore > 0 ? Math.round((r.score / totalScore) * 100) : 25,
     }))
 
-    const recommendedStack = rankingWithPercent[0]?.id || 'cypress'
+    const recommendedStack = rankingWithPercent[0]?.id || 'playwright'
     return {
       scores,
       ranking: rankingWithPercent,
@@ -1970,8 +1964,8 @@ window.HomeHub = {
   },
 
   stackLogoFile(stackId) {
-    const map = { cypress: 'cypress', robot: 'robot', playwright: 'playwright', postman: 'postman' }
-    return map[stackId] || 'cypress'
+    const map = { playwright: 'playwright' }
+    return map[stackId] || 'playwright'
   },
 
   renderStackDonutSvg(percent, color) {
@@ -1992,7 +1986,7 @@ window.HomeHub = {
   renderStackPieGrid(ranking, activeStack) {
     const order = this.stackState.stackIds?.length
       ? this.stackState.stackIds
-      : ['cypress', 'robot', 'playwright', 'postman']
+      : ['playwright']
     const rankMap = new Map((ranking || []).map((r) => [r.id, r]))
     return order.map((id) => {
       const item = rankMap.get(id) || { id, sharePercent: 0, score: 0 }
