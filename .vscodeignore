@@ -18,3 +18,6 @@ coverage/**
 test/**
 tests/**
 **/*.map
+reports/**
+k6/**
+P0326-*/**

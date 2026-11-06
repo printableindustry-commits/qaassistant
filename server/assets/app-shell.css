@@ -21,40 +21,40 @@ html body.ks-on {
 
 /* En-tête de marque */
 .ks-brand { background: #fff; box-shadow: 0 2px 8px rgba(0, 106, 78, 0.06); position: sticky; top: 0; z-index: 30; }
-.ks-brand-row { display: flex; align-items: center; gap: 14px; padding: 12px 28px; }
-.ks-brand-logo { height: 36px; width: auto; object-fit: contain; }
+.ks-brand-row { display: flex; align-items: center; gap: 12px; padding: 8px 20px; }
+.ks-brand-logo { height: 30px; width: auto; object-fit: contain; }
 .ks-brand-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ks-brand-name { font-size: 14px; font-weight: 700; color: var(--ks-text); }
-.ks-brand-sub { font-size: 11px; color: var(--ks-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ks-brand-name { font-size: 13px; font-weight: 700; color: var(--ks-text); }
+.ks-brand-sub { font-size: 10.5px; color: var(--ks-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ks-brand-spacer { flex: 1; }
-.ks-brand-ca { height: 44px; width: auto; max-width: 40vw; object-fit: contain; }
+.ks-brand-ca { height: 34px; width: auto; max-width: 40vw; object-fit: contain; }
 .ks-brand-accent { height: 3px; background: linear-gradient(to right, #006a4e 0%, #009597 50%, #006a4e 100%); }
 .ks-menu-btn { display: none; min-height: 0; padding: 4px 10px; background: #fff; color: var(--ks-green); border: 1px solid #c5ddd6; border-radius: 6px; font-size: 16px; cursor: pointer; }
 
 /* Corps : navigation + contenu */
 .ks-body { display: flex; flex: 1 1 auto; min-height: 0; align-items: stretch; }
-.ks-sidebar { flex: 0 0 248px; width: 248px; display: flex; flex-direction: column; background: linear-gradient(to bottom, #fff 0%, #f8fcfb 100%); border-right: 1px solid #d4e5df; }
-.ks-side-brand { display: flex; flex-direction: column; gap: 4px; padding: 20px 20px 16px; border-bottom: 1px solid #e4efeb; }
-.ks-side-name { font-size: 15px; font-weight: 700; color: var(--ks-green); }
-.ks-side-tagline { font-size: 11px; color: var(--ks-muted); }
-.ks-badge { align-self: flex-start; margin-top: 4px; background: #e6f5f5; color: var(--ks-teal); font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 10px; }
-.ks-nav { flex: 1 1 auto; overflow-y: auto; padding: 8px 10px; }
-.ks-nav-title { color: #8a9e96; font-size: 11px; font-weight: 700; padding: 14px 12px 4px; text-transform: none; }
-.ks-nav-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; margin: 1px 0; border-radius: 8px; color: #3d524a; text-decoration: none; font-size: 13px; }
+.ks-sidebar { flex: 0 0 224px; width: 224px; display: flex; flex-direction: column; background: linear-gradient(to bottom, #fff 0%, #f8fcfb 100%); border-right: 1px solid #d4e5df; }
+.ks-side-brand { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px 10px; border-bottom: 1px solid #e4efeb; }
+.ks-side-name { font-size: 14px; font-weight: 700; color: var(--ks-green); }
+.ks-side-tagline { font-size: 10.5px; color: var(--ks-muted); }
+.ks-badge { align-self: flex-start; margin-top: 3px; background: #e6f5f5; color: var(--ks-teal); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.ks-nav { flex: 1 1 auto; overflow-y: auto; padding: 4px 8px; }
+.ks-nav-title { color: #8a9e96; font-size: 10px; font-weight: 700; padding: 10px 10px 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+.ks-nav-item { display: flex; align-items: center; gap: 8px; padding: 5px 10px; margin: 1px 0; border-radius: 7px; color: #3d524a; text-decoration: none; font-size: 12.5px; }
 .ks-nav-item:hover { background: rgba(0, 149, 151, 0.08); color: var(--ks-text); }
 .ks-nav-item.is-active { background: rgba(0, 106, 78, 0.14); color: var(--ks-green); font-weight: 700; }
 .ks-nav-dot { width: 8px; height: 8px; border-radius: 4px; background: #7a9288; flex: 0 0 8px; }
 .ks-nav-item.is-active .ks-nav-dot { background: var(--ks-green); }
-.ks-side-footer { padding: 14px 16px 16px; border-top: 1px solid #e4efeb; background: rgba(238, 246, 244, 0.6); }
-.ks-chip { display: inline-block; background: #e6f5f5; color: var(--ks-green); font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
+.ks-side-footer { padding: 8px 14px 10px; border-top: 1px solid #e4efeb; background: rgba(238, 246, 244, 0.6); }
+.ks-chip { display: inline-block; background: #e6f5f5; color: var(--ks-green); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 12px; }
 
-.ks-main { flex: 1 1 auto; min-width: 0; padding: 24px 32px 32px; }
+.ks-main { flex: 1 1 auto; min-width: 0; padding: 14px 20px 20px; }
 html body.ks-on .ks-main .wrap,
 html body.ks-on .ks-main .wrap-home { max-width: 1200px; margin: 0 auto; padding: 0 !important; width: 100%; }
 html body.ks-on.page-home { padding: 0 !important; }
 
 /* Titres de page */
-html body.ks-on .ks-main h1 { font-size: 24px; font-weight: 700; color: var(--ks-text); letter-spacing: -0.01em; }
+html body.ks-on .ks-main h1 { font-size: 20px; font-weight: 700; color: var(--ks-text); letter-spacing: -0.01em; }
 html body.ks-on .ks-main h2,
 html body.ks-on .ks-main .form-section-title { color: var(--ks-green); font-size: 13px; font-weight: 700; }
 html body.ks-on .ks-main .hint,
@@ -66,8 +66,8 @@ html body.ks-on .ks-main .hub-hero--page {
   border: 0;
   box-shadow: none;
   border-radius: 0;
-  padding: 0 0 14px;
-  margin: 0 0 18px;
+  padding: 0 0 8px;
+  margin: 0 0 12px;
   position: relative;
   overflow: visible;
 }
@@ -80,7 +80,7 @@ html body.ks-on .ks-main .hub-hero::after {
   background: linear-gradient(to right, #006a4e, #009597 40%, transparent);
   opacity: 0.35;
 }
-html body.ks-on .ks-main .hub-hero h1 { font-size: 24px; }
+html body.ks-on .ks-main .hub-hero h1 { font-size: 20px; }
 
 /* Cartes */
 html body.ks-on .ks-main .card,
@@ -91,8 +91,8 @@ html body.ks-on .ks-main .wizard-unified-panel,
 html body.ks-on .ks-main .dashboard-compact {
   background: #fff;
   border: 1px solid var(--ks-border);
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0, 106, 78, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 106, 78, 0.05);
 }
 html body.ks-on .ks-main .hub-tile { position: relative; overflow: hidden; }
 html body.ks-on .ks-main .hub-tile::before {
@@ -161,23 +161,30 @@ html body.ks-on .wizard-footer .wizard-footer-label { color: #8a9e96; font-size:
 .ks-nav-state--blocked { background: #eef1f0; color: #7a9288; }
 
 /* Guide de page */
-.ks-guide { margin: 0 0 18px; background: #fff; border: 1px solid var(--ks-border); border-left: 4px solid var(--ks-teal); border-radius: 14px; box-shadow: 0 4px 16px rgba(0, 106, 78, 0.05); }
-.ks-guide > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding: 12px 18px; cursor: pointer; list-style: none; }
+.ks-guide { margin: 0 0 12px; background: #fff; border: 1px solid var(--ks-border); border-left: 3px solid var(--ks-teal); border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 106, 78, 0.04); }
+.ks-guide > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; padding: 8px 14px; cursor: pointer; list-style: none; }
 .ks-guide > summary::-webkit-details-marker { display: none; }
-.ks-guide-kicker { flex: 1 0 100%; font-size: 11px; font-weight: 700; color: var(--ks-teal); }
-.ks-guide-title { font-size: 18px; font-weight: 700; color: var(--ks-text); }
-.ks-guide-body { padding: 0 18px 16px; }
-.ks-guide-goal { margin: 0 0 10px; font-size: 14px; color: var(--ks-text); }
-.ks-guide-label { margin: 0 0 4px; font-size: 11px; font-weight: 700; color: var(--ks-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-.ks-guide-steps { margin: 0 0 10px; padding-left: 20px; color: #3d524a; }
-.ks-guide-steps li { margin: 2px 0; }
-.ks-guide-after { margin: 0; font-size: 12px; color: var(--ks-muted); }
-.ks-guide-blocked { margin: 10px 0 0; padding: 8px 12px; background: #fff7e6; border-radius: 8px; color: #8a5a00; font-size: 12px; }
+.ks-guide-kicker { flex: 1 0 100%; font-size: 10px; font-weight: 700; color: var(--ks-teal); text-transform: uppercase; letter-spacing: 0.04em; }
+.ks-guide-title { font-size: 15px; font-weight: 700; color: var(--ks-text); }
+.ks-guide-body { padding: 0 14px 10px; }
+.ks-guide-goal { margin: 0 0 6px; font-size: 12.5px; color: var(--ks-text); }
+.ks-guide-label { margin: 0 0 3px; font-size: 10px; font-weight: 700; color: var(--ks-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.ks-guide-steps { margin: 0 0 6px; padding-left: 18px; font-size: 12.5px; color: #3d524a; }
+.ks-guide-steps li { margin: 1px 0; }
+.ks-guide-after { margin: 0; font-size: 11.5px; color: var(--ks-muted); }
+.ks-guide-blocked { margin: 6px 0 0; padding: 5px 10px; background: #fff7e6; border-radius: 7px; color: #8a5a00; font-size: 11.5px; }
+
+/* Prérequis intégrés au module */
+.ks-prereqs { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ks-prereq { display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: #f7fbfa; border: 1px solid #e4efeb; border-radius: 8px; }
+.ks-prereq-label { flex: 1; min-width: 0; font-size: 12px; color: var(--ks-text); }
+.ks-prereq-label small { display: block; font-size: 10.5px; color: var(--ks-muted); }
+.ks-prereq--done { background: #f0faf5; }
 
 /* Barre étape suivante */
-.ks-next { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 24px; padding: 14px 18px; background: #fff; border: 1px dashed #c5ddd6; border-radius: 14px; }
+.ks-next { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 8px 14px; background: #fff; border: 1px dashed #c5ddd6; border-radius: 10px; }
 .ks-next.is-ready { border-style: solid; border-color: var(--ks-teal); background: #f0faf8; }
-.ks-next-text { font-size: 13px; color: var(--ks-muted); }
+.ks-next-text { font-size: 12px; color: var(--ks-muted); }
 .ks-next-btn { text-decoration: none; }
 
 /* Défilement discret */
@@ -189,7 +196,7 @@ html body.ks-on .wizard-footer .wizard-footer-label { color: #8a9e96; font-size:
   .ks-menu-btn { display: inline-block; }
   .ks-brand-row { padding: 10px 14px; }
   .ks-brand-sub, .ks-brand-ca { display: none; }
-  .ks-sidebar { position: fixed; top: 58px; bottom: 0; left: 0; z-index: 40; transform: translateX(-100%); transition: transform 0.2s ease; box-shadow: 4px 0 16px rgba(0, 106, 78, 0.12); }
+  .ks-sidebar { position: fixed; top: 48px; bottom: 0; left: 0; z-index: 40; transform: translateX(-100%); transition: transform 0.2s ease; box-shadow: 4px 0 16px rgba(0, 106, 78, 0.12); }
   .ks-sidebar.is-open { transform: none; }
   .ks-main { padding: 16px; }
 }

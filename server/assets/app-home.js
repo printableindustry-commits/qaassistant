@@ -4,7 +4,6 @@
  */
 ;(function (global) {
   const SESSION_KEY = 'wizardQa.launchDisclaimerShown'
-
   const CTA_LABEL = { start: 'Commencer', resume: 'Continuer', review: 'Revoir' }
 
   function esc(s) {
@@ -30,8 +29,12 @@
     return journey.doneCount > 0 ? 'resume' : 'start'
   }
 
-  function journeyEntryPage(model, journey) {
+  function entryPage(model, journey) {
     return model.pages[journey.nextStep || journey.steps[0]]
+  }
+
+  function pendingPrerequisites(model, page) {
+    return (page.prerequisites || []).filter((id) => model.statuses[id]?.state !== 'done').length
   }
 
   function pickFocus(model) {
@@ -39,95 +42,81 @@
     return open.find((j) => j.doneCount > 0) || open[0] || null
   }
 
-  function stepIcon(state, index) {
-    if (state === 'done') return '<span class="ah-step-icon ah-step-icon--done" aria-hidden="true">&#10003;</span>'
-    if (state === 'blocked') return `<span class="ah-step-icon ah-step-icon--blocked" aria-hidden="true">${index}</span>`
-    return `<span class="ah-step-icon ah-step-icon--todo" aria-hidden="true">${index}</span>`
+  function pill(model, journey) {
+    const state = model.statuses[journey.nextStep || journey.steps[0]]?.state
+    if (journey.complete) return { tone: 'done', text: 'Prêt' }
+    const pending = pendingPrerequisites(model, entryPage(model, journey))
+    if (pending > 0) return { tone: 'todo', text: `${pending} prérequis du poste` }
+    return state === 'blocked' ? { tone: 'blocked', text: 'Pas encore disponible' } : { tone: 'todo', text: 'À faire' }
   }
 
-  function renderOnboardingCard(model) {
-    if (!model.project?.needsOnboarding) return ''
-    const page = model.pages.projet
-    return `
-      <section class="ah-callout">
-        <div>
-          <h2>Commencez par décrire votre projet</h2>
-          <p>Deux minutes pour indiquer votre équipe et votre application : l'assistant préremplira ensuite tous les écrans.</p>
-        </div>
-        <a class="btn-primary" href="${esc(href(page))}">Décrire mon projet</a>
-      </section>`
-  }
-
-  function renderFocus(model) {
-    const journey = pickFocus(model)
-    if (!journey) {
-      return `
-        <section class="ah-focus ah-focus--done">
-          <h2>Tout est en place</h2>
-          <p>Tous vos parcours sont terminés. Vous pouvez les revoir à tout moment.</p>
-        </section>`
-    }
-    const page = journeyEntryPage(model, journey)
-    const status = model.statuses[journey.nextStep] || {}
-    const lead = journey.doneCount > 0 ? 'Reprendre là où vous en étiez' : 'Par où commencer ?'
-    return `
-      <section class="ah-focus">
-        <span class="ah-kicker">${esc(lead)}</span>
-        <h2>${esc(journey.title)}</h2>
-        <p>Prochaine étape : <strong>${esc(page.label)}</strong>${status.message ? ` &mdash; ${esc(status.message)}` : ''}</p>
-        <a class="btn-primary" href="${esc(href(page, journey.id))}">${esc(CTA_LABEL[journeyMode(journey)])}</a>
-      </section>`
-  }
-
-  function renderJourney(model, journey) {
-    const mode = journeyMode(journey)
-    const entry = journeyEntryPage(model, journey)
-    const percent = journey.total ? Math.round((journey.doneCount / journey.total) * 100) : 0
-    const steps = journey.steps.map((id, i) => {
-      const page = model.pages[id]
-      const st = model.statuses[id] || { state: 'info', message: '' }
-      return `
-        <li class="ah-step ah-step--${esc(st.state)}">
-          ${stepIcon(st.state, i + 1)}
-          <a href="${esc(href(page, journey.id))}">${esc(page.label)}</a>
-          ${st.message ? `<span class="ah-step-msg">${esc(st.message)}</span>` : ''}
-        </li>`
+  function renderStepper(model, journey) {
+    if (journey.steps.length < 2) return ''
+    const items = journey.steps.map((id, i) => {
+      const state = model.statuses[id]?.state || 'info'
+      const mark = state === 'done' ? '&#10003;' : String(i + 1)
+      return `<li class="ah-st ah-st--${esc(state)}"><span class="ah-st-dot" aria-hidden="true">${mark}</span><a href="${esc(href(model.pages[id], journey.id))}">${esc(model.pages[id].label)}</a></li>`
     }).join('')
+    return `<ol class="ah-stepper">${items}</ol>`
+  }
 
+  function renderTile(model, journey) {
+    const mode = journeyMode(journey)
+    const entry = entryPage(model, journey)
+    const p = pill(model, journey)
     return `
-      <article class="ah-journey${journey.complete ? ' is-complete' : ''}">
-        <header class="ah-journey-head">
-          <img src="${esc(assetUrl(journey.logo))}" alt="" width="36" height="36" />
-          <div>
+      <article class="ah-tile${journey.complete ? ' is-complete' : ''}">
+        <div class="ah-tile-head">
+          <span class="ah-ico"><img src="${esc(assetUrl(journey.logo))}" alt="" width="22" height="22" /></span>
+          <div class="ah-tile-text">
             <h3>${esc(journey.title)}</h3>
             <p>${esc(journey.summary)}</p>
           </div>
-        </header>
-        ${journey.total ? `
-        <div class="ah-progress" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement">
-          <div class="ah-progress-fill" style="width:${percent}%"></div>
         </div>
-        <p class="ah-progress-label">${journey.doneCount} étape${journey.doneCount > 1 ? 's' : ''} terminée${journey.doneCount > 1 ? 's' : ''} sur ${journey.total}</p>` : ''}
-        <ol class="ah-steps">${steps}</ol>
-        <a class="${mode === 'review' ? 'btn-secondary' : 'btn-primary'}" href="${esc(href(entry, journey.id))}">${esc(CTA_LABEL[mode])}</a>
+        ${renderStepper(model, journey)}
+        <div class="ah-tile-foot">
+          <span class="ah-pill ah-pill--${esc(p.tone)}">${esc(p.text)}</span>
+          <a class="ah-btn${mode === 'review' ? ' ah-btn--ghost' : ''}" href="${esc(href(entry, journey.id))}">${esc(CTA_LABEL[mode])}</a>
+        </div>
       </article>`
   }
 
-  function renderHelp(model) {
-    const cards = [
-      { title: 'Un problème pendant une installation ?', text: 'Copilot analyse votre poste, répare les chemins et les dépendances, puis relance l’installation. Le bouton apparaît tout seul en cas d’échec.' },
-      { title: 'Mon projet et sauvegarde', text: 'Modifiez les informations de votre équipe, exportez ou importez votre configuration.', page: model.pages.projet },
-      { title: 'Aide et documentation', text: 'Le Wiki explique chaque outil avec des mots simples.', page: model.pages.wiki },
-    ]
+  function renderStrip(model) {
+    if (model.project?.needsOnboarding) {
+      return `
+        <section class="ah-strip ah-strip--warn">
+          <div class="ah-strip-text"><strong>Commencez par décrire votre projet</strong><span>2 minutes : l'assistant préremplit ensuite tous les écrans.</span></div>
+          <a class="ah-btn" href="${esc(href(model.pages.projet))}">Décrire mon projet</a>
+        </section>`
+    }
+    const journey = pickFocus(model)
+    if (!journey) {
+      return '<section class="ah-strip ah-strip--ok"><div class="ah-strip-text"><strong>Tout est en place</strong><span>Tous vos objectifs sont terminés.</span></div></section>'
+    }
+    const page = entryPage(model, journey)
+    const pending = pendingPrerequisites(model, page)
+    const detail = pending > 0
+      ? `L'assistant vérifie d'abord votre poste (${pending} point${pending > 1 ? 's' : ''}), puis vous guide.`
+      : `Prochaine étape : ${esc(page.label)}`
+    const lead = journey.doneCount > 0 ? 'Reprendre' : 'Conseillé'
     return `
-      <section class="ah-help">
-        ${cards.map((c) => `
-          <div class="ah-help-card">
-            <h3>${esc(c.title)}</h3>
-            <p>${esc(c.text)}</p>
-            ${c.page ? `<a href="${esc(href(c.page))}">Ouvrir</a>` : ''}
-          </div>`).join('')}
+      <section class="ah-strip">
+        <span class="ah-kicker">${lead}</span>
+        <div class="ah-strip-text"><strong>${esc(journey.title)}</strong><span>${detail}</span></div>
+        <a class="ah-btn" href="${esc(href(page, journey.id))}">${esc(CTA_LABEL[journeyMode(journey)])}</a>
       </section>`
+  }
+
+  function renderLinks(model) {
+    const items = [
+      { label: 'Mon projet et sauvegarde', page: model.pages.projet },
+      { label: 'Aide et documentation', page: model.pages.wiki },
+    ].filter((i) => i.page)
+    return `
+      <footer class="ah-links">
+        <span>Un souci pendant une installation ? Copilot propose de le corriger tout seul.</span>
+        ${items.map((i) => `<a href="${esc(href(i.page))}">${esc(i.label)}</a>`).join('')}
+      </footer>`
   }
 
   function render(model) {
@@ -136,24 +125,20 @@
     root.innerHTML = `
       <header class="ah-hero">
         <h1>Que voulez-vous mettre en place ?</h1>
-        <p>Choisissez un objectif. L'assistant vous guide étape par étape : aucune compétence technique n'est nécessaire.</p>
+        <p>Choisissez un objectif : l'assistant vous guide pas à pas, sans compétence technique.</p>
       </header>
-      ${renderOnboardingCard(model)}
-      ${renderFocus(model)}
-      <section class="ah-journeys" aria-label="Objectifs">${model.journeys.map((j) => renderJourney(model, j)).join('')}</section>
-      ${renderHelp(model)}`
+      ${renderStrip(model)}
+      <section class="ah-grid" aria-label="Objectifs">${model.journeys.map((j) => renderTile(model, j)).join('')}</section>
+      ${renderLinks(model)}`
   }
 
   function renderError() {
     const root = document.getElementById('appHome')
     if (!root) return
     root.innerHTML = `
-      <section class="ah-callout">
-        <div>
-          <h2>Accueil indisponible</h2>
-          <p>Le serveur de l'assistant ne répond pas. Lancez la commande « Wizard QA : Redémarrer le serveur », puis rechargez.</p>
-        </div>
-        <button type="button" class="btn-primary" id="ahRetry">Réessayer</button>
+      <section class="ah-strip ah-strip--warn">
+        <div class="ah-strip-text"><strong>Accueil indisponible</strong><span>Le serveur ne répond pas. Lancez « Wizard QA : Redémarrer le serveur », puis rechargez.</span></div>
+        <button type="button" class="ah-btn" id="ahRetry">Réessayer</button>
       </section>`
     document.getElementById('ahRetry')?.addEventListener('click', () => global.location.reload())
   }

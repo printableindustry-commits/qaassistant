@@ -89,6 +89,16 @@ function resolvePageStatuses(pages, facts) {
   return statuses
 }
 
+function collectPrerequisites(pages, id, seen = new Set()) {
+  const ordered = []
+  for (const req of pages[id]?.requires || []) {
+    if (seen.has(req)) continue
+    seen.add(req)
+    ordered.push(...collectPrerequisites(pages, req, seen), req)
+  }
+  return ordered
+}
+
 function buildJourneys(registry, statuses) {
   return registry.journeys.map((journey) => {
     const tracked = journey.steps.filter((id) => registry.pages[id]?.tracked)
@@ -104,9 +114,14 @@ export function getAppModel() {
   const registry = loadRegistry()
   const facts = collectFacts()
   const statuses = resolvePageStatuses(registry.pages, facts)
+  const pages = Object.fromEntries(Object.entries(registry.pages).map(([id, page]) => [id, {
+    ...page,
+    prerequisites: collectPrerequisites(registry.pages, id),
+    requiredBy: Object.keys(registry.pages).filter((other) => (registry.pages[other].requires || []).includes(id)),
+  }]))
   return {
     version: registry.version,
-    pages: registry.pages,
+    pages,
     nav: registry.nav,
     statuses,
     journeys: buildJourneys(registry, statuses),

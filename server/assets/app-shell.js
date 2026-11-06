@@ -47,7 +47,7 @@
       const ids = journey
         ? journey.steps.filter((id) => !(section.skip || []).includes(id))
         : (section.pages || [])
-      return { title: section.title, help: section.help, journeyId: journey?.id || null, ids: ids.filter((id) => model.pages[id]) }
+      return { title: section.title, help: section.help, journeyId: journey?.id || null, ids: ids.filter((id) => model.pages[id] && !model.pages[id].hidden) }
     })
   }
 
@@ -123,6 +123,27 @@
     } catch { /* stockage indisponible */ }
   }
 
+  function renderPrerequisites(model, page) {
+    if (!page.prerequisites?.length) return ''
+    const rows = page.prerequisites.map((id) => {
+      const req = model.pages[id]
+      const st = model.statuses[id] || { state: 'todo', message: '' }
+      const action = st.state === 'done'
+        ? ''
+        : `<a class="btn-secondary btn-sm" href="${esc(pageHref(req))}">Configurer</a>`
+      return `<li class="ks-prereq ks-prereq--${esc(st.state)}">
+        <span class="ks-nav-dot ks-nav-dot--${esc(st.state)}" aria-hidden="true"></span>
+        <span class="ks-prereq-label">${esc(req.label)}<small>${esc(st.message)}</small></span>${action}</li>`
+    }).join('')
+    return `<p class="ks-guide-label">Avant de commencer</p><ul class="ks-prereqs">${rows}</ul>`
+  }
+
+  function guideKicker(model, page, journey, position) {
+    if (journey) return `${esc(journey.title)} &middot; étape ${position} sur ${journey.steps.length}`
+    const parent = (page.requiredBy || []).map((id) => model.pages[id]).find(Boolean)
+    return parent ? `Prérequis · ${esc(parent.label)}` : 'Guide'
+  }
+
   function renderGuide(model, pageId, main) {
     const page = model.pages[pageId]
     if (!page?.guide) return
@@ -136,12 +157,13 @@
     section.open = !guideCollapsed(pageId)
     section.innerHTML = `
       <summary>
-        <span class="ks-guide-kicker">${journey ? `${esc(journey.title)} &middot; étape ${position} sur ${journey.steps.length}` : 'Guide'}</span>
+        <span class="ks-guide-kicker">${guideKicker(model, page, journey, position)}</span>
         <span class="ks-guide-title">${esc(page.label)}</span>
         ${st && STATE_LABEL[st.state] ? `<span class="ks-nav-state ks-nav-state--${esc(st.state)}">${esc(STATE_LABEL[st.state])}</span>` : ''}
       </summary>
       <div class="ks-guide-body">
         <p class="ks-guide-goal">${esc(page.guide.goal)}</p>
+        ${renderPrerequisites(model, page)}
         ${steps ? `<p class="ks-guide-label">Ce que vous avez à faire</p><ol class="ks-guide-steps">${steps}</ol>` : ''}
         ${page.guide.after ? `<p class="ks-guide-after"><strong>Ensuite :</strong> ${esc(page.guide.after)}</p>` : ''}
         ${st?.state === 'blocked' ? `<p class="ks-guide-blocked">${esc(st.message)}</p>` : ''}
@@ -152,7 +174,17 @@
 
   function renderNextStep(model, pageId, main) {
     const journey = journeyContext(model, pageId)
-    if (!journey) return
+    if (!journey) {
+      const parent = (model.pages[pageId].requiredBy || []).map((id) => model.pages[id]).find(Boolean)
+      if (!parent) return
+      const back = document.createElement('div')
+      back.className = 'ks-next is-ready'
+      back.innerHTML = `
+        <span class="ks-next-text">Quand ce prérequis est prêt, reprenez l'installation.</span>
+        <a class="btn-primary btn-sm ks-next-btn" href="${esc(pageHref(parent))}">Retour : ${esc(parent.label)}</a>`
+      main.appendChild(back)
+      return
+    }
     const next = journey.steps[journey.steps.indexOf(pageId) + 1]
     if (!next || !model.pages[next]) return
     const ready = model.statuses[pageId]?.state === 'done' || model.statuses[pageId]?.state === 'info'

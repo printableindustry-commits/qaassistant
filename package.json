@@ -2,7 +2,7 @@
   "name": "wizard-qa-assistant",
   "displayName": "Wizard QA Assistant (CATS)",
   "description": "Assistant de configuration de tests automatisés Crédit Agricole Technologies Services",
-  "version": "1.33.0",
+  "version": "2.0.0",
   "publisher": "cats-ts",
   "license": "UNLICENSED",
   "icon": "media/icon.png",

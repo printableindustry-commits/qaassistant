@@ -52,13 +52,13 @@ Chaque page affiche un guide (objectif, actions, suite) et un bouton « Étape s
 
 ## Ajouter un menu
 
-La navigation, les guides et les parcours sont décrits dans [server/lib/app-registry.json](server/lib/app-registry.json) ; l'accueil, la barre latérale et les guides sont générés à partir de ce fichier.
+La navigation, les guides et les parcours sont décrits dans `server/lib/app-registry.json` ; l'accueil, la barre latérale et les guides sont générés à partir de ce fichier.
 
 1. Créer la page dans `server/pages/` (elle est servie automatiquement).
 2. L'ajouter dans `pages` du registre (libellé, chemin, guide, `requires` éventuel).
 3. La référencer dans `nav` et, si elle fait partie d'un objectif, dans `steps` d'un parcours de `journeys`.
-4. Si elle a un statut, déclarer son fournisseur dans `STATUS_PROVIDERS` de [server/lib/app-model.mjs](server/lib/app-model.mjs) et renseigner `status` dans le registre.
-5. Pour l'arbre de l'extension VS Code, l'ajouter à `WIZARD_PAGES` dans [src/wizardViews.ts](src/wizardViews.ts).
+4. Si elle a un statut, déclarer son fournisseur dans `STATUS_PROVIDERS` de `server/lib/app-model.mjs` et renseigner `status` dans le registre.
+5. Pour l'arbre de l'extension VS Code, l'ajouter à `WIZARD_PAGES` dans `src/wizardViews.ts`.
 
 Si la page est une installation, ajouter `InstallAutofix.offer()` sur l'échec pour activer la correction Copilot (voir `server/assets/install-autofix.js`).
 

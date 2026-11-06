@@ -25,22 +25,22 @@
     "node-install": {
       "label": "Préparer mon poste",
       "path": "/node-install.html",
+      "hidden": true,
       "status": "node",
-      "tracked": true,
       "guide": {
         "goal": "Installer le moteur (Node.js) qui fait tourner les outils de test.",
         "youDo": [
           "Choisissez la version proposée.",
           "Cliquez sur le bouton d'installation et attendez la fin."
         ],
-        "after": "Vous donnerez ensuite l'accès au dépôt d'entreprise."
+        "after": "Revenez ensuite à l'installation de Playwright : cette étape sera marquée comme terminée."
       }
     },
     "npmrc": {
       "label": "Accès au dépôt d'entreprise",
       "path": "/npmrc.html",
+      "hidden": true,
       "status": "npmrc",
-      "tracked": true,
       "requires": ["node-install"],
       "guide": {
         "goal": "Autoriser votre poste à télécharger les outils depuis le dépôt interne (Artifactory).",
@@ -48,19 +48,19 @@
           "Saisissez votre adresse e-mail et votre jeton d'accès.",
           "Générez le fichier de configuration."
         ],
-        "after": "Vous pourrez alors télécharger les outils du projet."
+        "after": "Revenez ensuite à l'installation de Playwright."
       }
     },
     "npm-install": {
       "label": "Télécharger les outils du projet",
       "path": "/npm-install.html",
+      "hidden": true,
       "status": "npmInstall",
-      "tracked": true,
       "requires": ["node-install", "npmrc"],
       "guide": {
         "goal": "Récupérer tous les composants dont votre projet de test a besoin.",
         "youDo": ["Lancez l'installation et laissez-la se terminer."],
-        "after": "L'outil de test peut ensuite être installé."
+        "after": "Revenez ensuite à l'installation de Playwright."
       }
     },
     "playwright-install": {
@@ -168,9 +168,9 @@
     {
       "id": "playwright",
       "title": "Tester mon application web",
-      "summary": "Automatiser des parcours dans le navigateur : clics, formulaires, vérifications.",
+      "summary": "Automatisez des parcours dans le navigateur. Les prérequis du poste sont vérifiés pour vous.",
       "logo": "/assets/logo-playwright.png",
-      "steps": ["node-install", "npmrc", "npm-install", "playwright-install"]
+      "steps": ["playwright-install"]
     },
     {
       "id": "k6",
@@ -196,7 +196,7 @@
   ],
   "nav": [
     { "title": "Accueil", "help": "Vue d'ensemble et prochaine étape", "pages": ["home", "projet"] },
-    { "title": "Tester mon application web", "help": "Installer Playwright", "journey": "playwright" },
+    { "title": "Tester mon application web", "help": "Playwright", "journey": "playwright" },
     { "title": "Mesurer la performance", "help": "Tests de charge k6", "journey": "k6" },
     { "title": "Relier mes tests à JIRA", "help": "Hook Git et synchronisation", "journey": "jira", "skip": ["projet"] },
     { "title": "Produire mes livrables", "help": "Documents QA", "journey": "docs", "skip": ["projet"] },
