@@ -196,10 +196,10 @@
   ],
   "nav": [
     { "title": "Accueil", "help": "Vue d'ensemble et prochaine étape", "pages": ["home", "projet"] },
-    { "title": "Tester mon application web", "help": "Playwright", "journey": "playwright" },
-    { "title": "Mesurer la performance", "help": "Tests de charge k6", "journey": "k6" },
-    { "title": "Relier mes tests à JIRA", "help": "Hook Git et synchronisation", "journey": "jira", "skip": ["projet"] },
-    { "title": "Produire mes livrables", "help": "Documents QA", "journey": "docs", "skip": ["projet"] },
+    { "title": "Tests web", "help": "Tester mon application web avec Playwright", "journey": "playwright" },
+    { "title": "Performance", "help": "Mesurer la performance avec k6", "journey": "k6" },
+    { "title": "JIRA", "help": "Relier mes tests à JIRA (Hook Git et synchronisation)", "journey": "jira", "skip": ["projet"] },
+    { "title": "Livrables QA", "help": "Produire mes livrables QA", "journey": "docs", "skip": ["projet"] },
     { "title": "Ressources", "help": "Aide et cas particuliers", "pages": ["wiki", "repair"] }
   ]
 }

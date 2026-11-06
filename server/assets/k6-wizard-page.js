@@ -458,7 +458,7 @@ var K6WizardPage = {
     if (!line) return
     if (banner) banner.hidden = false
     if (!ctx?.onboardingComplete) {
-      line.innerHTML = '<span class="k6-context-pill k6-context-pill--warn">Profil incomplet</span> Complétez la <a href="/">Prise de connaissance</a>.'
+      line.innerHTML = '<span class="k6-context-pill k6-context-pill--warn">Profil incomplet</span> Complétez la <a href="/projet.html">Prise de connaissance</a>.'
       if (demoWarn) demoWarn.hidden = true
       return
     }
@@ -469,7 +469,7 @@ var K6WizardPage = {
     if (ctx.applicationLabel) pills.push(`<span class="k6-context-pill k6-context-pill--app"><span class="k6-context-pill__key">Application</span>${this.escape(ctx.applicationLabel)}</span>`)
     line.innerHTML = pills.length
       ? `<div class="k6-context-pills">${pills.join('')}</div>`
-      : 'Aucune information projet — renseignez le profil depuis l\'<a href="/">accueil</a>.'
+      : 'Aucune information projet — renseignez le profil depuis la page <a href="/projet.html">Mon projet</a>.'
     if (demoWarn) demoWarn.hidden = !ctx.isDemoLabel
   },
 
@@ -820,7 +820,7 @@ var K6WizardPage = {
     if (!products.length) {
       const onboardingHint = this.state.tree.onboardingComplete
         ? 'Créez une campagne avec le bouton ci-dessus.'
-        : 'Complétez d\'abord la <a href="/">Prise de connaissance</a> (tribu, produit, solution, application).'
+        : 'Complétez d\'abord la <a href="/projet.html">Prise de connaissance</a> (tribu, produit, solution, application).'
       wrap.innerHTML = `
         <p class="hint hint-tight k6-tree-empty">Aucune campagne k6 enregistrée. ${onboardingHint}</p>
         <p class="hint hint-tight k6-tree-hint">Profils : <code>${this.escape(this.state.tree.profilesDir || '')}</code></p>`

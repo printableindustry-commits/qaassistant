@@ -70,41 +70,105 @@
     return header
   }
 
+  const ICONS = {
+    check: '<svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    lock: '<svg viewBox="0 0 16 16" width="9" height="9" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5" fill="currentColor"/><path d="M5.5 7V5.2a2.5 2.5 0 015 0V7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    chevron: '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  }
+  const COLLAPSED_KEY = 'wizardQa.navCollapsed'
+
+  function stateIcon(state) {
+    const inner = state === 'done' ? ICONS.check : state === 'blocked' ? ICONS.lock : ''
+    return `<span class="ks-ico ks-ico--${esc(state)}">${inner}</span>`
+  }
+
+  function readCollapsed() {
+    try {
+      return JSON.parse(global.localStorage.getItem(COLLAPSED_KEY) || '{}')
+    } catch {
+      return {}
+    }
+  }
+
   function buildSidebarShell() {
     const aside = document.createElement('aside')
     aside.className = 'ks-sidebar'
     aside.setAttribute('aria-label', 'Navigation')
     aside.innerHTML = `
-      <div class="ks-side-brand">
-        <span class="ks-side-name">Wizard QA</span>
-        <span class="ks-side-tagline">Assistant d'installation</span>
-        <span class="ks-badge" id="ksProjectBadge">Mode poste local</span>
-      </div>
+      <div class="ks-side-top" id="ksSideTop"></div>
       <nav class="ks-nav" id="ksNav" aria-label="Parcours"></nav>
-      <div class="ks-side-footer"><span class="ks-chip">Copilot local &middot; sans serveur externe</span></div>`
+      <div class="ks-side-footer">
+        <span class="ks-live" aria-hidden="true"></span>
+        <div><strong>Copilot local</strong><span>Corrige vos installations en cas d'échec</span></div>
+      </div>`
     return aside
+  }
+
+  function overallProgress(model) {
+    const tracked = Object.keys(model.pages).filter((id) => model.pages[id].tracked && !model.pages[id].hidden)
+    const done = tracked.filter((id) => model.statuses[id]?.state === 'done').length
+    return { done, total: tracked.length, percent: tracked.length ? Math.round((done / tracked.length) * 100) : 0 }
+  }
+
+  function renderSideTop(model) {
+    const needs = model.project?.needsOnboarding
+    const name = needs ? 'Projet à décrire' : (model.project?.name || 'Mon projet')
+    const sub = needs
+      ? 'Renseignez vos informations'
+      : [model.project?.tribu, model.project?.squad].filter(Boolean).join(' · ') || 'Informations projet'
+    const progress = overallProgress(model)
+    const host = document.getElementById('ksSideTop')
+    if (!host) return
+    host.innerHTML = `
+      <a class="ks-project" href="${esc(pageHref(model.pages.projet || { path: '/projet.html' }))}" title="Modifier mon projet">
+        <span class="ks-avatar" aria-hidden="true">${esc((name.trim()[0] || 'W').toUpperCase())}</span>
+        <span class="ks-project-text"><strong>${esc(name)}</strong><span>${esc(sub)}</span></span>
+      </a>
+      <div class="ks-overall" title="${progress.done} sur ${progress.total} étapes terminées">
+        <div class="ks-overall-head"><span>Progression</span><b>${progress.done}/${progress.total}</b></div>
+        <div class="ks-bar"><i style="width:${progress.percent}%"></i></div>
+      </div>`
   }
 
   function renderNav(model, path) {
     const activeId = findPageId(model, path)
+    const collapsed = readCollapsed()
     const html = navSections(model).map((section) => {
+      const journey = section.journeyId ? model.journeys.find((j) => j.id === section.journeyId) : null
+      const hasActive = section.ids.includes(activeId)
+      const open = hasActive || !collapsed[section.title]
+      const count = journey && journey.total > 1 ? `<span class="ks-group-count">${journey.doneCount}/${journey.total}</span>` : ''
       const items = section.ids.map((id) => {
         const page = model.pages[id]
         const st = model.statuses[id] || { state: 'info', message: '' }
         const active = id === activeId
-        const label = STATE_LABEL[st.state]
-        return `<a class="ks-nav-item${active ? ' is-active' : ''}" href="${esc(pageHref(page, section.journeyId))}"${active ? ' aria-current="page"' : ''} title="${esc(st.message || page.label)}">
-          <span class="ks-nav-dot ks-nav-dot--${esc(st.state)}" aria-hidden="true"></span>
-          <span class="ks-nav-label">${esc(page.label)}</span>
-          ${label ? `<span class="ks-nav-state ks-nav-state--${esc(st.state)}">${esc(label)}</span>` : ''}</a>`
+        return `<a class="ks-item ks-item--${esc(st.state)}${active ? ' is-active' : ''}" href="${esc(pageHref(page, section.journeyId))}"${active ? ' aria-current="page"' : ''} title="${esc(st.message ? `${page.label} — ${st.message}` : page.label)}">
+          ${stateIcon(st.state)}<span class="ks-item-label">${esc(page.label)}</span></a>`
       }).join('')
-      return `<div class="ks-nav-section"><div class="ks-nav-title" title="${esc(section.help || '')}">${esc(section.title)}</div>${items}</div>`
+      return `<section class="ks-group${open ? '' : ' is-collapsed'}${section.journeyId ? ' ks-group--steps' : ''}">
+        <button type="button" class="ks-group-head" data-group="${esc(section.title)}" aria-expanded="${open}" title="${esc(section.help || '')}">
+          <span class="ks-group-title">${esc(section.title)}</span>${count}<span class="ks-chev">${ICONS.chevron}</span>
+        </button>
+        <div class="ks-group-items">${items}</div>
+      </section>`
     }).join('')
     const nav = document.getElementById('ksNav')
-    if (nav) nav.innerHTML = html
-
-    const badge = document.getElementById('ksProjectBadge')
-    if (badge && model.project?.name) badge.textContent = model.project.name
+    if (!nav) return
+    nav.innerHTML = html
+    nav.querySelectorAll('.ks-group-head').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.ks-group')
+        const nowCollapsed = !group.classList.contains('is-collapsed')
+        group.classList.toggle('is-collapsed', nowCollapsed)
+        btn.setAttribute('aria-expanded', String(!nowCollapsed))
+        const all = readCollapsed()
+        all[btn.dataset.group] = nowCollapsed
+        try {
+          global.localStorage.setItem(COLLAPSED_KEY, JSON.stringify(all))
+        } catch { /* stockage indisponible */ }
+      })
+    })
+    renderSideTop(model)
   }
 
   function guideCollapsed(pageId) {
