@@ -30,7 +30,7 @@ var WikiStackK6 = {
 
     <h3 class="wiki-h3">Installation du binaire k6</h3>
     <p>Le wizard installe <code>@types/k6</code> via npm. Le <strong>binaire Grafana k6</strong> s'installe séparément :</p>
-    <pre class="wiki-code"><code>winget install -e --id Grafana.k6
+    <pre class="wiki-code"><code>winget install -e --id GrafanaLabs.k6
 choco install k6
 k6 version</code></pre>
     <p class="hint hint-tight">Modifiez les commandes dans <code>.wizard-qa/conf/k6-install.conf.json</code> (étape winget optionnelle).</p>

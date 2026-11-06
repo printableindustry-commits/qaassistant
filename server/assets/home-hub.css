@@ -3907,6 +3907,50 @@ body.wizard-debug-control-open {
   max-width: 148px;
 }
 
+/* k6 install : navigation dans le flux (évite le chevauchement avec le texte) */
+.page-k6-install .hub-hero--has-home-btn,
+body.page-k6-install .hub-hero.hub-hero--has-home-btn.hub-hero--debug-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+  padding-right: 12px;
+}
+
+.page-k6-install .hub-hero-page-logo {
+  flex: 0 0 auto;
+}
+
+.page-k6-install .hub-hero-page-body {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.page-k6-install .hub-hero-nav,
+body.page-k6-install .hub-hero .hub-hero-nav,
+body.page-k6-install .hub-hero .hub-hero-nav.hub-hero-nav--debug {
+  position: static;
+  order: 3;
+  flex: 0 0 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: none;
+  margin-left: auto;
+}
+
+.page-k6-install .k6-installed-banner[hidden] {
+  display: none;
+}
+
+.page-k6-install .k6-installed-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+}
+
 .page-node-install-compact .hub-hero-nav,
 .page-npm-install-compact .hub-hero-nav {
   top: 8px;
@@ -7734,6 +7778,219 @@ body.doc-qa-livrables-tour-open {
 .k6-campaign-row.is-deleting {
   opacity: 0.55;
   pointer-events: none;
+}
+
+/* Actions campagne : lancer / modifier à gauche, suppression isolée à droite */
+.k6-campaign-row__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.k6-campaign-row__run-actions {
+  order: 1;
+  gap: 4px;
+}
+
+.k6-campaign-row__delete,
+.k6-campaign-row__confirm {
+  order: 2;
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 1px solid #e5e7eb;
+  border-radius: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  width: auto;
+  height: auto;
+  font-size: 0.8rem;
+}
+
+.k6-campaign-row__delete:hover:not(:disabled) {
+  background: transparent;
+}
+
+.k6-tree-btn-mini {
+  height: 24px;
+  font-size: 0.68rem;
+}
+
+/* Wizard k6 — formulaire compact une page */
+.k6-form {
+  padding: 10px 12px;
+  font-size: 0.78rem;
+}
+
+.k6-form-presets__label {
+  display: block;
+  margin: 4px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.k6-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.k6-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 8px;
+  text-align: left;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.k6-preset strong {
+  font-size: 0.76rem;
+}
+
+.k6-preset small {
+  font-size: 0.64rem;
+  color: #6b7280;
+}
+
+.k6-preset:hover {
+  border-color: #007d4f;
+}
+
+.k6-preset.is-active {
+  border-color: #007d4f;
+  background: rgba(0, 125, 79, 0.08);
+  box-shadow: inset 0 0 0 1px #007d4f;
+}
+
+.k6-form-sec {
+  margin: 4px 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.k6-form-sec > summary {
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #007d4f;
+  cursor: pointer;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.k6-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px 10px;
+  padding: 6px 8px 8px;
+}
+
+.k6-f[hidden] {
+  display: none;
+}
+
+.k6-f {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.k6-f--wide {
+  grid-column: 1 / -1;
+}
+
+.k6-f > label,
+.k6-form-name {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.k6-f-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 3px 6px;
+  height: 26px;
+  font-size: 0.74rem;
+  font-family: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+}
+
+textarea.k6-f-input {
+  height: auto;
+  min-height: 38px;
+  resize: vertical;
+}
+
+.k6-f-input.is-invalid {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.k6-f-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.k6-f-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.k6-form .k6-line-list-input {
+  height: 24px;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+}
+
+.k6-form .k6-line-list-row {
+  margin-bottom: 3px;
+}
+
+.k6-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.k6-form-name {
+  flex: 1 1 200px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.k6-form-actions__btns {
+  display: inline-flex;
+  gap: 6px;
 }
 
 /* Header k6 — navigation horizontale */

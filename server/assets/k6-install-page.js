@@ -79,6 +79,7 @@
       logo: '/assets/logo-k6.png',
       accentClass: 'stack-wizard--k6',
       verifyViaApi: true,
+      prereqMode: 'k6',
       title: 'Initialisation k6',
       titleRunning: 'Initialisation k6 en cours…',
       titleSuccess: 'k6 prêt',
@@ -89,6 +90,12 @@
       apiInstallPath: '/api/k6/install',
       apiConfigPath: '/api/k6/install-config',
       onBeforeRun: saveInitForm,
+      onSuccess: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        const target = '/k6-wizard.html'
+        if (window.Portail?.navigateTo) window.Portail.navigateTo(target)
+        else window.location.href = NpmWizardShared.apiUrl(target)
+      },
     })
 
     wizard.bindLaunch()

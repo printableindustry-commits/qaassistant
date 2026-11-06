@@ -142,6 +142,7 @@ import {
 } from './lib/k6-run-history.mjs'
 import { buildProfileSummary } from './lib/k6-perf-generator.mjs'
 import { runK6Campaign } from './lib/k6-run-api.mjs'
+import { stopK6Runs } from './lib/stack-command-runner.mjs'
 import {
   checkNpmRuntime,
   getRuntimeConfigForApi,
@@ -741,6 +742,10 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       sendJson(res, 400, { ok: false, error: e.message })
     }
+    return
+  }
+  if (req.method === 'POST' && pathname === '/api/k6/run/stop') {
+    sendJson(res, 200, { ok: true, stopped: stopK6Runs() })
     return
   }
   if (req.method === 'POST' && pathname.startsWith('/api/k6/profiles/') && pathname.endsWith('/run')) {

@@ -667,7 +667,7 @@ var WikiSectionsTail = [
           <li><strong>Choisir le document</strong> — carte avec objectif, statut global et progression (chapitres complétés / total).</li>
           <li><strong>Liste des chapitres</strong> — chaque ligne affiche le statut (à compléter, prompt généré, réponse collée, appliqué, à relire…).</li>
           <li><strong>Détail du chapitre</strong> — objectif, données attendues, sources utilisées, informations manquantes ; les détails techniques sont repliés.</li>
-          <li><strong>Assistant IA</strong> — workflow en 5 étapes : générer le prompt → copier dans Copilot/Cursor → coller la réponse → extraire le bloc → appliquer au document Word.</li>
+          <li><strong>Assistant IA</strong> — workflow en 5 étapes : générer le prompt → copier dans Copilot → coller la réponse → extraire le bloc → appliquer au document Word.</li>
         </ol>
 
         <h3 class="wiki-h3">Prompt IA et format de réponse</h3>

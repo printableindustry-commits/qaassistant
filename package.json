@@ -134,12 +134,16 @@
     "package": "npm run compile && vsce package --no-dependencies",
     "split-theme-css": "node scripts/split-theme-css.mjs",
     "format-stack-questionnaire": "node scripts/format-stack-questionnaire-conf.mjs",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "test:perf:smoke": "k6 run k6/scripts/smoke.js -e BASE_URL=https://app-recette.example.com",
+    "test:perf:smoke:json": "k6 run k6/scripts/smoke.js -e BASE_URL=https://app-recette.example.com --out json=reports/k6/smoke.json",
+    "test:perf:reports:clean": "node -e \"require('fs').rmSync('reports/k6',{recursive:true,force:true}); require('fs').mkdirSync('reports/k6',{recursive:true})\""
   },
   "devDependencies": {
+    "@types/k6": "^2.3.1",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
-    "typescript": "^5.3.3",
-    "@vscode/vsce": "^2.24.0"
+    "@vscode/vsce": "^2.24.0",
+    "typescript": "^5.3.3"
   }
 }

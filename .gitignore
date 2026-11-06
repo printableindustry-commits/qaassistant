@@ -7,3 +7,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# Wizard QA — k6 / performance
+reports/k6/*.json
+reports/k6/*.html
+reports/k6/*.gz

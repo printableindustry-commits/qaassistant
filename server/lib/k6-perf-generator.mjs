@@ -35,9 +35,21 @@ function buildK6OptionsFromAnswers(answers) {
   let scenarios = {}
   let options = {
     thresholds,
-    tags: parseTags(a(answers, 'reportTags', '')),
+    tags: {
+      ...(a(answers, 'campaignObjective') ? { objective: String(a(answers, 'campaignObjective')) } : {}),
+      ...(a(answers, 'environment') ? { env: String(a(answers, 'environment')) } : {}),
+      ...parseTags(a(answers, 'reportTags', '')),
+    },
   }
-  if (abortOnFail) options.thresholds = { ...thresholds }
+  if (abortOnFail) {
+    options.thresholds = Object.fromEntries(
+      Object.entries(thresholds).map(([metric, list]) => [
+        metric,
+        list.map((threshold) => ({ threshold, abortOnFail: true, delayAbortEval: '10s' })),
+      ]),
+    )
+  }
+  if (a(answers, 'tlsInsecure', 'no') === 'yes') options.insecureSkipTLSVerify = true
 
   if (executorType === 'ramping-vus') {
     options.scenarios = {
@@ -114,20 +126,21 @@ function buildScriptFromAnswers(answers, paths) {
   const userAgent = a(answers, 'userAgent', 'WizardQA-k6/1.0').replace(/'/g, "\\'")
   const pathsJson = JSON.stringify(pathsList)
 
+  const authHeader = String(a(answers, 'authHeaderName', 'Authorization')).replace(/[^A-Za-z0-9-]/g, '') || 'Authorization'
   const authBlock = authMode === 'bearer' ? `
   const token = __ENV.${tokenVar};
-  if (token) params.headers['Authorization'] = \`Bearer \${token}\`;`
+  if (token) params.headers['${authHeader}'] = \`Bearer \${token}\`;`
     : authMode === 'basic' ? `
   const user = __ENV.K6_BASIC_USER || '';
   const pass = __ENV.K6_BASIC_PASS || '';
-  if (user) params.auth = 'basic';` : ''
+  if (user) params.headers['Authorization'] = 'Basic ' + encoding.b64encode(\`\${user}:\${pass}\`);` : ''
 
   const options = buildK6OptionsFromAnswers(answers)
   const optionsJson = JSON.stringify(options, null, 2)
 
   return `import http from 'k6/http';
 import { check, sleep } from 'k6';
-
+${authMode === 'basic' ? "import encoding from 'k6/encoding';\n" : ''}
 export const options = ${optionsJson};
 
 const BASE_URL = __ENV.BASE_URL || '${baseUrl}';

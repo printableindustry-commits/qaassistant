@@ -452,9 +452,9 @@ export function getBuiltinK6InstallConfig() {
       },
       {
         id: 'winget',
-        label: 'winget install Grafana.k6 (optionnel — admin)',
+        label: 'Installation du binaire k6 (winget, repli choco)',
         runner: 'shell',
-        args: ['winget', 'install', '-e', '--id', 'Grafana.k6', '--accept-package-agreements', '--accept-source-agreements'],
+        args: ['winget', 'install', '-e', '--id', 'GrafanaLabs.k6', '--accept-package-agreements', '--accept-source-agreements'],
       },
     ],
   }

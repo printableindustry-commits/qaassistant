@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import { REPO_ROOT } from './paths.mjs'
 import { getK6Profile } from './k6-profiles.mjs'
 import { applyK6ProfileToProject } from './k6-perf-generator.mjs'
@@ -18,8 +19,31 @@ export async function runK6Campaign(profileId, { mode = 'full' } = {}) {
   if (baseUrl) k6Args.push('-e', `BASE_URL=${baseUrl}`)
 
   const tokenVar = answers.tokenEnvVar || 'AUTH_TOKEN'
-  if (answers.authMode === 'bearer' && tokenVar) {
+  if ((answers.authMode === 'bearer' || answers.authMode === 'oauth2') && tokenVar) {
     k6Args.push('-e', `${tokenVar}=${process.env[tokenVar] || ''}`)
+  }
+  if (answers.authMode === 'basic') {
+    k6Args.push('-e', `K6_BASIC_USER=${process.env.K6_BASIC_USER || ''}`)
+    k6Args.push('-e', `K6_BASIC_PASS=${process.env.K6_BASIC_PASS || ''}`)
+  }
+  if (answers.tlsInsecure === 'yes') k6Args.push('--insecure-skip-tls-verify')
+
+  const outputs = Array.isArray(answers.outputFormats) ? answers.outputFormats : []
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const reportsDir = path.join(REPO_ROOT, 'reports', 'k6')
+  if (outputs.includes('json') || outputs.includes('csv')) fs.mkdirSync(reportsDir, { recursive: true })
+  if (outputs.includes('json')) k6Args.push('--out', `json=${path.join(reportsDir, `run-${stamp}.json`)}`)
+  if (outputs.includes('csv')) k6Args.push('--out', `csv=${path.join(reportsDir, `run-${stamp}.csv`)}`)
+
+  const env = { ...process.env }
+  if (answers.useProxy === 'custom' && answers.proxyUrl) {
+    env.HTTP_PROXY = answers.proxyUrl
+    env.HTTPS_PROXY = answers.proxyUrl
+  } else if (answers.useProxy === 'no') {
+    delete env.HTTP_PROXY
+    delete env.HTTPS_PROXY
+    delete env.http_proxy
+    delete env.https_proxy
   }
 
   if (mode === 'incremental') {
@@ -28,7 +52,7 @@ export async function runK6Campaign(profileId, { mode = 'full' } = {}) {
     k6Args.push('--vus', String(smokeVus), '--duration', smokeDuration)
   }
 
-  const result = await runK6CliArgs(k6Args, REPO_ROOT)
+  const result = await runK6CliArgs(k6Args, REPO_ROOT, env)
 
   const historyEntry = {
     profileId: profile.id,
@@ -36,7 +60,7 @@ export async function runK6Campaign(profileId, { mode = 'full' } = {}) {
     campaignName: answers.campaignName || profile.name,
     environment: answers.environment || '',
     objective: answers.campaignObjective || '',
-    status: result.ok ? 'success' : 'failed',
+    status: result.stopped ? 'stopped' : result.ok ? 'success' : 'failed',
     command: result.command,
     notes: mode === 'incremental' ? 'Exécution incrémentale (smoke 30s)' : 'Exécution complète',
     summary: {
@@ -59,8 +83,11 @@ export async function runK6Campaign(profileId, { mode = 'full' } = {}) {
     command: result.command,
     scriptPath: applied.scriptPath,
     mode,
-    message: result.ok
-      ? `Campagne « ${profile.name} » terminée (code ${result.code}).`
-      : `Campagne « ${profile.name} » échouée (code ${result.code}).`,
+    stopped: !!result.stopped,
+    message: result.stopped
+      ? `Campagne « ${profile.name} » arrêtée.`
+      : result.ok
+        ? `Campagne « ${profile.name} » terminée (code ${result.code}).`
+        : `Campagne « ${profile.name} » échouée (code ${result.code}).`,
   }
 }

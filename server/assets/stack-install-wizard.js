@@ -81,8 +81,14 @@ var StackInstallWizard = (function () {
     }
 
     const isPythonMode = config.prereqMode === 'python'
+    const isK6Mode = config.prereqMode === 'k6'
 
     async function checkPrereqs() {
+      if (isK6Mode) {
+        // k6 est un binaire autonome : Node/.npmrc ne servent qu'aux types facultatifs.
+        const runtime = await apiGet(config.runtimeCheckPath || '/api/k6/runtime/check').catch(() => ({}))
+        return { runtime, k6Ok: !!runtime.k6Installed, ready: true }
+      }
       if (isPythonMode) {
         const runtime = await apiGet(config.runtimeCheckPath || '/api/robot/runtime/check')
         const pythonOk = runtime.pythonPresent && runtime.pythonOk !== false
@@ -107,7 +113,10 @@ var StackInstallWizard = (function () {
     async function refreshBadge() {
       try {
         const p = await checkPrereqs()
-        if (isPythonMode) {
+        if (isK6Mode) {
+          if (p.k6Ok) setBadge(`k6 ${p.runtime?.k6Version || 'OK'}`, 'ok')
+          else setBadge('k6 à installer', 'warn')
+        } else if (isPythonMode) {
           if (!p.pythonOk) setBadge('Python requis', 'missing')
           else if (!p.pipOk) setBadge('pip requis', 'warn')
           else setBadge(`Python ${p.runtime?.pythonVersion || 'OK'}`, 'ok')
@@ -141,6 +150,12 @@ var StackInstallWizard = (function () {
 
     async function runPrereqStep(logEl) {
       const p = await checkPrereqs()
+      if (isK6Mode) {
+        appendLog(logEl, p.k6Ok
+          ? `k6 : déjà installé (${p.runtime?.k6Version || 'version inconnue'})`
+          : 'k6 : absent — installation automatique (winget / choco)')
+        return p
+      }
       if (isPythonMode) {
         const lines = []
         lines.push(`Python : ${p.pythonOk ? 'OK' : 'absent ou version trop ancienne'}`)

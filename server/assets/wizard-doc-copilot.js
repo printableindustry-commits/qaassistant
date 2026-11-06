@@ -97,7 +97,7 @@
           </div>
         </header>
         <h2 id="wizardDocPromptTitle" class="copilot-debug-title"></h2>
-        <p class="copilot-debug-lead">Copiez ce prompt dans <strong>Copilot Agent</strong> ou <strong>Cursor Agent</strong>. L'IA doit répondre uniquement avec un bloc entre les marqueurs <code>&lt;!-- DOC_QA_BLOCK_START --&gt;</code> et <code>&lt;!-- DOC_QA_BLOCK_END --&gt;</code>.</p>
+        <p class="copilot-debug-lead">Copiez ce prompt dans <strong>Copilot Agent</strong>. L'IA doit répondre uniquement avec un bloc entre les marqueurs <code>&lt;!-- DOC_QA_BLOCK_START --&gt;</code> et <code>&lt;!-- DOC_QA_BLOCK_END --&gt;</code>.</p>
         <div class="copilot-debug-terminal-wrap">
           <pre class="copilot-debug-terminal" id="wizardDocPromptPre" tabindex="0"></pre>
           <button type="button" class="copilot-debug-copy" id="wizardDocPromptCopy" title="Copier le prompt">${COPY_SVG}<span>Copier</span></button>

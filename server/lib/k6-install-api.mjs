@@ -10,6 +10,7 @@ import {
   getK6StepMap,
 } from './stack-install-config.mjs'
 import { runK6Scaffold, resolveK6Paths } from './k6-scaffold.mjs'
+import { installK6Portable } from './k6-portable.mjs'
 
 function checkNpmPrereqs() {
   const npmrc = readNpmrc()
@@ -33,6 +34,34 @@ function resolveStep(stepId, config = loadK6InstallConfig()) {
     throw new Error(`Étape inconnue : ${key || '(vide)'} — attendu : ${ids}`)
   }
   return step
+}
+
+async function installK6Binary(step, projectPath) {
+  const cmd = step.args?.[0]
+  const args = (step.args || []).slice(1).map((a) => (a === 'Grafana.k6' ? 'GrafanaLabs.k6' : a))
+  if (!cmd) throw new Error('Étape shell : args[0] = commande requise')
+  let output = ''
+  const attempts = []
+  if (process.platform === 'win32') attempts.push({ portable: true })
+  attempts.push({ cmd, args })
+  if (process.platform === 'win32') {
+    attempts.push({ cmd: 'choco', args: ['install', 'k6', '-y'] })
+  } else if (process.platform === 'darwin') {
+    attempts.push({ cmd: 'brew', args: ['install', 'k6'] })
+  }
+  let last = { ok: false, output: '', command: `${cmd} ${args.join(' ')}`, code: 1 }
+  for (const attempt of attempts) {
+    last = attempt.portable
+      ? await installK6Portable(process.env)
+      : await runShellCommand(attempt.cmd, attempt.args, projectPath, process.env)
+    output += last.output
+    const probe = await probeK6(process.env)
+    if (probe.k6Present) {
+      return { ...last, ok: true, output: `${output}\nk6 détecté après installation (${probe.k6Version}).\n` }
+    }
+    output += `\n→ k6 introuvable après « ${attempt.portable ? 'téléchargement portable' : attempt.cmd} », tentative suivante…\n`
+  }
+  return { ...last, ok: false, output }
 }
 
 async function runStepCommand(step, projectPath) {
@@ -63,10 +92,7 @@ async function runStepCommand(step, projectPath) {
     return runK6CliArgs(step.args || [], projectPath, process.env)
   }
   if (step.runner === 'shell') {
-    const cmd = step.args?.[0]
-    const args = (step.args || []).slice(1)
-    if (!cmd) throw new Error('Étape shell : args[0] = commande requise')
-    return runShellCommand(cmd, args, projectPath, process.env)
+    return installK6Binary(step, projectPath)
   }
   return runNpmInstallArgs(step.args, projectPath)
 }
@@ -171,7 +197,20 @@ export async function executeK6Install(stepId) {
         }
       }
     } else {
-      checkNpmPrereqs()
+      try {
+        checkNpmPrereqs()
+      } catch (err) {
+        return {
+          ok: true,
+          step: step.id,
+          label: step.label,
+          output: `Étape ignorée (non bloquante) : ${err.message}\n→ Les types @types/k6 sont facultatifs ; k6 fonctionne sans.\n`,
+          command: `npm ${(step.args || []).join(' ')}`,
+          projectPath: path.relative(REPO_ROOT, config.projectPath).replace(/\\/g, '/') || '.',
+          configPath: config.relativePath,
+          verifyMessage: 'Étape ignorée — prérequis npm absents',
+        }
+      }
     }
   }
 
@@ -181,15 +220,15 @@ export async function executeK6Install(stepId) {
   if (step.id === 'verify') {
     verifyOk = run.ok && /k6/i.test(run.output)
     if (!verifyOk) {
-      run.output += '\n\n→ Installez Grafana k6 : winget install Grafana.k6, choco install k6, ou https://grafana.com/docs/k6/latest/set-up/install-k6/\n'
+      run.output += '\n\n→ Installez Grafana k6 : winget install GrafanaLabs.k6, choco install k6, ou https://grafana.com/docs/k6/latest/set-up/install-k6/\n'
     }
   } else if (step.runner === 'scaffold') {
     const runtime = await checkK6Runtime()
     verifyOk = runtime.scaffoldReady
   } else if (step.runner === 'shell') {
-    verifyOk = run.ok || step.id === 'winget'
-    if (!run.ok && step.id === 'winget') {
-      run.output += '\n\n→ Étape optionnelle : installez k6 manuellement (winget, choco ou téléchargement Grafana) si nécessaire.\n'
+    verifyOk = run.ok
+    if (!run.ok) {
+      run.output += '\n\n→ Installation automatique impossible (droits administrateur, winget/choco absents ou réseau). Installez k6 manuellement : https://grafana.com/docs/k6/latest/set-up/install-k6/ puis relancez.\n'
     }
   }
 

@@ -95,7 +95,7 @@
   function recommendedActionText(status) {
     const map = {
       todo: 'générer le prompt IA pour compléter ce chapitre',
-      prompt_generated: 'copier le prompt dans Copilot ou Cursor, puis coller la réponse IA',
+      prompt_generated: 'copier le prompt dans Copilot, puis coller la réponse IA',
       ai_response_pasted: 'vérifier l\'aperçu puis appliquer au document',
       ready_to_apply: 'appliquer le contenu au document Word',
       applied: 'relire le chapitre ou passer au suivant',
@@ -379,7 +379,7 @@
 
     const steps = [
       { n: 1, title: 'Générer le prompt IA', desc: 'Le Wizard prépare un prompt contextualisé à partir des informations projet.' },
-      { n: 2, title: 'Copier le prompt dans Copilot ou Cursor', desc: 'Copiez ce prompt dans Copilot Agent ou Cursor Agent.' },
+      { n: 2, title: 'Copier le prompt dans Copilot', desc: 'Copiez ce prompt dans Copilot Agent.' },
       { n: 3, title: 'Coller la réponse IA', desc: 'Collez la réponse obtenue dans la zone ci-dessous.' },
       { n: 4, title: 'Extraire le bloc documentaire', desc: 'Le contenu entre les marqueurs sera extrait automatiquement et préparé pour le document.' },
       { n: 5, title: 'Appliquer au document', desc: 'Vérifiez l\'aperçu puis injectez le contenu dans le fichier Word.' },
@@ -395,7 +395,7 @@
       <div class="doc-qa-primary-action-row" id="docQaAiPrimaryRow"></div>
       <div class="doc-qa-ai-response-zone" id="docQaAiPasteZone" ${activeStep < 3 ? 'hidden' : ''}>
         <label for="docQaAiResponseInput">Réponse IA</label>
-        <p class="hint hint-tight">Copiez ce prompt dans Copilot Agent ou Cursor Agent. Collez ensuite la réponse obtenue dans la zone ci-dessous.</p>
+        <p class="hint hint-tight">Copiez ce prompt dans Copilot Agent. Collez ensuite la réponse obtenue dans la zone ci-dessous.</p>
         <textarea id="docQaAiResponseInput" placeholder="Collez ici la réponse complète de l'IA…"></textarea>
         <div class="doc-qa-primary-action-row" style="margin-top:0.5rem">
           <button type="button" class="btn-primary" id="docQaExtractBtn">Extraire le contenu prêt à insérer</button>
@@ -459,7 +459,7 @@
       })
       showStatus(true, 'Prompt exporté dans .wizard-qa/doc-qa-prompts/')
     } else {
-      showStatus(true, 'Prompt IA généré — copiez-le dans Copilot ou Cursor.')
+      showStatus(true, 'Prompt IA généré — copiez-le dans Copilot.')
     }
     await loadContext()
     if (pageState.selectedChapterId === chapterId) {
