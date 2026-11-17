@@ -243,6 +243,27 @@
     }
   }
 
+  async function readTickets() {
+    const btn = $('btnReadTickets')
+    const consoleEl = $('analyzeConsole')
+    btn.disabled = true
+    if (consoleEl) consoleEl.textContent = 'Lecture des tickets JIRA (Récits et Tests)…\n'
+    try {
+      const data = await fetch(apiUrl('/api/hook/jira-tickets'), { method: 'POST' }).then(r => r.json())
+      if (!data.ok) throw new Error(data.error)
+      const lines = data.tickets.map(t => `${t.key}\t[${t.type}]\t${t.status}\t${t.summary}`)
+      if (consoleEl) {
+        consoleEl.textContent = `Projet ${data.project} — ${data.total} ticket(s) (${data.issueTypes.join(', ')})\nEnregistré : ${data.file}\n\n${lines.join('\n')}`
+      }
+      showStatus(true, `${data.total} tickets JIRA capturés`)
+    } catch (err) {
+      if (consoleEl) consoleEl.textContent = err.message
+      showStatus(false, err.message)
+    } finally {
+      btn.disabled = false
+    }
+  }
+
   function openConfirmModal(preview) {
     $('syncConfirmBody').innerHTML = renderPreviewBody(preview)
     $('syncConfirmModal').hidden = false
@@ -310,6 +331,7 @@
   function bindUi() {
     $('btnAnalyze').onclick = () => runAnalyze()
     $('btnSyncLocal').onclick = () => loadPreviewAndConfirm()
+    $('btnReadTickets').onclick = () => readTickets()
     $('syncConfirmCancel').onclick = () => closeConfirmModal()
     $('syncConfirmOk').onclick = () => runSync()
     document.querySelectorAll('[data-close="syncConfirmModal"]').forEach(el => {

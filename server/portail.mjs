@@ -26,6 +26,7 @@ import {
   getDocumentDownloadPath,
 } from './lib/doc-library.mjs'
 import { loadHookConfig, saveHookSimple } from './lib/hook-config.mjs'
+import { captureJiraTickets } from './lib/jira-tickets.mjs'
 import { installHook, getHookInstallStatus } from './lib/install-hook.mjs'
 import { generateConfig, getWizardDefaults } from './lib/wizard-core.mjs'
 import {
@@ -1332,6 +1333,14 @@ const server = http.createServer(async (req, res) => {
     try {
       const result = await verifyPlansAgainstCloud(HOOK_DIR, (args) => runHookScript(args))
       sendJson(res, 200, result)
+    } catch (e) {
+      sendJson(res, 500, { ok: false, error: e.message })
+    }
+    return
+  }
+  if (req.method === 'POST' && pathname === '/api/hook/jira-tickets') {
+    try {
+      sendJson(res, 200, { ok: true, ...(await captureJiraTickets(HOOK_DIR)) })
     } catch (e) {
       sendJson(res, 500, { ok: false, error: e.message })
     }
