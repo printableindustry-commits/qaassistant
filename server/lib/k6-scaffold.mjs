@@ -36,7 +36,7 @@ export function buildK6OptionsModule(paths) {
   return `// Options partagées — importées par les scripts k6/
 export const defaultOptions = {
   vus: ${paths.defaultVus},
-  duration: '${paths.defaultDuration}',
+  duration: ${JSON.stringify(paths.defaultDuration)},
   thresholds: {
     http_req_duration: ['p(95)<${paths.p95ThresholdMs}'],
     http_req_failed: ['rate<0.01'],
@@ -46,20 +46,20 @@ export const defaultOptions = {
 }
 
 export function buildK6SmokeScript(paths) {
-  const baseUrl = paths.baseUrl.replace(/'/g, "\\'")
+  const baseUrl = JSON.stringify(paths.baseUrl)
   return `import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 export const options = {
   vus: ${paths.defaultVus},
-  duration: '${paths.defaultDuration}',
+  duration: ${JSON.stringify(paths.defaultDuration)},
   thresholds: {
     http_req_duration: ['p(95)<${paths.p95ThresholdMs}'],
     http_req_failed: ['rate<0.01'],
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || '${baseUrl}';
+const BASE_URL = __ENV.BASE_URL || ${baseUrl};
 
 export default function () {
   const res = http.get(\`\${BASE_URL}/\`);
@@ -153,6 +153,7 @@ export function runK6Scaffold(init, repoRoot) {
     'reports/k6/*.json',
     'reports/k6/*.html',
     'reports/k6/*.gz',
+    'reports/k6/*/',
   ])
 
   const pkgScripts = mergePackageScripts(repoRoot, paths)

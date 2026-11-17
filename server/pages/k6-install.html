@@ -1,181 +1,81 @@
 <!DOCTYPE html>
-
 <html lang="fr" class="page-k6-install page-k6-install-compact page-npm-install-compact">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>Wizard QA Assistant · Initialiser k6</title>
-
+  <title>Initialiser k6 — Wizard QA</title>
+  <link rel="icon" href="/assets/logo-qa.png" />
   <link rel="stylesheet" href="/assets/theme.css" />
-
   <link rel="stylesheet" href="/assets/home-hub.css?v=1.29.0" />
-
   <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.29.0" />
-
 </head>
-
 <body class="page-k6-install page-k6-install-compact page-npm-install-compact">
-
   <div class="wrap hub-app">
-
     <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero--has-home-btn">
-
       <div class="hub-hero-nav">
-
-        <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
-
-        <a href="/wiki.html#k6" class="btn-hub-secondary">← Wiki k6</a>
-
       </div>
-
-      <div class="hub-hero-page-logo">
-
-        <img src="/assets/logo-k6.png" alt="k6" width="40" height="40" />
-
-      </div>
-
       <div class="hub-hero-page-body">
-
         <div class="npmrc-hero-head">
-
           <h1>Initialiser k6 — tests de performance</h1>
-
           <span class="file-badge" id="k6InstallBadge" aria-live="polite">…</span>
-
         </div>
-
         <p class="hub-hero-lead">Assistant guidé — arborescence <code>k6/</code>, script smoke, seuils de charge et binaire <strong>Grafana k6</strong>. Prérequis npm : Node, <code>.npmrc</code> et <code>package.json</code>.</p>
         <div id="k6InstalledBanner" class="k6-installed-banner" hidden></div>
-
       </div>
-
     </div>
-
-
-
     <section class="card card-compact npmrc-card npmrc-form-card">
-
       <h2 class="form-section-title">Paramètres de charge</h2>
-
       <p class="hint hint-tight">Modifiables aussi dans <code>.wizard-qa/conf/k6-init.conf.json</code></p>
-
       <div class="npmrc-form-grid">
-
         <label class="npmrc-field">
-
           <span>Nom du projet</span>
-
           <input type="text" id="k6ProjectName" placeholder="MonProjet-perf" autocomplete="off" />
-
         </label>
-
         <label class="npmrc-field">
-
           <span>URL cible (recette)</span>
-
           <input type="url" id="k6BaseUrl" placeholder="https://app-recette.example.com" autocomplete="off" />
-
         </label>
-
         <label class="npmrc-field">
-
           <span>VUs (utilisateurs virtuels)</span>
-
           <input type="number" id="k6DefaultVus" min="1" max="500" placeholder="5" />
-
         </label>
-
         <label class="npmrc-field">
-
           <span>Durée campagne</span>
-
           <input type="text" id="k6DefaultDuration" placeholder="30s" autocomplete="off" />
-
         </label>
-
       </div>
-
       <div class="npmrc-generate-row">
-
         <button type="button" class="btn-secondary btn-sm" id="k6SaveInitBtn">Enregistrer les paramètres</button>
-
         <p class="hint hint-tight" id="k6InitHint" hidden></p>
-
       </div>
-
     </section>
-
-
-
     <section class="card card-compact npmrc-card npmrc-form-card stack-install-cta-card">
-
       <div class="stack-install-cta stack-install-cta--k6">
-
         <img class="stack-install-cta-logo" src="/assets/logo-k6.png" alt="" width="56" height="56" />
-
         <p class="stack-install-cta-lead">Assistant en 5 étapes — scripts de charge, types @types/k6 et vérification du binaire k6.</p>
-
         <button type="button" class="btn-stack-install btn-stack-install--k6" id="k6InstallBtn">Lancer l'initialisation k6</button>
-
         <p class="hint hint-tight stack-install-config-hint">Commandes modifiables dans <code>.wizard-qa/conf/k6-install.conf.json</code></p>
-
       </div>
-
       <div id="k6InstallPanel" hidden></div>
-
       <div id="status" class="status stack-install-status" style="display:none"></div>
-
     </section>
-
-
-
     <section class="card card-compact npmrc-card npm-page-bottom">
-
       <div class="npmrc-generate-row">
-
         <p class="hint hint-tight npmrc-next-step"><a href="/k6-wizard.html">→ Wizard k6 — campagnes & questionnaire</a></p>
-
         <p class="hint hint-tight npmrc-next-step">Après installation : <code>npm run test:perf:smoke</code> ou <code>k6 run k6/scripts/smoke.js</code></p>
-
       </div>
-
     </section>
-
   </div>
-
-  <footer class="wizard-footer" role="contentinfo">
-
-    <span class="wizard-footer-version">v1.29.0</span>
-
-    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
-
-  </footer>
-
   <script src="/assets/portail.js"></script>
   <script src="/assets/install-autofix.js"></script>
-
   <script src="/assets/wizard-disclaimer.js?v=1.29.0"></script>
-
   <script src="/assets/npm-wizard-shared.js?v=1.29.0"></script>
-
   <script src="/assets/stack-install-wizard.js?v=1.29.0"></script>
-
   <script src="/assets/wizard-footer.js?v=1.29.0"></script>
-
   <script src="/assets/wizard-debug-copilot.js"></script>
-
   <script src="/assets/wizard-debug-nav.js"></script>
-
   <script src="/assets/wizard-debug-page-bindings.js"></script>
-
   <script src="/assets/k6-install-page.js?v=1.29.0"></script>
-
 </body>
-
 </html>
-
 

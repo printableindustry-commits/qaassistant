@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion — Wizard QA</title>
+  <link rel="icon" href="/assets/logo-qa.png">
+</head>
+<body data-shell="none" class="page-login">
+  <div class="p-login">
+    <aside class="p-login-aside">
+      <div class="p-login-brand">
+        <span class="mark"><img src="/assets/logo-qa.png" alt=""></span>
+        <div>
+          <div class="name">Wizard QA</div>
+          <div class="sub">Assistant de tests automatisés · TRIBU IT pour CA-TS</div>
+        </div>
+      </div>
+      <div class="p-login-pitch">
+        <h2>Du récit JIRA au test de charge, sur un poste prêt du premier coup.</h2>
+        <p>Installez toute la stack de test en un clic, scannez les récits du projet, générez les scénarios Gherkin et mesurez la performance avec k6.</p>
+        <div class="p-login-features" id="features"></div>
+      </div>
+      <div class="p-login-foot" id="version">Wizard QA</div>
+    </aside>
+
+    <main class="p-login-main">
+      <div class="p-login-card">
+        <img class="logo" src="/assets/logo-qa.png" alt="Wizard QA">
+        <h1>Connexion</h1>
+        <p class="lead">Identifiez-vous pour accéder à l'espace de test.</p>
+
+        <div class="p-banner p-banner--error p-login-error" id="error" role="alert"></div>
+
+        <form id="form" novalidate>
+          <div class="p-field">
+            <label for="username">Identifiant</label>
+            <input class="p-input" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          </div>
+          <div class="p-field">
+            <label for="password">Mot de passe</label>
+            <div class="p-pwd">
+              <input class="p-input" id="password" name="password" type="password" autocomplete="current-password" required>
+              <button class="p-icon-btn" type="button" id="togglePwd" aria-label="Afficher le mot de passe"></button>
+            </div>
+          </div>
+          <button class="p-btn p-btn--primary p-btn--lg p-btn--block" type="submit" id="submit">Se connecter</button>
+        </form>
+
+        <div class="p-login-demo p-hidden" id="demo">
+          <span id="demoIcon"></span>
+          <span>Démonstration : <b>demo</b> / <b>demo</b></span>
+          <button class="p-btn p-btn--sm" type="button" id="useDemo">Utiliser</button>
+        </div>
+
+        <div class="p-login-meta">
+          <span>Accès réservé aux équipes QA</span>
+          <span id="versionSmall"></span>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/assets/prisme/login.js"></script>
+</body>
+</html>

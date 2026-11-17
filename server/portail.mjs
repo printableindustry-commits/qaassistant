@@ -7,7 +7,7 @@
 import http from 'http'
 import fs from 'fs'
 import path from 'path'
-import { exec, spawn } from 'child_process'
+import { execFile, spawn } from 'child_process'
 import { readNpmrc, readTemplate, readEmptyTemplate, writeNpmrc, writeEmptyNpmrc, getNpmrcPath, archiveNpmrc } from './lib/npmrc.mjs'
 import { loadRepairConfig, saveRepairConfig, executeRepairPlan } from './lib/repair-api.mjs'
 import {
@@ -173,22 +173,36 @@ import {
   patchDocQaProgress,
 } from './lib/doc-qa-wizard.mjs'
 import { getLivrablesTourPayload, dismissLivrablesTour } from './lib/doc-qa-livrables-tour.mjs'
+import { createRouter } from './lib/http/router.mjs'
+import { authorize, corsHeaders } from './lib/auth/guard.mjs'
+import * as authRoutes from './lib/auth/routes.mjs'
+import * as dashboardRoutes from './lib/dashboard/routes.mjs'
+import * as installRoutes from './lib/install/routes.mjs'
+import * as jiraRoutes from './lib/jira/routes.mjs'
+import * as gherkinRoutes from './lib/gherkin/routes.mjs'
+import * as llmRoutes from './lib/llm/routes.mjs'
+import * as perfRoutes from './lib/perf/routes.mjs'
+
+// Modules V3 (Prisme) : chacun déclare ses routes dans son routes.mjs.
+const router = createRouter()
+for (const mod of [authRoutes, dashboardRoutes, installRoutes, jiraRoutes, gherkinRoutes, llmRoutes, perfRoutes]) {
+  mod.register(router)
+}
 
 const PORTAIL_DIR = SERVER_DIR
 const PAGES_DIR = path.join(PORTAIL_DIR, 'pages')
 const ASSETS_DIR = path.join(PORTAIL_DIR, 'assets')
 const BASE_PORT = Number(process.env.PORTAIL_PORT) || 3920
-const HOST = '127.0.0.1'
+// PORTAIL_HOST=0.0.0.0 pour exposer l'application sur le réseau (penser à PORTAIL_ALLOWED_HOSTS).
+const HOST = process.env.PORTAIL_HOST || '127.0.0.1'
 const EMBEDDED = process.env.PORTAIL_EMBEDDED === '1' || process.argv.includes('--embedded')
 
 let repairRunning = false
 
+// Plus de « Access-Control-Allow-Origin: * » : seuls la même origine et la webview VS Code
+// (en-têtes posés par corsHeaders dans le gestionnaire principal) peuvent appeler l'API.
 function cors() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
+  return {}
 }
 
 function sendJson(res, status, data) {
@@ -234,8 +248,29 @@ function sendHtml(res, filePath, reqUrl = '') {
   html = applyPathPlaceholders(html)
   html = applyHtmlPageClasses(html)
   html = injectWizardChrome(html, reqUrl)
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', ...cors() })
+  html = injectPrismeShell(html)
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...cors() })
   res.end(html)
+}
+
+/**
+ * Shell Prisme (rail, en-tête, palette Ctrl K, bandeau de statut) injecté dans toutes les pages,
+ * sauf celles qui portent data-shell="none" sur <body> (page de connexion).
+ * legacy-bridge.css est placé en dernier pour réhabiller les anciens écrans aux couleurs Prisme.
+ */
+function injectPrismeShell(html) {
+  const ver = getWizardMeta().version
+  const noShell = /<body[^>]*data-shell=["']none["']/.test(html)
+  const head = [
+    `<link rel="stylesheet" href="/assets/prisme/prisme.css?v=${ver}">`,
+    noShell ? '' : `<link rel="stylesheet" href="/assets/prisme/legacy-bridge.css?v=${ver}">`,
+    `<script src="/assets/prisme/prisme-ui.js?v=${ver}"></script>`,
+    noShell ? '' : `<script defer src="/assets/prisme/prisme-shell.js?v=${ver}"></script>`,
+  ].filter(Boolean).join('\n  ')
+  if (!html.includes('/assets/prisme/prisme.css') && html.includes('</head>')) {
+    html = html.replace('</head>', `  ${head}\n</head>`)
+  }
+  return html
 }
 
 function isEmbedRequest(reqUrl = '') {
@@ -336,21 +371,20 @@ function injectWizardChrome(html, reqUrl = '') {
   return html
 }
 
+// Ouverture par le système sans shell : le chemin est passé en argument, jamais interprété.
+function openWithOs(target) {
+  if (process.platform === 'win32') execFile('explorer.exe', [String(target).replace(/\//g, '\\')], () => {})
+  else execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [String(target)], () => {})
+}
+
 function openFolderInOs(absPath) {
   if (!fs.existsSync(absPath)) throw new Error(`Dossier introuvable : ${absPath}`)
-  if (process.platform === 'win32') {
-    exec(`explorer "${absPath.replace(/\//g, '\\')}"`)
-  } else if (process.platform === 'darwin') {
-    exec(`open "${absPath}"`)
-  } else {
-    exec(`xdg-open "${absPath}"`)
-  }
+  openWithOs(absPath)
 }
 
 function openBrowser(url) {
-  if (process.platform === 'win32') exec(`start "" "${url}"`)
-  else if (process.platform === 'darwin') exec(`open "${url}"`)
-  else exec(`xdg-open "${url}"`)
+  if (process.platform === 'win32') execFile('rundll32.exe', ['url.dll,FileProtocolHandler', url], () => {})
+  else execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], () => {})
 }
 
 function runHookScript(args, cwd = HOOK_DIR) {
@@ -370,8 +404,11 @@ function runHookScript(args, cwd = HOOK_DIR) {
 }
 
 const server = http.createServer(async (req, res) => {
+  for (const [k, v] of Object.entries(corsHeaders(req))) res.setHeader(k, v)
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'same-origin')
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, cors())
+    res.writeHead(204)
     res.end()
     return
   }
@@ -380,6 +417,32 @@ const server = http.createServer(async (req, res) => {
   let pathname = url.pathname
   if (pathname.length > 1 && pathname.endsWith('/')) {
     pathname = pathname.slice(0, -1)
+  }
+
+  // Authentification, hôte et origine (voir lib/auth/guard.mjs)
+  const access = authorize(req, pathname, { embedded: EMBEDDED })
+  if (!access.ok) {
+    if (access.redirect) {
+      res.writeHead(302, { Location: access.redirect })
+      res.end()
+    } else {
+      sendJson(res, access.status, { ok: false, error: access.error })
+    }
+    return
+  }
+  req.user = access.user
+
+  if (pathname === '/api/health') {
+    sendJson(res, 200, { ok: true, version: getWizardMeta().version })
+    return
+  }
+
+  // Routes des modules V3
+  try {
+    if (await router.handle(req, res, url, access.user)) return
+  } catch (e) {
+    sendJson(res, 500, { ok: false, error: e.message })
+    return
   }
 
   // Pages HTML
@@ -401,7 +464,10 @@ const server = http.createServer(async (req, res) => {
       return
     }
     const ext = path.extname(assetPath).toLowerCase()
-    const types = { '.css': 'text/css', '.png': 'image/png', '.js': 'application/javascript', '.svg': 'image/svg+xml' }
+    const types = {
+      '.css': 'text/css', '.png': 'image/png', '.js': 'application/javascript', '.svg': 'image/svg+xml',
+      '.json': 'application/json', '.woff2': 'font/woff2', '.ico': 'image/x-icon',
+    }
     sendFile(res, assetPath, types[ext] || 'application/octet-stream', EMBEDDED && (ext === '.js' || ext === '.css'))
     return
   }
@@ -449,13 +515,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const npmrcPath = getNpmrcPath()
       const profileDir = path.dirname(npmrcPath)
-      if (process.platform === 'win32') {
-        exec(`explorer "${profileDir}"`)
-      } else if (process.platform === 'darwin') {
-        exec(`open "${profileDir}"`)
-      } else {
-        exec(`xdg-open "${profileDir}"`)
-      }
+      openWithOs(profileDir)
       sendJson(res, 200, { ok: true, path: profileDir })
     } catch (e) {
       sendJson(res, 400, { ok: false, error: e.message })
@@ -1389,15 +1449,12 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req)
       const rel = String(body.relativePath || body.path || '').trim()
       if (!rel) throw new Error('relativePath requis')
-      const abs = path.isAbsolute(rel) ? rel : path.join(REPO_ROOT, rel.replace(/\//g, path.sep))
+      const abs = path.resolve(REPO_ROOT, rel.replace(/\//g, path.sep))
+      // Ouvrir un fichier lance son application associée : on reste dans le dépôt et on écarte les exécutables.
+      if (path.relative(REPO_ROOT, abs).startsWith('..') || path.isAbsolute(path.relative(REPO_ROOT, abs))) throw new Error('Fichier hors du dépôt')
+      if (/\.(exe|bat|cmd|com|ps1|vbs|js|msi|lnk|scr|hta)$/i.test(abs)) throw new Error('Type de fichier non autorisé')
       if (!fs.existsSync(abs)) throw new Error(`Fichier introuvable : ${abs}`)
-      if (process.platform === 'win32') {
-        exec(`start "" "${abs}"`)
-      } else if (process.platform === 'darwin') {
-        exec(`open "${abs}"`)
-      } else {
-        exec(`xdg-open "${abs}"`)
-      }
+      openWithOs(abs)
       sendJson(res, 200, { ok: true, path: abs })
     } catch (e) {
       sendJson(res, 400, { ok: false, error: e.message })
@@ -1480,7 +1537,7 @@ const server = http.createServer(async (req, res) => {
         abs = path.isAbsolute(body.relativePath)
           ? body.relativePath
           : path.join(REPO_ROOT, String(body.relativePath).replace(/\//g, path.sep))
-      } else if (body.path) {
+      } else if (body.path && req.user?.role === 'admin') {
         abs = path.resolve(String(body.path))
       } else {
         throw new Error('target, relativePath ou path requis')
@@ -1686,8 +1743,13 @@ const server = http.createServer(async (req, res) => {
     }
     return
   }
+  if ((pathname === '/api/wizard/export' || pathname === '/api/wizard/import') && req.user?.role !== 'admin') {
+    sendJson(res, 403, { ok: false, error: 'Export et import réservés aux administrateurs.' })
+    return
+  }
   if (req.method === 'GET' && pathname === '/api/wizard/export') {
-    const includeSecrets = url.searchParams.get('secrets') !== '0'
+    // Secrets exclus par défaut : ?secrets=1 pour les inclure.
+    const includeSecrets = url.searchParams.get('secrets') === '1'
     sendJson(res, 200, exportFullWizardConfig({ includeSecrets }))
     return
   }
@@ -2009,7 +2071,7 @@ function onListenReady() {
   console.log(`  Défauts : ${getDefaultsPath()}`)
   if (listenPort !== BASE_PORT) console.log(`  (port ${BASE_PORT} occupé → ${listenPort})`)
   if (EMBEDDED) console.log('  Mode intégré (extension) — pas d\'ouverture navigateur')
-  else openBrowser(home)
+  else if (process.env.PORTAIL_NO_BROWSER !== '1') openBrowser(home)
   console.log('  Ctrl+C pour arrêter\n')
 }
 

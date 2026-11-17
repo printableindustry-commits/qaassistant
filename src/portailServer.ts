@@ -1,4 +1,5 @@
 import * as cp from 'child_process'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as http from 'http'
 import * as path from 'path'
@@ -58,6 +59,8 @@ function vendorNodePath(
 export class PortailServer {
   private process: cp.ChildProcess | undefined
   private activePort = BASE_PORT
+  /** Jeton d'appairage du pont Copilot local, transmis au serveur lancé (WIZARD_BRIDGE_TOKEN). */
+  private readonly bridgeToken = crypto.randomBytes(24).toString('base64url')
 
   constructor(
     private readonly extensionPath: string,
@@ -67,6 +70,14 @@ export class PortailServer {
 
   getPort(): number {
     return this.activePort
+  }
+
+  getBridgeToken(): string {
+    return this.bridgeToken
+  }
+
+  isRunning(): boolean {
+    return Boolean(this.process && !this.process.killed && this.process.exitCode === null)
   }
 
   getBaseUrl(): string {
@@ -115,6 +126,7 @@ export class PortailServer {
       PORTAIL_EMBEDDED: '1',
       PORTAIL_PORT: String(port),
       WIZARD_EXTENSION_VERSION: expectedVersion,
+      WIZARD_BRIDGE_TOKEN: this.bridgeToken,
     }
     if (vendor && fs.existsSync(vendor)) {
       env.WIZARD_VENDOR_NODE = vendor

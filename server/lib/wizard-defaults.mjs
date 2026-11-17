@@ -125,6 +125,9 @@ function deepMerge(target, source) {
   for (const key of Object.keys(source)) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       out[key] = deepMerge(out[key] || {}, source[key])
+    } else if (source[key] === '' && out[key] && /token|password|secret|auth/i.test(key)) {
+      // Un export sans secrets ne doit pas effacer les secrets déjà présents.
+      continue
     } else if (source[key] !== undefined && source[key] !== null) {
       out[key] = source[key]
     }

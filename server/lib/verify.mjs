@@ -39,6 +39,8 @@ function verifyNpmrc(fields) {
 }
 
 function tryNpmPing(registry) {
+  // shell:true (npm.cmd sous Windows) : on refuse tout registre contenant des caractères de shell.
+  if (!/^https?:\/\/[\w.:@/~+-]+$/.test(String(registry || ''))) return false
   try {
     const r = spawnSync('npm', ['ping', '--registry', registry], {
       encoding: 'utf8',

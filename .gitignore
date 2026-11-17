@@ -11,3 +11,7 @@ Thumbs.db
 reports/k6/*.json
 reports/k6/*.html
 reports/k6/*.gz
+
+# Application web : projet de test et données locales
+workspace/
+.wizard-qa/

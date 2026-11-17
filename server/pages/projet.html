@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wizard QA Assistant · Mon projet</title>
+  <title>Mon projet — Wizard QA</title>
+  <link rel="icon" href="/assets/logo-qa.png" />
   <link rel="stylesheet" href="/assets/theme.css" />
   <link rel="stylesheet" href="/assets/home-hub.css?v=1.29.10" />
   <link rel="stylesheet" href="/assets/css_theme_app.css?v=1.29.10" />
@@ -42,7 +43,7 @@
           <button type="button" class="btn-primary btn-sm" id="exportAll">Exporter</button>
           <label class="btn-secondary btn-sm file-btn">Importer<input type="file" id="importAll" accept=".json" hidden></label>
           <button type="button" class="btn-secondary btn-sm" id="applyAll">Appliquer</button>
-          <label class="chk-inline chk-inline-sm"><input type="checkbox" id="includeSecrets" checked> Secrets</label>
+          <label class="chk-inline chk-inline-sm"><input type="checkbox" id="includeSecrets" title="Inclure les jetons et mots de passe en clair dans l’export"> Secrets</label>
           <label class="chk-inline chk-inline-sm"><input type="checkbox" id="applyOnImport"> Appliquer import</label>
         </div>
       </div>
@@ -52,10 +53,6 @@
       <div id="hubSections"></div>
     </section>
   </div>
-  <footer class="wizard-footer" role="contentinfo">
-    <span class="wizard-footer-version">v1.16.3</span>
-    <span class="wizard-footer-label">Outil — TRIBU IT pour CA-TS</span>
-  </footer>
   <script src="/assets/portail.js"></script>
   <script src="/assets/copilot-debug-prompt.js?v=1.7.16"></script>
   <script src="/assets/home-hub.js?v=1.29.10"></script>

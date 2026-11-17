@@ -680,6 +680,8 @@ const Portail = {
 
 // Shell applicatif (en-tête, navigation latérale) : navigateur et webview VS Code.
 ;(function initAppShell() {
+  // Le shell Prisme (injecté par le serveur) remplace l'ancien shell « ks- ».
+  if (document.querySelector('script[src*="/assets/prisme/prisme-shell.js"]')) return
   const load = () => {
     if (document.querySelector('script[src*="app-shell.js"]')) return
     const base = (window.__WIZARD_API_BASE__ || '').replace(/\/$/, '')

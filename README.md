@@ -1,100 +1,115 @@
-# Wizard QA Assistant — Installation et pilotage de la stack de test
+# Wizard QA — installation de la stack de test, récits JIRA, Gherkin et performance k6
 
-Extension VS Code et portail local pour installer et configurer la stack de test **Playwright** et les tests de performance **k6** sur un poste CA-TS, puis synchroniser les tests avec JIRA / Xray et produire les livrables QA.
+Application web (et extension VS Code) qui accompagne une équipe QA de bout en bout :
 
-## Prérequis
+1. **Installer le poste de test** en une fois : Node, npm, `.npmrc`, Git, Playwright et ses navigateurs, Gherkin
+   (playwright-bdd), k6, extensions VS Code, Copilot CLI. Chaque composant est détecté, installé puis vérifié.
+2. **Prendre connaissance du projet** : fiche projet, connexion JIRA et scan des récits (description et critères
+   d'acceptation extraits, récits à clarifier signalés).
+3. **Proposer les tests en Gherkin** pour chaque récit scanné : génération par l'assistant IA (Copilot local en premier)
+   ou par le modèle intégré sans IA, relecture, validation, export en fichiers `.feature`.
+4. **Mesurer la performance** avec k6 : profils, runs suivis en direct, seuils, historique et comparaison.
+5. **Relier les tests à JIRA / Xray** et produire les livrables QA (écrans existants, restylés).
 
-- **Node.js 22+** (ou Volta, voir page *Installer Node*)
-- **VS Code 1.85+** pour l'extension
-- Accès au registry npm CA-TS (Artifactory)
+Interface au design **Prisme** : rail d'icônes, en-tête avec fil d'Ariane, recherche `Ctrl K`, bandeau d'état, guide de page.
 
-## Lancer l'application
+## Démarrer
+
+Prérequis : **Node.js 22+** (aucune dépendance npm côté serveur).
 
 ```bash
 node server/portail.mjs
 ```
 
-Accueil : http://127.0.0.1:3920/ (`PORTAIL_PORT` pour changer le port).
+Ouvrir http://127.0.0.1:3920/ et se connecter avec le compte de démonstration **`demo` / `demo`**
+(administrateur). Un bandeau le rappelle tant que son mot de passe n'a pas été changé dans **Réglages → Utilisateurs**,
+où l'on crée aussi les autres comptes (rôles `admin` ou `user`).
 
-## Compiler / packager l'extension
+Sans accès JIRA, **Prise de connaissance → Scanner** propose un jeu de données de démonstration (projet IRMA)
+pour essayer toute la chaîne : scan → Gherkin → export → test de charge simulé.
 
-```bash
-npm install --registry https://registry.npmjs.org/
-npm run package
-```
+### Variables d'environnement
 
-Installer le fichier `wizard-qa-assistant-<version>.vsix` via **Extensions → … → Install from VSIX…**
+| Variable | Défaut | Rôle |
+|----------|--------|------|
+| `PORTAIL_PORT` | `3920` | Port HTTP |
+| `PORTAIL_HOST` | `127.0.0.1` | Interface d'écoute (`0.0.0.0` pour un accès réseau) |
+| `PORTAIL_ALLOWED_HOSTS` | — | Noms d'hôte acceptés en plus de la boucle locale (liste séparée par des virgules) ; obligatoire si l'application est exposée sous un autre nom |
+| `PORTAIL_NO_BROWSER` | — | `1` : ne pas ouvrir le navigateur au démarrage |
+| `WIZARD_REPO_ROOT` | `./workspace` | Projet de test géré (tests, features, scripts k6, `.wizard-qa/`) |
+| `WIZARD_INSTALL_DRY` | — | `1` : installations en simulation uniquement |
+| `WIZARD_BRIDGE_TOKEN` | généré | Jeton d'appairage du pont Copilot local |
+| `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` | — | Clés lues par les fournisseurs IA correspondants (sinon saisies dans **Assistant IA**) |
+
+## Sécurité
+
+- Toutes les pages et API exigent une session (cookie `qa_sid` HttpOnly, SameSite=Lax, 12 h glissantes) ;
+  mots de passe en scrypt, verrouillage après 5 échecs en 10 minutes.
+- Hôte contrôlé (anti DNS rebinding) et origine vérifiée pour toute requête modifiante.
+- Secrets jamais renvoyés en clair par l'API (jetons JIRA, clés IA, mot de passe du proxy) ; l'export de configuration
+  les exclut par défaut et, comme l'import, est réservé aux administrateurs.
+- Installations réelles réservées aux administrateurs ; la simulation est ouverte à tous.
+- Commandes système lancées sans shell (arguments séparés), jamais construites à partir de saisies.
 
 ## Modules
 
-| Module | Rôle |
-|--------|------|
-| `src/` | Extension VS Code (sidebar, webview, démarrage du serveur) |
-| `server/portail.mjs` | Serveur HTTP local et routes API |
-| `server/lib/` | Services : npm, Playwright, k6, Hook Git, JIRA, documentation QA, `app-registry.json` (navigation) et `app-model.mjs` (statuts) |
-| `server/pages/` | Pages HTML |
-| `server/assets/` | Scripts, thèmes et logos (`app-shell.*` : en-tête, navigation, guides ; `app-home.*` : accueil ; `install-autofix.*` : correction Copilot) |
-| `server/conf/` | Configurations de référence |
-| `k6/` | Scripts et profils de performance |
+| Écran | Module serveur | Rôle |
+|-------|----------------|------|
+| Pilotage (`/`) | `server/lib/dashboard/` | Indicateurs, parcours QA, actions prioritaires, couverture par épopée |
+| Prise de connaissance | `server/lib/jira/` | Connexion JIRA Cloud ou Server/DC, scan JQL, extraction des critères d'acceptation, revue des récits |
+| Récits & Gherkin | `server/lib/gherkin/` | Génération (IA ou modèle), éditeur avec contrôle syntaxique FR/EN, validation, export `.feature`, génération par lot |
+| Installation | `server/lib/install/` | Plan déclaratif (`server/conf/install-plan.reference.json`), composants idempotents détecter/installer/vérifier, suivi en direct, journaux, diagnostic IA |
+| Performance k6 | `server/lib/perf/` | Profils, runs non bloquants en direct, lecture du `summary.json`, seuils, comparaison, mode simulation |
+| Assistant IA | `server/lib/llm/` | Fournisseurs, test, bac à sable, journal d'usage |
+| Réglages | `server/lib/auth/` + config V2 | Utilisateurs, mot de passe, export / import |
 
-## Navigation
+Écrans historiques conservés et restylés : Mon projet, `.npmrc`, installations unitaires, scénarios k6, Hook Git,
+synchronisation Xray, documentation QA, réparation, wiki.
 
-L'accueil propose quatre objectifs, chacun guidé étape par étape (statuts : terminé, à faire, bloqué).
+Le contrat technique (routeur, statuts, design system, interfaces entre modules) est décrit dans
+[docs/V3-ARCHITECTURE.md](docs/V3-ARCHITECTURE.md).
 
-| Objectif | Étapes |
-|----------|--------|
-| **Tester mon application web** | Préparer mon poste (Node), accès au dépôt (`.npmrc`), télécharger les outils (npm), installer Playwright |
-| **Mesurer la performance** | Installer k6, préparer un test de charge |
-| **Relier mes tests à JIRA** | Mon projet, connecter Git à JIRA (Hook Git), synchroniser |
-| **Produire mes livrables QA** | Mon projet, générer les livrables |
+## Assistant IA : Copilot local d'abord
 
-Chaque page affiche un guide (objectif, actions, suite) et un bouton « Étape suivante ». En cas d'échec d'installation, Copilot local peut corriger chemins et dépendances puis relancer l'installation.
+Les fournisseurs sont essayés dans cet ordre (modifiable dans **Assistant IA**) :
 
-## Ajouter un menu
+1. **Copilot local (VS Code)** — l'extension Wizard QA relaie les requêtes vers GitHub Copilot via l'API `vscode.lm`.
+   Dans VS Code : commande **« Wizard QA: Connecter Copilot local »**, réglages `wizardQa.serverUrl` et
+   `wizardQa.bridgeToken` (jeton affiché sur la page Assistant IA). Inutile de configurer quoi que ce soit avec le
+   serveur intégré lancé par l'extension.
+2. **Copilot CLI** — commande `copilot` (paquet npm `@github/copilot`, installable depuis la page Installation).
+3. **API compatible OpenAI** — Azure OpenAI, GitHub Models, Ollama, LM Studio…
+4. **Anthropic** — API Messages (modèle par défaut `claude-sonnet-5-5`).
+5. **Manuel** — toujours disponible : le prompt est copié, la réponse collée.
 
-La navigation, les guides et les parcours sont décrits dans `server/lib/app-registry.json` ; l'accueil, la barre latérale et les guides sont générés à partir de ce fichier.
+Tant qu'aucun fournisseur n'est branché, chaque écran bascule automatiquement en mode manuel.
 
-1. Créer la page dans `server/pages/` (elle est servie automatiquement).
-2. L'ajouter dans `pages` du registre (libellé, chemin, guide, `requires` éventuel).
-3. La référencer dans `nav` et, si elle fait partie d'un objectif, dans `steps` d'un parcours de `journeys`.
-4. Si elle a un statut, déclarer son fournisseur dans `STATUS_PROVIDERS` de `server/lib/app-model.mjs` et renseigner `status` dans le registre.
-5. Pour l'arbre de l'extension VS Code, l'ajouter à `WIZARD_PAGES` dans `src/wizardViews.ts`.
+## Extension VS Code
 
-Si la page est une installation, ajouter `InstallAutofix.offer()` sur l'échec pour activer la correction Copilot (voir `server/assets/install-autofix.js`).
+```bash
+npm install
+npm run compile
+npm run package
+```
 
-## Utilisation
+Installer `wizard-qa-assistant-<version>.vsix` via **Extensions → … → Install from VSIX…**. L'extension lance le serveur
+en mode intégré (`--embedded`, utilisateur local implicite) et l'affiche dans une webview.
 
-1. **Mon projet** — décrire l'équipe et l'application (2 minutes).
-2. Choisir un objectif sur l'accueil et suivre les étapes.
-3. En cas d'échec d'installation, cliquer sur « Laisser Copilot corriger ».
-4. **Mon projet** permet aussi d'exporter / importer la configuration.
+## Arborescence
+
+| Chemin | Contenu |
+|--------|---------|
+| `server/portail.mjs` | Serveur HTTP, garde d'authentification, montage des modules V3 et routes historiques |
+| `server/lib/http/router.mjs` | Routeur des modules V3 |
+| `server/lib/<module>/` | Modules V3 (`routes.mjs` + services) |
+| `server/lib/app-registry.json` | Pages, sections, rail de navigation, guides |
+| `server/assets/prisme/` | Design system Prisme : `prisme.css`, `prisme-ui.js`, `prisme-shell.js`, `legacy-bridge.css` |
+| `server/pages/`, `server/assets/pages/` | Pages et leurs scripts |
+| `src/` | Extension VS Code (dont `llmBridge.ts`, pont Copilot) |
+| `workspace/` | Projet de test géré par défaut (ignoré par Git) |
 
 ## Données locales
 
-| Fichier | Contenu |
-|---------|---------|
-| `.wizard-qa/conf/wizard.defaults.json` | Valeurs du wizard (**secrets**, ignoré par Git) |
-| `.wizard-qa/doc-qa-progress.json` | Progression Documentation QA |
-| `.wizard-qa/doc-qa-prompts/` | Archives des prompts IA générés |
-
-Export / import : bundle `wizard-qa-bundle` v3 depuis l'accueil.
-
-## Charte graphique
-
-Alignée sur Kontext.AI et CA-TS :
-- Vert `#006A4E`
-- Teal `#009597`
-- Fond `#eef4f2`
-
-En-tête de marque avec filet dégradé, navigation latérale par sections, cartes arrondies et pied de page de version.
-
-## Architecture
-
-```
-Extension VS Code
-  ├── Sidebar (tree)
-  ├── Webview intégrée (?embed=vscode)
-  └── Serveur local → server/portail.mjs
-         ├── lib/ (API REST)
-         └── pages/ + assets/
-```
+Sous `workspace/.wizard-qa/` (ignoré par Git) : `conf/users.json` et `conf/sessions.json` (comptes, sessions),
+`conf/jira.json` et `conf/llm.json` (connexions, secrets en `0o600`), `jira/` (dernier scan), `gherkin/` (scénarios),
+`install/` (état, runs et journaux), k6 (profils, historique), et la configuration V2 (`conf/wizard.defaults.json`).

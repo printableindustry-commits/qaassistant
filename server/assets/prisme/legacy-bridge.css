@@ -1,0 +1,1177 @@
+/*
+ * PRISME — pont pour les écrans hérités (V2).
+ *
+ * Chargé en dernier par le serveur sur toutes les pages avec shell (après theme.css, home-hub.css,
+ * css_theme_app.css et les feuilles propres aux pages). Il :
+ *   1. remappe les variables V2 (--green, --teal, --wizard-*, --cats-*, --qa-*, --hub-*, --ks-*) sur les jetons --p-* ;
+ *   2. retire l'ancien habillage que le shell remplace (bandeaux, logos, boutons « Accueil », pied de page) ;
+ *   3. aligne les composants V2 (cartes, boutons, champs, onglets, statuts, consoles, modales, toasts…)
+ *      sur le design system Prisme.
+ *
+ * Règles : sélecteurs préfixés par .p-app (classe posée sur <body> par le shell) pour gagner en
+ * spécificité ; !important réservé aux propriétés que les CSS V2 surchargent page par page
+ * (sélecteurs .page-xxx-compact, html.vscode-app…) et qu'il faut pourtant unifier.
+ * Aucune classe ni aucun id utilisés par les scripts V2 ne sont renommés ici.
+ */
+
+/* ================================================================== 1. variables V2 → jetons Prisme */
+
+html.p-on body.p-app,
+.p-app .hub-app {
+  /* theme.css */
+  --font-sans: var(--p-font);
+  --green: var(--p-green);
+  --green-dark: var(--p-green-hover);
+  --teal: var(--p-green-2);
+  --teal-light: var(--p-mint-2);
+  --bg: var(--p-bg);
+  --surface: var(--p-surface);
+  --surface2: var(--p-surface-soft);
+  --surface-raised: var(--p-surface);
+  --surface-muted: var(--p-surface-soft);
+  --border: var(--p-line);
+  --border-subtle: var(--p-line-soft);
+  --text: var(--p-text);
+  --muted: var(--p-text-2);
+  --text-muted: var(--p-text-2);
+  --ok: var(--p-green);
+  --err: var(--p-red-text);
+  --shadow: var(--p-shadow);
+  --shadow-hover: var(--p-shadow);
+  --radius: var(--p-radius);
+  --radius-sm: var(--p-radius-xs);
+
+  /* css_theme_app.css (thème extension) */
+  --wizard-bg: var(--p-bg);
+  --wizard-surface: var(--p-surface);
+  --wizard-surface-raised: var(--p-surface);
+  --wizard-border: var(--p-line);
+  --wizard-text: var(--p-text);
+  --wizard-muted: var(--p-text-2);
+  --cats-green: var(--p-green);
+  --cats-green-dark: var(--p-green-hover);
+  --cats-text-muted: var(--p-text-2);
+  --qa-teal: var(--p-green-2);
+  --qa-blue: var(--p-green);
+  --qa-blue-dark: var(--p-green-hover);
+  --brand-gradient: var(--p-green);
+  --brand-gradient-h: var(--p-green);
+
+  /* home-hub.css (.hub-app) */
+  --hub-accent: var(--p-green);
+  --hub-accent-2: var(--p-green-2);
+  --hub-accent-3: var(--p-green);
+  --hub-accent-dark: var(--p-green-hover);
+  --hub-glow: rgba(0, 105, 77, 0.12);
+  --hub-card-shadow: var(--p-shadow);
+  --hub-radius: var(--p-radius);
+
+  /* ancien shell « ks- » (app-shell.css) */
+  --ks-green: var(--p-green);
+  --ks-teal: var(--p-green-2);
+  --ks-bg: var(--p-bg);
+  --ks-border: var(--p-line);
+  --ks-text: var(--p-text);
+  --ks-muted: var(--p-text-2);
+
+  /* tailles de police du gabarit compact */
+  --wiz-fs-body: 12.5px;
+  --wiz-fs-lead: 13px;
+  --wiz-fs-title: 13.5px;
+  --wiz-fs-label: 12px;
+  --wiz-fs-hint: 11.5px;
+  --wiz-fs-btn: 12.5px;
+  --wiz-fs-btn-sm: 12px;
+}
+
+/* ================================================================== 2. page et ancien habillage */
+
+html.p-on body.p-app {
+  padding: 0 !important;
+  background: var(--p-bg) !important;
+  background-image: none !important;
+  font-family: var(--p-font);
+}
+
+/* Habillage remplacé par le shell Prisme (en-tête, fil d'Ariane, pied de page, ancien shell ks-) */
+.p-app .site-header,
+.p-app .breadcrumb,
+.p-app .wizard-brand-bar,
+.p-app .wizard-footer,
+.p-app .wizard-toolbar-portail,
+.p-app .btn-hub-home,
+.p-app .hub-hero-page-logo,
+.p-app .ks-brand,
+.p-app .ks-sidebar,
+.p-app .ks-guide,
+.p-app .ks-next,
+.p-app #obNavHome {
+  display: none !important;
+}
+
+.p-app .p-content > .wrap,
+.p-app .p-content > .wrap.hub-app,
+.p-app .p-content > .wrap.wrap-home {
+  max-width: 1180px;
+  margin: 0;
+  padding: 16px 20px 40px;
+  animation: none;
+}
+
+/* Le guide de page du shell s'insère avant .wrap : on l'aligne sur la colonne de contenu. */
+.p-app .p-content > .p-guide {
+  margin: 16px 20px 0;
+  max-width: 1140px;
+}
+
+.p-app .p-content > .wrap h1,
+.p-app .p-content > .wrap h2,
+.p-app .p-content > .wrap h3,
+.p-app .p-content > .wrap h4 {
+  font-family: var(--p-font-display);
+  color: var(--p-text);
+  letter-spacing: 0;
+}
+
+.p-app .p-content > .wrap code {
+  font-family: var(--p-font-mono);
+  font-size: 0.92em;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--p-surface-soft);
+  border: 1px solid var(--p-line-soft);
+  color: var(--p-text);
+}
+.p-app .p-content > .wrap pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+/* ================================================================== 3. bandeau de page (.hub-hero) compacté */
+
+/* Le titre est désormais dans l'en-tête du shell : le bandeau devient une simple ligne d'introduction. */
+.p-app .hub-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 16px;
+  margin: 0 0 14px !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.p-app .hub-hero::before,
+.p-app .hub-hero::after {
+  display: none !important;
+}
+.p-app .hub-hero--page h1 {
+  display: none !important;
+}
+.p-app .hub-hero h1 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--p-text);
+}
+
+.p-app .hub-hero-page-body {
+  flex: 1 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.p-app .hub-hero-lead,
+.p-app .hub-hero--page .hub-hero-lead,
+.p-app .hub-hero p.hub-hero-lead {
+  margin: 0 !important;
+  max-width: 860px;
+  font-size: 13px !important;
+  line-height: 1.5;
+  color: var(--p-text-2) !important;
+}
+
+/* Ligne titre + badges : seuls les badges restent visibles */
+.p-app .npmrc-hero-head,
+.p-app .hook-hero-head,
+.p-app .doc-qa-hero-head,
+.p-app .wiki-hero-head,
+.p-app .k6-hero-toolbar,
+.p-app .hook-hero-head-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+}
+.p-app .hook-hero-head,
+.p-app .k6-hero-toolbar {
+  justify-content: space-between;
+  width: 100%;
+}
+.p-app .hook-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+/* Actions du bandeau : ligne de boutons à droite (et non plus colonne absolue) */
+.p-app .hub-hero-nav {
+  position: static !important;
+  order: 3;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 0 0 auto !important;
+  inset: auto !important;
+}
+.p-app .hub-hero-nav:not(:has(> :not(.btn-hub-home))) {
+  display: none !important;
+}
+.p-app .hub-hero--has-home-btn,
+.p-app .hub-hero--has-home-btn.hub-hero--debug-nav {
+  padding-right: 0 !important;
+}
+
+/* ================================================================== 4. cartes et panneaux */
+
+.p-app .card,
+.p-app .hub-app .card,
+.p-app .hub-onboarding-card,
+.p-app .hub-settings-panel,
+.p-app .stack-install-cta-card,
+.p-app .repair-card,
+.p-app .verify-results,
+.p-app .page-status-bar {
+  background: var(--p-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: var(--p-shadow) !important;
+}
+.p-app .card {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  transition: none;
+}
+.p-app .card:hover {
+  box-shadow: var(--p-shadow) !important;
+}
+.p-app .card-compact,
+.p-app .hub-app .card-compact {
+  padding: 14px 16px;
+}
+
+/* Titres de section : style « carte Prisme » (plus de majuscules ni de liseré dégradé) */
+.p-app .card h2,
+.p-app .form-section-title,
+.p-app .hub-app .form-section-title,
+.p-app .card-compact h2.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px !important;
+  font-family: var(--p-font-display);
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--p-text) !important;
+}
+.p-app .card h2::before,
+.p-app .form-section-title::before {
+  display: none !important;
+}
+
+/* Carte d'action principale (installation Playwright / k6) */
+.p-app .stack-install-cta-card {
+  padding: 18px !important;
+}
+.p-app .stack-install-cta-lead {
+  color: var(--p-text-2);
+}
+
+/* Tuiles du catalogue (Mon projet) */
+.p-app .hub-tile {
+  background: var(--p-surface) !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: var(--p-shadow) !important;
+  transform: none !important;
+}
+.p-app .hub-tile::before {
+  display: none;
+}
+.p-app .hub-tile:hover {
+  border-color: #9FCDB8 !important;
+  box-shadow: var(--p-shadow) !important;
+}
+.p-app .hub-tile.is-done,
+.p-app .hub-tile.is-complete {
+  border-color: var(--p-mint-line) !important;
+}
+
+/* Écran de chargement (Mon projet) */
+.p-app .hub-loading-panel {
+  padding: 28px 16px !important;
+  text-align: center;
+}
+.p-app .hub-onboarding-title {
+  font-size: 15px !important;
+  color: var(--p-text) !important;
+}
+.p-app .hub-onboarding-lead {
+  color: var(--p-text-2) !important;
+}
+
+/* Barre d'outils (Mon projet) et barre « Configuration wizard » (Portail.injectToolbar) */
+.p-app .hub-toolbar,
+.p-app .wizard-unified-panel,
+.p-app .config-toolbar {
+  background: var(--p-surface) !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: none !important;
+}
+.p-app .hub-toolbar,
+.p-app .wizard-unified-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px !important;
+  margin: 0 0 14px !important;
+}
+.p-app .wizard-unified-panel {
+  flex-direction: column;
+  align-items: stretch;
+}
+.p-app .wizard-unified-panel .config-toolbar {
+  border: 0 !important;
+  padding: 0 !important;
+}
+.p-app .config-toolbar-inner,
+.p-app .hub-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.p-app .config-toolbar-label,
+.p-app .home-wizard-label,
+.p-app .page-status-label {
+  font-size: 10.5px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p-text-3) !important;
+  margin-right: 4px;
+}
+.p-app .page-status-bar {
+  padding: 8px 12px !important;
+  margin: 0 0 14px;
+  box-shadow: none !important;
+}
+
+/* ================================================================== 5. boutons */
+
+.p-app .btn-primary,
+.p-app .btn-secondary,
+.p-app .btn-hub-secondary,
+.p-app .btn-ghost,
+.p-app .btn-outline-muted,
+.p-app .btn-danger,
+.p-app .btn-preset,
+.p-app .btn-preset-sm,
+.p-app .btn-input-addon,
+.p-app .btn-hub-debug-copilot,
+.p-app .copilot-debug-action-btn,
+.p-app .hook-exit-nav-btn,
+.p-app label.file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px !important;
+  border-radius: var(--p-radius-xs) !important;
+  border: 1px solid var(--p-line-strong) !important;
+  background: var(--p-surface) !important;
+  background-image: none !important;
+  color: var(--p-text) !important;
+  box-shadow: none !important;
+  font-family: var(--p-font) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  cursor: pointer;
+  transform: none !important;
+  transition: background 0.12s, border-color 0.12s;
+}
+.p-app .btn-secondary:hover:not(:disabled),
+.p-app .btn-hub-secondary:hover:not(:disabled),
+.p-app .btn-ghost:hover:not(:disabled),
+.p-app .btn-outline-muted:hover:not(:disabled),
+.p-app .btn-preset:hover:not(:disabled),
+.p-app .btn-preset-sm:hover:not(:disabled),
+.p-app .btn-input-addon:hover:not(:disabled),
+.p-app .btn-hub-debug-copilot:hover,
+.p-app .copilot-debug-action-btn:hover:not(:disabled),
+.p-app .hook-exit-nav-btn:hover,
+.p-app label.file-btn:hover {
+  background: var(--p-mint-2) !important;
+  border-color: #9FCDB8 !important;
+  color: var(--p-text) !important;
+}
+
+.p-app .btn-primary,
+.p-app .k6-wizard-btn-primary {
+  background: var(--p-green) !important;
+  border-color: var(--p-green) !important;
+  color: #fff !important;
+}
+.p-app .btn-primary:hover:not(:disabled),
+.p-app .k6-wizard-btn-primary:hover:not(:disabled) {
+  background: var(--p-green-hover) !important;
+  border-color: var(--p-green-hover) !important;
+  color: #fff !important;
+}
+
+.p-app .btn-danger {
+  color: var(--p-red-text) !important;
+  border-color: #EBC3C7 !important;
+}
+.p-app .btn-danger:hover:not(:disabled) {
+  background: var(--p-red-soft) !important;
+  border-color: var(--p-red) !important;
+  color: var(--p-red-text) !important;
+}
+
+.p-app .btn-ghost {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--p-text-2) !important;
+}
+
+.p-app .btn-preset-sm.active,
+.p-app .btn-preset.active,
+.p-app .btn-secondary.active {
+  background: var(--p-mint) !important;
+  border-color: var(--p-mint-line) !important;
+  color: var(--p-green) !important;
+}
+
+.p-app .btn-sm,
+.p-app .btn-preset-sm,
+.p-app .btn-hub-secondary,
+.p-app .btn-hub-debug-copilot {
+  min-height: 28px;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+}
+.p-app .btn-danger.btn-sm {
+  min-width: 28px;
+}
+
+.p-app .btn-primary:disabled,
+.p-app .btn-secondary:disabled,
+.p-app .btn-ghost:disabled,
+.p-app .btn-danger:disabled,
+.p-app .btn-hub-secondary:disabled,
+.p-app [aria-disabled="true"].btn-primary,
+.p-app [aria-disabled="true"].btn-secondary {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Grand bouton d'installation (Playwright / k6) : bouton principal Prisme, taille large */
+.p-app .btn-stack-install {
+  min-height: 40px;
+  padding: 0 20px !important;
+  border-radius: var(--p-radius-sm) !important;
+  border: 1px solid var(--p-green) !important;
+  background: var(--p-green) !important;
+  background-image: none !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+.p-app .btn-stack-install:hover:not(:disabled) {
+  background: var(--p-green-hover) !important;
+}
+
+/* Liens « étape suivante » des pages npm */
+.p-app .npmrc-next-step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--p-radius-xs);
+  background: var(--p-green);
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 12.5px;
+  text-decoration: none !important;
+}
+.p-app .npmrc-next-step-link.is-locked {
+  background: var(--p-grey-soft);
+  color: var(--p-text-3) !important;
+  cursor: not-allowed;
+}
+
+/* Les styles V2 sur « button » (padding 11px 22px, mise à l'échelle) ne doivent pas toucher au shell Prisme */
+.p-app .p-icon-btn {
+  padding: 0;
+}
+.p-app .p-icon-btn,
+.p-app .p-user,
+.p-app .p-search,
+.p-app .p-tab,
+.p-app .p-chip,
+.p-app .p-btn,
+.p-app .p-step,
+.p-app .p-menu-item,
+.p-app .p-list-item {
+  transform: none !important;
+}
+
+/* ================================================================== 6. champs et formulaires */
+
+.p-app .p-content > .wrap label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--p-text-2);
+}
+.p-app .p-content > .wrap .field label .req,
+.p-app .p-content > .wrap .req {
+  color: var(--p-red-text);
+}
+
+.p-app .p-content > .wrap input[type="text"],
+.p-app .p-content > .wrap input[type="email"],
+.p-app .p-content > .wrap input[type="password"],
+.p-app .p-content > .wrap input[type="url"],
+.p-app .p-content > .wrap input[type="number"],
+.p-app .p-content > .wrap input[type="search"],
+.p-app .p-content > .wrap input:not([type]),
+.p-app .p-content > .wrap select,
+.p-app .p-content > .wrap textarea {
+  border: 1px solid var(--p-line-strong);
+  border-radius: var(--p-radius-xs);
+  background-color: var(--p-surface);
+  color: var(--p-text);
+  font-family: var(--p-font);
+  font-size: 13px;
+  padding: 7px 10px;
+  box-shadow: none;
+}
+.p-app .p-content > .wrap textarea {
+  line-height: 1.5;
+}
+.p-app .p-content > .wrap textarea.npmrc-pkg-editor,
+.p-app .p-content > .wrap textarea[spellcheck="false"],
+.p-app .p-content > .wrap .conf-comments-area {
+  font-family: var(--p-font-mono);
+  font-size: 12.5px;
+}
+.p-app .p-content > .wrap input:focus,
+.p-app .p-content > .wrap select:focus,
+.p-app .p-content > .wrap textarea:focus {
+  outline: none;
+  border-color: var(--p-green-2);
+  box-shadow: 0 0 0 3px rgba(11, 138, 99, 0.14);
+}
+.p-app .p-content > .wrap input[aria-invalid="true"],
+.p-app .p-content > .wrap .is-invalid {
+  border-color: var(--p-red);
+}
+.p-app .p-content > .wrap input[type="checkbox"],
+.p-app .p-content > .wrap input[type="radio"] {
+  accent-color: var(--p-green);
+}
+.p-app .chk-inline,
+.p-app .chk-secrets {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--p-text-2);
+}
+
+/* Composants Prisme (palette Ctrl K, modales) : neutralise les styles V2 posés sur input/label */
+.p-app .p-input,
+.p-app .p-select,
+.p-app .p-textarea {
+  margin: 0;
+  padding: 0 10px;
+  border-radius: var(--p-radius-xs);
+  font-size: 13px;
+}
+.p-app .p-textarea {
+  padding: 8px 10px;
+}
+.p-app .p-palette-input input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 15px;
+}
+.p-app .p-field > label,
+.p-app .p-check {
+  margin: 0;
+}
+
+/* Bloc « avancé » et aide repliable */
+.p-app .hub-form-advanced summary,
+.p-app .help-collapsible > summary,
+.p-app .wizard-unified-help > summary,
+.p-app .npmrc-guide-fold > summary,
+.p-app .doc-qa-tech-fold > summary,
+.p-app .wiki-fold > summary {
+  color: var(--p-green) !important;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.p-app .help-panel {
+  background: var(--p-mint-2) !important;
+  border: 1px solid var(--p-mint-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: none !important;
+}
+
+/* ================================================================== 7. onglets V2 */
+
+.p-app .tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 !important;
+  margin-bottom: 14px;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--p-line);
+}
+.p-app .tabs .tab,
+.p-app .tabs-compact .tab {
+  padding: 10px 12px 9px !important;
+  margin-bottom: -1px;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--p-text-2) !important;
+  font-size: 13px !important;
+  font-weight: 600;
+  transform: none !important;
+}
+.p-app .tabs .tab:hover {
+  color: var(--p-text) !important;
+}
+.p-app .tabs .tab.active,
+.p-app .tabs .tab.is-active {
+  color: var(--p-text) !important;
+  border-bottom-color: var(--p-green) !important;
+  font-weight: 700;
+}
+
+/* ================================================================== 8. statuts, indications, badges */
+
+.p-app .hint,
+.p-app .hint-inline,
+.p-app .console-hint,
+.p-app .copilot-debug-hint,
+.p-app .page-status-hint {
+  font-size: 11.5px !important;
+  color: var(--p-text-3) !important;
+}
+
+.p-app .status {
+  border-radius: var(--p-radius) !important;
+  padding: 10px 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 500;
+  box-shadow: none !important;
+}
+.p-app .status.ok,
+.p-app .status.is-success {
+  background: var(--p-mint-2) !important;
+  border: 1px solid var(--p-mint-line) !important;
+  color: #0B5A41 !important;
+}
+.p-app .status.err,
+.p-app .status.is-error {
+  background: #FDF0F1 !important;
+  border: 1px solid #F1C6CB !important;
+  color: var(--p-red-text) !important;
+}
+.p-app .status.info {
+  background: #F1F7FC !important;
+  border: 1px solid #CFE2F3 !important;
+  color: var(--p-blue-text) !important;
+}
+.p-app .status.warn {
+  background: #FDF7EA !important;
+  border: 1px solid #F0DDB0 !important;
+  color: var(--p-amber-text) !important;
+}
+
+.p-app .diff-banner,
+.p-app .hub-diff-banner,
+.p-app .warn-box,
+.p-app .hub-stack-local-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px !important;
+  border-radius: var(--p-radius) !important;
+  background: #FDF7EA !important;
+  border: 1px solid #F0DDB0 !important;
+  color: var(--p-amber-text) !important;
+  font-size: 12.5px;
+  box-shadow: none !important;
+}
+.p-app .diff-banner[hidden],
+.p-app .hub-diff-banner[hidden] {
+  display: none !important;
+}
+.p-app .hub-sync-unlock-banner,
+.p-app .k6-installed-banner,
+.p-app .k6-project-context-banner {
+  background: var(--p-mint-2) !important;
+  border: 1px solid var(--p-mint-line) !important;
+  color: #0B5A41 !important;
+  border-radius: var(--p-radius) !important;
+}
+
+/* Badges d'état de fichier → p-badge */
+.p-app .file-badge,
+.p-app .hub-config-badge,
+.p-app .copilot-preflight-badge,
+.p-app .pkg-pill,
+.p-app .k6-context-pill,
+.p-app .hub-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid transparent !important;
+  background: var(--p-grey-soft) !important;
+  color: var(--p-text-2) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+.p-app .file-badge-ok,
+.p-app .file-badge.is-ok,
+.p-app .file-badge.ok,
+.p-app .k6-context-pill--accent,
+.p-app .k6-context-pill--app {
+  background: var(--p-mint) !important;
+  color: var(--p-green) !important;
+}
+.p-app .file-badge-warn,
+.p-app .file-badge.is-warn,
+.p-app .file-badge.warn,
+.p-app .k6-context-pill--warn {
+  background: var(--p-amber-soft) !important;
+  color: var(--p-amber-text) !important;
+}
+.p-app .file-badge-missing,
+.p-app .file-badge-err,
+.p-app .file-badge.is-err,
+.p-app .file-badge.is-error {
+  background: var(--p-red-soft) !important;
+  color: var(--p-red-text) !important;
+}
+.p-app .file-badge-info,
+.p-app .file-badge-pending {
+  background: var(--p-blue-soft) !important;
+  color: var(--p-blue-text) !important;
+}
+
+/* Résultats de vérification (Portail.runVerify) */
+.p-app .verify-results {
+  padding: 12px 14px !important;
+  box-shadow: none !important;
+}
+.p-app .verify-results li {
+  border-bottom-color: var(--p-line-soft);
+  font-size: 12.5px;
+}
+
+/* Info-bulles dépliables (action-info) */
+.p-app .action-info-icon {
+  background: var(--p-mint) !important;
+  color: var(--p-green) !important;
+  border-color: var(--p-mint-line) !important;
+}
+.p-app .action-info-body {
+  background: var(--p-surface) !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: var(--p-radius-sm) !important;
+  box-shadow: var(--p-shadow-pop) !important;
+  color: var(--p-text-2) !important;
+  font-size: 12px;
+}
+.p-app .action-option {
+  border-color: var(--p-line) !important;
+  border-radius: var(--p-radius-sm) !important;
+}
+.p-app .action-option:has(input:checked) {
+  border-color: var(--p-green-2) !important;
+  background: var(--p-mint-2) !important;
+}
+
+/* ================================================================== 9. consoles et blocs de code */
+
+/* Journaux d'exécution : console sombre Prisme (p-log) */
+.p-app .console,
+.p-app .npmrc-install-log,
+.p-app .stack-wizard-log,
+.p-app .copilot-debug-terminal,
+.p-app .sync-panel-console,
+.p-app .terminal-preview-console,
+.p-app .hook-terminal-panel pre {
+  background: #0F1A17 !important;
+  color: #CFE3DB !important;
+  border: 1px solid #0F1A17 !important;
+  border-radius: var(--p-radius-sm) !important;
+  box-shadow: none !important;
+  font-family: var(--p-font-mono) !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+.p-app .console .ok,
+.p-app .npmrc-install-log .ok { color: #5FD3A2; }
+.p-app .console .err,
+.p-app .npmrc-install-log .err { color: #FF8A93; }
+.p-app .console .warn { color: #F2C15B; }
+
+/* Blocs de code et aperçus de fichiers : p-code clair */
+.p-app pre.recap,
+.p-app .wiki-code,
+.p-app .npmrc-file-preview,
+.p-app .action-cmd-code,
+.p-app .autofix-details pre {
+  background: var(--p-surface-soft) !important;
+  color: var(--p-text) !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: var(--p-radius-sm) !important;
+  font-family: var(--p-font-mono) !important;
+  font-size: 12px !important;
+  box-shadow: none !important;
+}
+
+/* ================================================================== 10. tableaux */
+
+.p-app .wiki-table,
+.p-app .conf-kv-table,
+.p-app .conf-plans-table,
+.p-app .p-content > .wrap table:not([class*="p-"]) {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  background: var(--p-surface);
+}
+.p-app .wiki-table th,
+.p-app .conf-kv-table th,
+.p-app .conf-plans-table th,
+.p-app .p-content > .wrap table:not([class*="p-"]) th {
+  text-align: left;
+  font-size: 10.5px !important;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--p-text-3) !important;
+  background: var(--p-surface-soft) !important;
+  border-color: var(--p-line) !important;
+  padding: 8px 12px;
+}
+.p-app .wiki-table td,
+.p-app .conf-kv-table td,
+.p-app .conf-plans-table td,
+.p-app .p-content > .wrap table:not([class*="p-"]) td {
+  border-color: var(--p-line-soft) !important;
+  padding: 8px 12px;
+  vertical-align: top;
+}
+
+/* ================================================================== 11. barres de progression */
+
+.p-app .stack-wizard-progress,
+.p-app .hub-progress-track,
+.p-app .doc-qa-progress-bar,
+.p-app .progress-track {
+  background: #EDF1EF !important;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.p-app .stack-wizard-progress-fill,
+.p-app .hub-progress-fill,
+.p-app .doc-qa-progress-bar-fill,
+.p-app .progress-fill {
+  background: linear-gradient(to right, #2DBE8C, var(--p-green)) !important;
+  border-radius: 999px;
+}
+
+/* Étapes des assistants V2 : couleurs Prisme (états actif / terminé) */
+.p-app .stack-wizard-steps .is-active,
+.p-app .k6-wizard-steps .is-active,
+.p-app .stack-quiz-steps .is-active {
+  color: var(--p-green) !important;
+  border-color: var(--p-green) !important;
+}
+.p-app .stack-wizard-steps .is-done,
+.p-app .k6-wizard-steps .is-done,
+.p-app .stack-quiz-steps .is-done {
+  color: #0B7A55 !important;
+}
+
+/* Options de questionnaire (cartes à cocher) */
+.p-app .stack-quiz-option,
+.p-app .k6-f-chip,
+.p-app .k6-preset {
+  border-color: var(--p-line) !important;
+  border-radius: var(--p-radius-sm) !important;
+  box-shadow: none !important;
+}
+.p-app .stack-quiz-option.is-selected,
+.p-app .stack-quiz-option:has(input:checked),
+.p-app .doc-qa-doc-card-v2.is-selected {
+  border-color: var(--p-green-2) !important;
+  background: var(--p-mint-2) !important;
+}
+
+/* ================================================================== 12. toasts V2 (#hubToast) */
+
+.p-app .hub-toast,
+.p-app #hubToast {
+  position: fixed !important;
+  top: auto !important;
+  left: auto !important;
+  right: 18px !important;
+  bottom: 18px !important;
+  z-index: 13000 !important;
+  min-width: 260px;
+  max-width: min(420px, calc(100vw - 36px)) !important;
+  padding: 10px 14px 10px 16px !important;
+  border: 0 !important;
+  border-left: 3px solid var(--p-live) !important;
+  border-radius: var(--p-radius-sm) !important;
+  background: #17241F !important;
+  color: #EAF3EF !important;
+  box-shadow: var(--p-shadow-pop) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+.p-app .hub-toast::before {
+  display: none !important;
+}
+.p-app .hub-toast--err {
+  border-left-color: #FF8A93 !important;
+}
+.p-app .hub-toast--warn {
+  border-left-color: #F2C15B !important;
+}
+
+/* ================================================================== 13. modales V2 */
+
+.p-app .copilot-debug-backdrop,
+.p-app .wizard-debug-gen-backdrop,
+.p-app .wizard-debug-control-backdrop,
+.p-app .hub-disclaimer-backdrop,
+.p-app .sync-modal-backdrop,
+.p-app .doc-qa-preview-backdrop {
+  background: rgba(16, 28, 24, 0.38) !important;
+  backdrop-filter: none !important;
+}
+
+.p-app .copilot-debug-panel,
+.p-app .wizard-debug-gen-panel,
+.p-app .wizard-debug-control-panel,
+.p-app .hub-disclaimer-panel,
+.p-app .sync-modal-card,
+.p-app .doc-qa-preview-panel,
+.p-app .doc-qa-livrables-tour-panel,
+.p-app .hub-settings-panel {
+  background: var(--p-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--p-line) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--p-shadow-pop) !important;
+  color: var(--p-text);
+}
+.p-app .hub-disclaimer-accent {
+  background: var(--p-green) !important;
+}
+.p-app .copilot-debug-title,
+.p-app .wizard-debug-gen-title,
+.p-app .wizard-debug-control-title,
+.p-app .hub-disclaimer-title,
+.p-app .sync-modal-title,
+.p-app .doc-qa-livrables-tour-step-title {
+  font-family: var(--p-font-display);
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--p-text) !important;
+}
+.p-app .copilot-debug-lead,
+.p-app .wizard-debug-control-lead,
+.p-app .hub-disclaimer-body,
+.p-app .sync-confirm-lead {
+  color: var(--p-text-2) !important;
+}
+.p-app .copilot-debug-close,
+.p-app .hub-settings-close,
+.p-app .doc-qa-preview-close {
+  padding: 0 !important;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--p-text-2) !important;
+  box-shadow: none !important;
+}
+.p-app .copilot-debug-close:hover,
+.p-app .hub-settings-close:hover,
+.p-app .doc-qa-preview-close:hover {
+  background: var(--p-mint-2) !important;
+}
+
+/* Carte de correction automatique (install-autofix.js) */
+.p-app .autofix-card {
+  border: 1px solid var(--p-line) !important;
+  border-left: 3px solid var(--p-blue) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: var(--p-shadow) !important;
+  background: var(--p-surface) !important;
+}
+.p-app .autofix-card--ok { border-left-color: var(--p-green) !important; }
+.p-app .autofix-card--warn { border-left-color: var(--p-amber) !important; }
+.p-app .autofix-card--error { border-left-color: var(--p-red) !important; }
+.p-app .autofix-icon { background: var(--p-blue); }
+.p-app .autofix-card--ok .autofix-icon { background: var(--p-green); }
+.p-app .autofix-card--warn .autofix-icon { background: var(--p-amber); }
+.p-app .autofix-card--error .autofix-icon { background: var(--p-red); }
+.p-app .autofix-title { color: var(--p-text); font-size: 13.5px; }
+.p-app .autofix-text,
+.p-app .autofix-details,
+.p-app .autofix-changes { color: var(--p-text-2); }
+
+/* Indicateurs de chargement V2 : anneau aux couleurs Prisme */
+.p-app .hub-loading-spinner-ring,
+.p-app .hub-disclaimer-spinner-ring,
+.p-app .stack-wizard-spinner-ring {
+  border-top-color: var(--p-green) !important;
+  border-right-color: var(--p-green-2) !important;
+}
+
+/* ================================================================== 14. écrans spécifiques */
+
+/* Wiki : sommaire et encadrés */
+.p-app .wiki-nav-link.is-active {
+  background: var(--p-mint) !important;
+  color: var(--p-green) !important;
+  font-weight: 700;
+}
+.p-app .wiki-callout {
+  border-radius: var(--p-radius) !important;
+  border: 1px solid var(--p-blue-soft) !important;
+  border-left: 3px solid var(--p-blue) !important;
+  background: #F1F7FC !important;
+  color: var(--p-text) !important;
+}
+.p-app .wiki-callout--ok {
+  border-color: var(--p-mint-line) !important;
+  border-left-color: var(--p-green) !important;
+  background: var(--p-mint-2) !important;
+}
+.p-app .wiki-callout--warn {
+  border-color: #F0DDB0 !important;
+  border-left-color: var(--p-amber) !important;
+  background: #FDF7EA !important;
+}
+
+/* Documentation QA : zones de l'assistant */
+.p-app .doc-qa-zone,
+.p-app .doc-qa-doc-card-v2,
+.p-app .doc-qa-dashboard-stat,
+.p-app .sync-panel {
+  border-color: var(--p-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: none !important;
+}
+.p-app .doc-qa-chapter-row.is-selected {
+  background: var(--p-mint-2) !important;
+  border-color: var(--p-green-2) !important;
+}
+
+/* Écran « Poste sans accès Internet » (repair.html) */
+.p-app .repair-offline-panel,
+.p-app .repair-package-card,
+.p-app .vendor-card {
+  border-color: var(--p-line) !important;
+  border-radius: var(--p-radius) !important;
+  box-shadow: none !important;
+  background: var(--p-surface) !important;
+}
+.p-app .vendor-card-glow {
+  display: none !important;
+}
+
+/* Hook Git : ligne d'actions en pied d'assistant */
+.p-app .hook-exit-nav-btn--sync {
+  background: var(--p-green) !important;
+  border-color: var(--p-green) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 720px) {
+  .p-app .p-content > .wrap,
+  .p-app .p-content > .wrap.hub-app {
+    padding: 12px 12px 32px;
+  }
+  .p-app .p-content > .p-guide {
+    margin: 12px 12px 0;
+  }
+  .p-app .hub-hero-nav {
+    margin-left: 0 !important;
+    justify-content: flex-start;
+  }
+}
+
+/* ================================================================== 15. garde-fou */
+
+/* Les styles V2 posent « display » sur des classes : l'attribut hidden doit toujours l'emporter. */
+.p-app [hidden] {
+  display: none !important;
+}

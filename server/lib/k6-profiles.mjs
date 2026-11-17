@@ -1,18 +1,21 @@
+/**
+ * Profils de campagne k6 : CONF_DIR/k6-profiles/<id>.profile.json + index.json.
+ * Écritures atomiques ; identifiants validés (aucune traversée de répertoire).
+ */
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { CONF_DIR, REPO_ROOT } from './paths.mjs'
 import { applyK6ProfileToProject } from './k6-perf-generator.mjs'
 import { getK6OnboardingContext } from './k6-onboarding-context.mjs'
+import { writeJsonAtomic } from './perf/store.mjs'
 
 const PROFILES_DIR = path.join(CONF_DIR, 'k6-profiles')
 const INDEX_FILE = path.join(PROFILES_DIR, 'index.json')
 
 function ensureProfilesDir() {
   fs.mkdirSync(PROFILES_DIR, { recursive: true })
-  if (!fs.existsSync(INDEX_FILE)) {
-    fs.writeFileSync(INDEX_FILE, `${JSON.stringify({ version: 1, profiles: [] }, null, 2)}\n`, 'utf8')
-  }
+  if (!fs.existsSync(INDEX_FILE)) writeJsonAtomic(INDEX_FILE, { version: 1, profiles: [] })
 }
 
 function readIndex() {
@@ -26,10 +29,16 @@ function readIndex() {
 
 function writeIndex(data) {
   ensureProfilesDir()
-  fs.writeFileSync(INDEX_FILE, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
+  writeJsonAtomic(INDEX_FILE, data)
+}
+
+/** Identifiant sûr : lettres, chiffres, tiret, souligné. */
+export function isValidProfileId(id) {
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(id)
 }
 
 function profilePath(id) {
+  if (!isValidProfileId(id)) throw new Error('Identifiant de profil invalide')
   return path.join(PROFILES_DIR, `${id}.profile.json`)
 }
 
@@ -37,28 +46,30 @@ export function listK6Profiles() {
   const index = readIndex()
   const profiles = []
   for (const entry of index.profiles || []) {
-    const file = profilePath(entry.id)
-    if (!fs.existsSync(file)) continue
-    try {
-      const data = JSON.parse(fs.readFileSync(file, 'utf8'))
-      profiles.push({
-        id: data.id,
-        name: data.name,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        campaignObjective: data.answers?.campaignObjective || '',
-        environment: data.answers?.environment || '',
-        baseUrl: data.answers?.baseUrl || '',
-      })
-    } catch { /* skip corrupt */ }
+    const data = getK6Profile(entry.id)
+    if (!data) continue
+    profiles.push({
+      id: data.id,
+      name: data.name,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      campaignObjective: data.answers?.campaignObjective || '',
+      environment: data.answers?.environment || '',
+      baseUrl: data.answers?.baseUrl || '',
+    })
   }
   return profiles.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
 }
 
 export function getK6Profile(id) {
+  if (!isValidProfileId(id)) return null
   const file = profilePath(id)
   if (!fs.existsSync(file)) return null
-  return JSON.parse(fs.readFileSync(file, 'utf8'))
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'))
+  } catch {
+    return null
+  }
 }
 
 function buildProfileMeta(answers = {}, existingMeta = {}) {
@@ -71,6 +82,7 @@ function buildProfileMeta(answers = {}, existingMeta = {}) {
     || answers.sourceType
     || (fs.existsSync(path.join(folderPath, '.git')) ? 'GIT' : 'FOLDER')
   return {
+    ...existingMeta,
     tribu: existingMeta.tribu || answers.tribu || ctx.tribu || '',
     productCode: existingMeta.productCode || answers.productCode || ctx.productCode || '',
     solutionCode: existingMeta.solutionCode || answers.solutionCode || ctx.solutionCode || '',
@@ -83,6 +95,7 @@ function buildProfileMeta(answers = {}, existingMeta = {}) {
 
 export function saveK6Profile({ id, name, answers, notes = '', meta = null, incremental = false }) {
   ensureProfilesDir()
+  if (id && !isValidProfileId(id)) throw new Error('Identifiant de profil invalide')
   const now = new Date().toISOString()
   const profileId = id || crypto.randomUUID()
   const existing = id ? getK6Profile(id) : null
@@ -100,7 +113,7 @@ export function saveK6Profile({ id, name, answers, notes = '', meta = null, incr
     notes: notes || existing?.notes || '',
     wizardVersion: 1,
   }
-  fs.writeFileSync(profilePath(profileId), `${JSON.stringify(profile, null, 2)}\n`, 'utf8')
+  writeJsonAtomic(profilePath(profileId), profile)
   const index = readIndex()
   const profiles = index.profiles || []
   const idx = profiles.findIndex((p) => p.id === profileId)
@@ -112,7 +125,7 @@ export function saveK6Profile({ id, name, answers, notes = '', meta = null, incr
 }
 
 export function deleteK6Profile(id) {
-  if (!id || typeof id !== 'string') throw new Error('Identifiant de profil requis')
+  if (!isValidProfileId(id)) throw new Error('Identifiant de profil requis')
   const file = profilePath(id)
   const hadFile = fs.existsSync(file)
   if (hadFile) fs.unlinkSync(file)
@@ -131,6 +144,7 @@ export function deleteK6Profile(id) {
   }
 }
 
+/** Duplique un profil en conservant son rattachement (solution, dossier, récits). */
 export function duplicateK6Profile(id, newName) {
   const src = getK6Profile(id)
   if (!src) throw new Error('Profil introuvable')
@@ -138,6 +152,7 @@ export function duplicateK6Profile(id, newName) {
     name: newName || `${src.name} (copie)`,
     answers: { ...src.answers },
     notes: src.notes,
+    meta: { ...(src.meta || {}) },
   })
 }
 
@@ -153,6 +168,12 @@ export function exportK6Profiles(profileIds = null) {
   }
 }
 
+/**
+ * Import d'un lot de profils.
+ * merge = true (défaut) : un profil déjà présent (même id) est complété, sinon créé avec son id
+ *   → réimporter le même lot ne crée plus de doublons.
+ * merge = false : un profil déjà présent est remplacé intégralement.
+ */
 export function importK6Profiles(bundle, { merge = true } = {}) {
   if (!bundle || bundle.format !== 'wizard-qa-k6-profiles' || !Array.isArray(bundle.profiles)) {
     throw new Error('Bundle invalide — format wizard-qa-k6-profiles attendu')
@@ -160,12 +181,9 @@ export function importK6Profiles(bundle, { merge = true } = {}) {
   const imported = []
   for (const p of bundle.profiles) {
     if (!p.answers) continue
-    const saved = saveK6Profile({
-      id: merge ? undefined : p.id,
-      name: p.name,
-      answers: p.answers,
-      notes: p.notes,
-    })
+    const id = isValidProfileId(p.id) ? p.id : undefined
+    if (!merge && id && getK6Profile(id)) fs.unlinkSync(profilePath(id))
+    const saved = saveK6Profile({ id, name: p.name, answers: p.answers, notes: p.notes, meta: p.meta || null })
     imported.push(saved.id)
   }
   return { imported, count: imported.length }

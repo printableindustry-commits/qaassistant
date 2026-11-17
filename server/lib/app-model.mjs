@@ -35,6 +35,16 @@ const STATUS_PROVIDERS = {
   docs: (f) => (f.docsGenerated ? done('Livrables générés') : todo('Non généré')),
 }
 
+/**
+ * Statuts fournis par les modules V3 (installation, JIRA, Gherkin, IA…) : chaque module appelle
+ * registerStatus('clé', () => ({ state, message })) depuis son routes.mjs. Fonction synchrone et rapide.
+ */
+const MODULE_STATUS = new Map()
+export function registerStatus(key, provider) {
+  MODULE_STATUS.set(key, provider)
+}
+export const statusOf = { done, todo, info, blocked }
+
 let cachedRegistry = null
 let cachedFacts = { at: 0, value: null }
 
@@ -78,7 +88,12 @@ function resolvePageStatuses(pages, facts) {
   const statuses = {}
   for (const [id, page] of Object.entries(pages)) {
     const provider = page.status && STATUS_PROVIDERS[page.status]
-    statuses[id] = provider ? provider(facts) : info('')
+    const moduleProvider = page.status && MODULE_STATUS.get(page.status)
+    try {
+      statuses[id] = moduleProvider ? moduleProvider() : provider ? provider(facts) : info('')
+    } catch (e) {
+      statuses[id] = info(`Statut indisponible : ${e.message}`)
+    }
   }
   for (const [id, page] of Object.entries(pages)) {
     const unmet = (page.requires || []).find((req) => statuses[req]?.state !== 'done')
@@ -123,6 +138,7 @@ export function getAppModel() {
     version: registry.version,
     pages,
     nav: registry.nav,
+    rail: registry.rail || [],
     statuses,
     journeys: buildJourneys(registry, statuses),
     project: {

@@ -13,7 +13,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:wizardQa.explorer"
+    "onView:wizardQa.explorer",
+    "onCommand:wizardQa.connectCopilot"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -89,6 +90,12 @@
         "command": "wizardQa.stopServer",
         "title": "Wizard QA: Arrêter le serveur",
         "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.connectCopilot",
+        "title": "Wizard QA: Connecter Copilot local",
+        "category": "Wizard QA",
+        "icon": "$(sparkle)"
       }
     ],
     "menus": {
@@ -124,6 +131,21 @@
           "type": "string",
           "default": "",
           "description": "Chemin vers node.exe (vide = node du PATH ou vendor repair)."
+        },
+        "wizardQa.serverUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "URL d'un serveur Wizard QA déjà lancé (par exemple `http://127.0.0.1:3920`) auquel relier Copilot local. Vide = serveur intégré lancé par l'extension."
+        },
+        "wizardQa.bridgeToken": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Jeton d'appairage du pont Copilot local, affiché sur la page **Assistant IA** du serveur. Inutile avec le serveur intégré."
+        },
+        "wizardQa.llmBridge.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Relayer les requêtes d'IA du serveur Wizard QA vers GitHub Copilot (API `vscode.lm`, VS Code 1.90 ou plus)."
         }
       }
     }

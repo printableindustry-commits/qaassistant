@@ -1,0 +1,85 @@
+/* Page « Assistant IA » — complète Prisme avec les jetons --p-* uniquement. */
+
+.page-ia .ia-panel { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+
+/* Ordre de priorité */
+.page-ia .ia-order { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.page-ia .ia-order li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--p-line-soft);
+}
+.page-ia .ia-order li:first-child { border-top: 0; }
+.page-ia .ia-order li.is-active { background: var(--p-mint-2); }
+.page-ia .ia-rank {
+  width: 24px; height: 24px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--p-grey-soft); color: var(--p-text-2); font-size: 12px; font-weight: 700;
+}
+.page-ia li.is-active .ia-rank { background: var(--p-green); color: #fff; }
+.page-ia .ia-order-name { font-weight: 600; min-width: 0; }
+.page-ia .ia-order-reason { font-size: 11.5px; color: var(--p-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-ia .ia-move { display: inline-flex; gap: 4px; }
+.page-ia .ia-move .p-icon-btn svg { width: 15px; height: 15px; }
+.page-ia .ia-up svg { transform: rotate(180deg); }
+
+/* Cartes fournisseurs */
+.page-ia .ia-provider .p-card-body { display: flex; flex-direction: column; gap: 12px; }
+.page-ia .ia-provider.is-off { opacity: 0.86; }
+.page-ia .ia-reason { font-size: 12.5px; color: var(--p-text-2); display: flex; gap: 6px; align-items: flex-start; }
+.page-ia .ia-reason svg { width: 15px; height: 15px; flex: none; margin-top: 1px; stroke: var(--p-text-3); }
+.page-ia .ia-test { font-size: 12px; padding: 8px 10px; border-radius: var(--p-radius-xs); background: var(--p-surface-soft); border: 1px solid var(--p-line-soft); }
+.page-ia .ia-test.ok { background: var(--p-mint-2); border-color: var(--p-mint-line); }
+.page-ia .ia-test.ko { background: var(--p-red-soft); border-color: transparent; color: var(--p-red-text); }
+.page-ia .ia-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding-top: 4px; border-top: 1px solid var(--p-line-soft); }
+
+/* Procédures */
+.page-ia .ia-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.page-ia .ia-step {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--p-line);
+  border-radius: var(--p-radius-sm);
+  background: var(--p-surface);
+}
+.page-ia .ia-step.done { border-color: var(--p-mint-line); background: var(--p-mint-2); }
+.page-ia .ia-step.failed { border-color: var(--p-red-soft); }
+.page-ia .ia-step-num {
+  width: 28px; height: 28px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--p-grey-soft); color: var(--p-text-2); font-weight: 700; font-size: 13px;
+}
+.page-ia .ia-step.done .ia-step-num { background: var(--p-green); color: #fff; }
+.page-ia .ia-step.failed .ia-step-num { background: var(--p-red); color: #fff; }
+.page-ia .ia-step-num svg { width: 15px; height: 15px; }
+.page-ia .ia-step-title { font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.page-ia .ia-step-body { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; font-size: 12.5px; color: var(--p-text-2); min-width: 0; }
+
+.page-ia .ia-copyline { display: flex; gap: 6px; align-items: stretch; min-width: 0; }
+.page-ia .ia-copyline code {
+  flex: 1; min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--p-line);
+  border-radius: var(--p-radius-xs);
+  background: var(--p-surface-soft);
+  font-family: var(--p-font-mono);
+  font-size: 12px;
+  color: var(--p-text);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* Bac à sable */
+.page-ia .ia-answer { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 520px; overflow: auto; margin: 0; }
+.page-ia .ia-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.page-ia .ia-waiting { display: flex; gap: 10px; align-items: center; color: var(--p-text-2); padding: 18px 4px; }
+
+@media (max-width: 720px) {
+  .page-ia .ia-order li { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .page-ia .ia-order li .p-status { display: none; }
+}

@@ -1,0 +1,87 @@
+/* Écran Performance (k6) — compléments locaux, jetons Prisme --p-* uniquement. */
+
+.page-perf .perf-panel[hidden] { display: none; }
+
+/* Liste des profils (cartes sélectionnables) */
+.perf-profiles { display: flex; flex-direction: column; gap: 8px; }
+.perf-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--p-surface);
+  border: 1px solid var(--p-line);
+  border-radius: var(--p-radius-sm);
+  padding: 9px 11px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.perf-profile:hover { border-color: var(--p-line-strong); background: var(--p-surface-soft); }
+.perf-profile.active { border-color: var(--p-green-2); background: var(--p-mint-2); box-shadow: inset 3px 0 0 var(--p-green); }
+.perf-profile-name { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.perf-profile-desc { font-size: 11.5px; color: var(--p-text-3); }
+.perf-profile .p-row { gap: 4px; }
+
+/* Parcours pondérés */
+.perf-weights { display: flex; height: 8px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--p-surface); }
+.perf-weights span { background: var(--p-green-2); }
+.perf-weights span:nth-child(2n) { background: var(--p-teal); }
+.perf-weights span:nth-child(3n) { background: var(--p-blue); }
+
+/* Graphiques SVG faits main */
+.perf-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .perf-charts { grid-template-columns: 1fr; } }
+.perf-chart {
+  border: 1px solid var(--p-line);
+  border-radius: var(--p-radius-sm);
+  padding: 8px 10px 4px;
+  background: var(--p-surface);
+  min-width: 0;
+}
+.perf-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; }
+.perf-chart-title { font-weight: 700; color: var(--p-text-2); }
+.perf-chart-value { font-family: var(--p-font-display); font-weight: 700; font-size: 15px; color: var(--p-text); }
+.perf-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.perf-chart .grid { stroke: var(--p-line-soft); stroke-width: 1; }
+.perf-chart .axis { fill: var(--p-text-3); font-size: 10px; font-family: var(--p-font); }
+.perf-chart .area { fill: var(--p-mint); opacity: 0.7; }
+.perf-chart .line { fill: none; stroke: var(--p-green); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.perf-chart .line.b { stroke: var(--p-green); }
+.perf-chart .line.a { stroke: var(--p-text-3); stroke-dasharray: 4 3; }
+.perf-chart .line.red { stroke: var(--p-red); }
+.perf-chart .threshold { stroke: var(--p-red); stroke-width: 1; stroke-dasharray: 5 4; }
+.perf-chart .threshold-label { fill: var(--p-red-text); font-size: 10px; font-family: var(--p-font); }
+.perf-chart .cursor { stroke: var(--p-text-3); stroke-width: 1; }
+.perf-chart .dot { fill: var(--p-green); stroke: var(--p-surface); stroke-width: 2; }
+.perf-chart .tip-bg { fill: var(--p-text); opacity: 0.92; }
+.perf-chart .tip { fill: #fff; font-size: 10.5px; font-family: var(--p-font); }
+.perf-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--p-text-2); margin: 2px 0 4px; }
+.perf-legend i { display: inline-block; width: 16px; height: 0; border-top: 2px solid var(--p-green); vertical-align: middle; margin-right: 5px; }
+.perf-legend i.a { border-top: 2px dashed var(--p-text-3); }
+
+/* Panneau de run */
+.perf-run-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--p-text-2); }
+.perf-run-meta b { color: var(--p-text); font-weight: 600; }
+.perf-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--p-text-2); }
+.perf-progress .p-meter { flex: 1; }
+.perf-console summary { cursor: pointer; font-weight: 600; font-size: 12.5px; padding: 4px 0; color: var(--p-text-2); }
+.perf-console .p-log { max-height: 280px; margin-top: 6px; }
+
+/* Tableaux */
+.perf-table-wrap { overflow-x: auto; }
+.page-perf .p-table td.delta-bad { color: var(--p-red-text); font-weight: 600; }
+.page-perf .p-table td.delta-good { color: var(--p-green); font-weight: 600; }
+.perf-star { color: var(--p-amber); font-weight: 700; }
+
+/* Exigences des récits */
+.perf-req-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+@media (max-width: 720px) { .perf-req-list { grid-template-columns: 1fr; } }
+.perf-req-match { border-left: 3px solid var(--p-mint-line); padding: 2px 0 2px 9px; font-size: 12px; color: var(--p-text-2); }
+.perf-req-match b { color: var(--p-text); }
+.perf-req-rationale { margin: 4px 0 0; padding-left: 18px; font-size: 12px; color: var(--p-text-2); }
+
+.perf-script { max-height: 60vh; }
+.perf-inline-num { width: 86px; }

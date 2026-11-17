@@ -36,6 +36,13 @@ function findRepoRoot() {
   if (process.env.WIZARD_REPO_ROOT) {
     return path.resolve(process.env.WIZARD_REPO_ROOT)
   }
+  // Application web autonome (pas rangée sous 00_Scripts_Implementation d'un dépôt client) :
+  // le projet de test vit dans ./workspace, jamais dans le dossier de l'application.
+  if (path.basename(SCRIPTS_IMPL) !== '00_Scripts_Implementation') {
+    const workspace = path.join(EXTENSION_DIR, 'workspace')
+    fs.mkdirSync(workspace, { recursive: true })
+    return workspace
+  }
   let cur = SCRIPTS_IMPL
   for (let i = 0; i < 4; i++) {
     if (fs.existsSync(path.join(cur, 'package.json'))) {

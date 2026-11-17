@@ -1,0 +1,43 @@
+/* Pilotage (accueil) — compléments au design system Prisme. */
+
+.home-hello { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.home-hello h2 { font-family: var(--p-font-display); font-size: 20px; margin: 0; }
+.home-hello p { margin: 2px 0 0; color: var(--p-text-2); }
+
+.home-journey { padding: 6px 8px; }
+.home-journey .p-stepper { padding: 6px 4px; }
+.home-journey-cta { display: flex; gap: 8px; padding: 8px 14px 12px; border-top: 1px solid var(--p-line); align-items: center; }
+
+.home-actions { display: flex; flex-direction: column; }
+.home-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--p-line-soft);
+  color: inherit;
+  text-decoration: none !important;
+}
+.home-action:last-child { border-bottom: 0; }
+.home-action:hover { background: var(--p-mint-2); }
+.home-action-text { flex: 1; min-width: 0; }
+.home-action-title { font-weight: 700; font-size: 12.5px; }
+.home-action-detail { font-size: 11.5px; color: var(--p-text-3); }
+
+.home-epic { display: grid; grid-template-columns: minmax(0, 1fr) 120px 58px; gap: 12px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--p-line-soft); }
+.home-epic:last-child { border-bottom: 0; }
+.home-epic-name { font-weight: 600; font-size: 12.5px; }
+.home-epic-meta { font-size: 11px; color: var(--p-text-3); }
+.home-epic-pct { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.home-meter { display: flex; height: 6px; border-radius: 999px; overflow: hidden; background: #EDF1EF; }
+.home-meter span { display: block; height: 100%; }
+.home-meter .v { background: var(--p-green); }
+.home-meter .d { background: #B9A3E3; }
+
+.home-legend { display: flex; gap: 12px; font-size: 11px; color: var(--p-text-3); }
+.home-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+
+.home-tool { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--p-line-soft); }
+.home-tool:last-child { border-bottom: 0; }
+.home-tool img { width: 26px; height: 26px; object-fit: contain; }
+.home-tool-name { font-weight: 600; flex: 1; }

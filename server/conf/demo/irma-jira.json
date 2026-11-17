@@ -1,0 +1,296 @@
+{
+  "_doc": "Jeu de démonstration au format JIRA Server (API v2, descriptions en wiki markup) : il traverse la même chaîne que un vrai scan (découverte des champs, conversion, extraction des critères). Projet IRMA - Analyse des Risques Métier (P0326).",
+  "baseUrl": "https://jira.demo.irma.local",
+  "project": { "key": "P0326", "name": "IRMA - Analyse des Risques Métier", "projectTypeKey": "software" },
+  "serverInfo": { "deploymentType": "Server", "version": "9.12.4", "serverTitle": "JIRA de démonstration IRMA" },
+  "fields": [
+    { "id": "summary", "name": "Résumé", "custom": false },
+    { "id": "description", "name": "Description", "custom": false },
+    { "id": "customfield_10400", "name": "Critères d'acceptation", "custom": true, "schema": { "type": "string", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textarea" } },
+    { "id": "customfield_10101", "name": "Epic Link", "custom": true, "schema": { "type": "any", "custom": "com.pyxis.greenhopper.jira:gh-epic-link" } },
+    { "id": "customfield_10102", "name": "Epic Name", "custom": true, "schema": { "type": "string", "custom": "com.pyxis.greenhopper.jira:gh-epic-label" } },
+    { "id": "customfield_10106", "name": "Story Points", "custom": true, "schema": { "type": "number" } },
+    { "id": "customfield_10500", "name": "Domaine métier", "custom": true, "schema": { "type": "option" } }
+  ],
+  "epics": [
+    {
+      "key": "P0326-9240", "id": "189240",
+      "fields": { "summary": "Accès et habilitations", "issuetype": { "name": "Epic" }, "status": { "name": "En cours", "statusCategory": { "key": "indeterminate" } }, "customfield_10102": "Accès" }
+    },
+    {
+      "key": "P0326-9241", "id": "189241",
+      "fields": { "summary": "Tableau de bord des risques", "issuetype": { "name": "Epic" }, "status": { "name": "En cours", "statusCategory": { "key": "indeterminate" } }, "customfield_10102": "Tableau de bord" }
+    },
+    {
+      "key": "P0326-9242", "id": "189242",
+      "fields": { "summary": "Import et qualité des données", "issuetype": { "name": "Epic" }, "status": { "name": "En cours", "statusCategory": { "key": "indeterminate" } }, "customfield_10102": "Import" }
+    },
+    {
+      "key": "P0326-9243", "id": "189243",
+      "fields": { "summary": "Restitutions et alertes", "issuetype": { "name": "Epic" }, "status": { "name": "À faire", "statusCategory": { "key": "new" } }, "customfield_10102": "Restitutions" }
+    }
+  ],
+  "issues": [
+    {
+      "key": "P0326-9301", "id": "189301",
+      "fields": {
+        "summary": "Connexion à IRMA par l'authentification unique (SSO) du groupe",
+        "issuetype": { "name": "Story" }, "status": { "name": "Terminé", "statusCategory": { "key": "done" } }, "priority": { "name": "Critique" },
+        "labels": ["securite", "sso"], "components": [{ "name": "Authentification" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Karim BENALI" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-02T09:12:00.000+0200", "updated": "2026-10-28T16:40:00.000+0100",
+        "customfield_10101": "P0326-9240", "customfield_10106": 5,
+        "description": "h3. Contexte\nEn tant qu'*analyste risques*, je veux me connecter à IRMA avec mon compte du groupe (SSO Azure AD) afin de ne pas gérer un mot de passe supplémentaire.\n\nLes droits applicatifs sont ensuite résolus à partir des groupes de l'annuaire (voir P0326-9302).",
+        "customfield_10400": "Scénario : connexion réussie avec un compte du groupe\nÉtant donné un utilisateur présent dans l'annuaire et membre du groupe GG_IRMA_UTILISATEURS\nQuand il ouvre l'URL d'IRMA\nAlors il est redirigé vers la page de connexion du groupe\nEt après authentification il arrive sur le tableau de bord des risques\n\nScénario : utilisateur sans groupe IRMA\nÉtant donné un utilisateur authentifié qui n'appartient à aucun groupe GG_IRMA_*\nQuand il ouvre l'URL d'IRMA\nAlors le message « Accès refusé : contactez votre administrateur IRMA » est affiché\nEt aucune donnée de risque n'est chargée\n\nScénario : session SSO expirée\nÉtant donné un utilisateur dont le jeton SSO a expiré\nQuand il effectue une action dans IRMA\nAlors il est redirigé vers la page de connexion sans perte de la page demandée",
+        "issuelinks": [
+          { "type": { "name": "Relates", "inward": "est lié à", "outward": "est lié à" }, "outwardIssue": { "key": "P0326-9302", "fields": { "summary": "Profils d'habilitation : Analyste, Valideur, Administrateur" } } }
+        ],
+        "subtasks": [
+          { "key": "P0326-9351", "fields": { "summary": "Déclarer l'application dans Azure AD", "status": { "name": "Terminé" } } },
+          { "key": "P0326-9352", "fields": { "summary": "Tests de recette SSO", "status": { "name": "Terminé" } } }
+        ]
+      }
+    },
+    {
+      "key": "P0326-9302", "id": "189302",
+      "fields": {
+        "summary": "Profils d'habilitation : Analyste, Valideur, Administrateur",
+        "issuetype": { "name": "Story" }, "status": { "name": "En recette", "statusCategory": { "key": "indeterminate" } }, "priority": { "name": "Haute" },
+        "labels": ["securite", "habilitations"], "components": [{ "name": "Authentification" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Karim BENALI" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-02T09:30:00.000+0200", "updated": "2026-11-10T11:05:00.000+0100",
+        "customfield_10101": "P0326-9240", "customfield_10106": 8,
+        "description": "En tant qu'administrateur IRMA, je veux que chaque utilisateur dispose d'un profil (Analyste, Valideur ou Administrateur) dérivé de son groupe d'annuaire, afin de limiter les actions possibles selon son rôle.\n\nh3. Règles de gestion\n# Un *Analyste* consulte les risques de son entité et saisit des commentaires ; il ne peut pas valider une cotation.\n# Un *Valideur* dispose des droits de l'Analyste et peut valider ou rejeter une cotation de risque.\n# Un *Administrateur* gère les seuils d'alerte et les référentiels ; il n'a pas accès à la validation des cotations (séparation des tâches).\n# Un utilisateur membre de plusieurs groupes reçoit le profil le plus élevé, sauf cumul Valideur + Administrateur qui est refusé avec le message « Cumul de profils interdit ».\n# Toute tentative d'action non autorisée renvoie l'erreur 403 et est tracée dans le journal d'audit.\n\nh3. Maquettes\nVoir la page Confluence « IRMA — Matrice des droits v3 ».",
+        "issuelinks": [
+          { "type": { "name": "Relates", "inward": "est lié à", "outward": "est lié à" }, "inwardIssue": { "key": "P0326-9301", "fields": { "summary": "Connexion à IRMA par l'authentification unique (SSO) du groupe" } } }
+        ],
+        "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9303", "id": "189303",
+      "fields": {
+        "summary": "Déconnexion automatique après 15 minutes d'inactivité",
+        "issuetype": { "name": "Story" }, "status": { "name": "Prêt pour développement", "statusCategory": { "key": "new" } }, "priority": { "name": "Moyenne" },
+        "labels": ["securite"], "components": [{ "name": "Authentification" }], "fixVersions": [{ "name": "IRMA 1.1" }],
+        "assignee": null, "reporter": { "displayName": "Christel RABAROT" },
+        "created": "2026-09-15T14:00:00.000+0200", "updated": "2026-11-04T10:20:00.000+0100",
+        "customfield_10101": "P0326-9240", "customfield_10106": 3,
+        "description": "En tant que responsable de la sécurité, je veux que les sessions inactives soient fermées automatiquement afin de protéger les données de risque sur les postes partagés.\n\n*Critères d'acceptation :*\n* Après 13 minutes sans action, un bandeau propose « Rester connecté » avec un compte à rebours de 2 minutes.\n* Un clic sur « Rester connecté » prolonge la session de 15 minutes.\n* Sans réponse, la session est fermée et l'utilisateur est redirigé vers la page de connexion avec le message « Session expirée pour inactivité ».\n** Les saisies non enregistrées sont perdues : un avertissement le rappelle dans le bandeau.\n* Une requête envoyée avec une session expirée est refusée (erreur 401) sans effet de bord.\n\nh3. Hors périmètre\nLa durée n'est pas paramétrable par l'utilisateur.",
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9304", "id": "189304",
+      "fields": {
+        "summary": "Journal d'audit des connexions",
+        "issuetype": { "name": "Story" }, "status": { "name": "Backlog", "statusCategory": { "key": "new" } }, "priority": { "name": "Moyenne" },
+        "labels": ["audit"], "components": [{ "name": "Authentification" }], "fixVersions": [],
+        "assignee": null, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-10-01T09:00:00.000+0200", "updated": "2026-10-01T09:00:00.000+0200",
+        "customfield_10101": "P0326-9240",
+        "description": "Tracer les connexions.",
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9310", "id": "189310",
+      "fields": {
+        "summary": "Afficher le tableau de bord des risques par entité",
+        "issuetype": { "name": "Story" }, "status": { "name": "En cours", "statusCategory": { "key": "indeterminate" } }, "priority": { "name": "Critique" },
+        "labels": ["tableau-de-bord", "performance"], "components": [{ "name": "Restitution" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Sophie MARCHAND" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-05T10:00:00.000+0200", "updated": "2026-11-12T17:45:00.000+0100",
+        "customfield_10101": "P0326-9241", "customfield_10106": 8,
+        "description": "En tant qu'analyste risques, je veux voir dès la connexion la synthèse des risques de mon entité (nombre de risques par niveau, évolution sur 12 mois, 10 risques les plus élevés) afin de prioriser mes analyses.\n\nLe tableau de bord est la page d'accueil d'IRMA : il doit rester réactif aux heures de pointe (clôture mensuelle).",
+        "customfield_10400": "Étant donné un analyste rattaché à l'entité « CA-TS Paris »\nQuand il ouvre le tableau de bord\nAlors il voit le nombre de risques par niveau (Faible, Modéré, Élevé, Critique) de sa seule entité\nEt la courbe d'évolution des 12 derniers mois\n\nÉtant donné une entité sans aucun risque enregistré\nQuand l'analyste ouvre le tableau de bord\nAlors le message « Aucun risque enregistré pour cette entité » remplace les graphiques\n\nÉtant donné 200 utilisateurs simultanés en période de clôture\nQuand ils ouvrent le tableau de bord\nAlors la page s'affiche en moins de 2 secondes pour 200 utilisateurs simultanés (95e centile)",
+        "issuelinks": [
+          { "type": { "name": "Blocks", "inward": "est bloqué par", "outward": "bloque" }, "outwardIssue": { "key": "P0326-9311", "fields": { "summary": "Filtrer les risques par niveau de criticité et par période" } } }
+        ],
+        "subtasks": [
+          { "key": "P0326-9361", "fields": { "summary": "API d'agrégation des risques par entité", "status": { "name": "Terminé" } } },
+          { "key": "P0326-9362", "fields": { "summary": "Composant graphique d'évolution", "status": { "name": "En cours" } } },
+          { "key": "P0326-9363", "fields": { "summary": "Campagne de charge k6 sur le tableau de bord", "status": { "name": "À faire" } } }
+        ]
+      }
+    },
+    {
+      "key": "P0326-9311", "id": "189311",
+      "fields": {
+        "summary": "Filtrer les risques par niveau de criticité et par période",
+        "issuetype": { "name": "Story" }, "status": { "name": "À faire", "statusCategory": { "key": "new" } }, "priority": { "name": "Haute" },
+        "labels": ["tableau-de-bord"], "components": [{ "name": "Restitution" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Sophie MARCHAND" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-05T10:20:00.000+0200", "updated": "2026-11-06T09:15:00.000+0100",
+        "customfield_10101": "P0326-9241", "customfield_10106": 5,
+        "description": "En tant qu'analyste, je veux filtrer la liste des risques par niveau de criticité et par période d'identification afin de préparer le comité des risques.",
+        "customfield_10400": "* Les filtres « Niveau » (choix multiple) et « Période » (du / au) sont disponibles au-dessus de la liste.\n* La période par défaut couvre les 3 derniers mois.\n* Une date de fin antérieure à la date de début affiche « La date de fin doit être postérieure à la date de début » et le filtre n'est pas appliqué.\n* Le nombre de résultats est affiché et mis à jour à chaque changement de filtre.\n* Les filtres sont conservés lors du retour depuis le détail d'un risque.",
+        "issuelinks": [
+          { "type": { "name": "Blocks", "inward": "est bloqué par", "outward": "bloque" }, "inwardIssue": { "key": "P0326-9310", "fields": { "summary": "Afficher le tableau de bord des risques par entité" } } }
+        ],
+        "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9312", "id": "189312",
+      "fields": {
+        "summary": "Recherche multicritère des dossiers de risque",
+        "issuetype": { "name": "Story" }, "status": { "name": "À faire", "statusCategory": { "key": "new" } }, "priority": { "name": "Moyenne" },
+        "labels": ["recherche"], "components": [{ "name": "Restitution" }], "fixVersions": [{ "name": "IRMA 1.1" }],
+        "assignee": null, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-20T15:30:00.000+0200", "updated": "2026-11-02T08:50:00.000+0100",
+        "customfield_10101": "P0326-9241", "customfield_10106": 5,
+        "description": "En tant qu'analyste, je veux rechercher un dossier de risque par référence, libellé, entité ou porteur afin de retrouver rapidement un dossier évoqué en comité.\n\nh3. Critères d'acceptation\n- La recherche doit être rapide et simple d'utilisation.\n- Les résultats sont affichés correctement, etc.",
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9313", "id": "189313",
+      "fields": {
+        "summary": "Consulter le détail d'un risque et l'historique de ses cotations",
+        "issuetype": { "name": "Story" }, "status": { "name": "En revue", "statusCategory": { "key": "indeterminate" } }, "priority": { "name": "Haute" },
+        "labels": ["detail-risque"], "components": [{ "name": "Restitution" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Thomas LEROY" }, "reporter": { "displayName": "Christel RABAROT" },
+        "created": "2026-09-08T11:00:00.000+0200", "updated": "2026-11-13T14:30:00.000+0100",
+        "customfield_10101": "P0326-9241", "customfield_10106": 5,
+        "description": {
+          "type": "doc", "version": 1,
+          "content": [
+            { "type": "paragraph", "content": [ { "type": "text", "text": "As a risk analyst, I want to open a risk record and see its full rating history so that I can justify the current rating to the risk committee." } ] },
+            { "type": "heading", "attrs": { "level": 3 }, "content": [ { "type": "text", "text": "Acceptance criteria" } ] },
+            { "type": "paragraph", "content": [ { "type": "text", "text": "Given a risk rated three times" }, { "type": "hardBreak" }, { "type": "text", "text": "When the analyst opens the risk detail" }, { "type": "hardBreak" }, { "type": "text", "text": "Then the history lists the three ratings from newest to oldest with author, date and comment" } ] },
+            { "type": "paragraph", "content": [ { "type": "text", "text": "Given a risk the analyst is not allowed to see" }, { "type": "hardBreak" }, { "type": "text", "text": "When he opens its URL directly" }, { "type": "hardBreak" }, { "type": "text", "text": "Then an access denied error is displayed and no data is returned" } ] },
+            { "type": "heading", "attrs": { "level": 3 }, "content": [ { "type": "text", "text": "Notes" } ] },
+            { "type": "bulletList", "content": [
+              { "type": "listItem", "content": [ { "type": "paragraph", "content": [ { "type": "text", "text": "Description rédigée en anglais par l'équipe offshore (format Atlassian Document Format)." } ] } ] }
+            ] }
+          ]
+        },
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9320", "id": "189320",
+      "fields": {
+        "summary": "Importer un fichier d'expositions au format CSV",
+        "issuetype": { "name": "Story" }, "status": { "name": "En cours", "statusCategory": { "key": "indeterminate" } }, "priority": { "name": "Critique" },
+        "labels": ["import", "fichier"], "components": [{ "name": "Import" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Thomas LEROY" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-10T09:45:00.000+0200", "updated": "2026-11-14T10:10:00.000+0100",
+        "customfield_10101": "P0326-9242", "customfield_10106": 8,
+        "description": "En tant qu'analyste, je veux importer le fichier mensuel des expositions (CSV séparé par des points-virgules, encodage UTF-8) afin d'alimenter le calcul des risques sans ressaisie.\n\nh3. Critères d'acceptation\nScénario : import d'un fichier valide\nÉtant donné un fichier « expositions_2026-10.csv » de 5 000 lignes conforme au modèle\nQuand l'analyste le dépose dans l'écran « Imports »\nAlors un récapitulatif affiche 5 000 lignes importées et 0 rejet\nEt les expositions sont visibles dans le tableau de bord dans les 5 minutes\n\nScénario : fichier au mauvais format\nÉtant donné un fichier Excel (.xlsx)\nQuand l'analyste le dépose\nAlors le message « Format non pris en charge : déposez un fichier CSV » est affiché\nEt aucun import n'est créé\n\nScénario : colonnes obligatoires manquantes\nÉtant donné un fichier CSV sans la colonne « Montant_EUR »\nQuand l'analyste le dépose\nAlors l'import est rejeté avec la liste des colonnes manquantes\n\nh3. Points ouverts\nTaille maximale du fichier à confirmer avec la production (50 Mo envisagés).",
+        "issuelinks": [
+          { "type": { "name": "Blocks", "inward": "est bloqué par", "outward": "bloque" }, "outwardIssue": { "key": "P0326-9331", "fields": { "summary": "Alertes par e-mail en cas de dépassement de seuil" } } }
+        ],
+        "subtasks": [
+          { "key": "P0326-9371", "fields": { "summary": "Analyseur CSV et contrôle des en-têtes", "status": { "name": "Terminé" } } },
+          { "key": "P0326-9372", "fields": { "summary": "Écran de dépôt et récapitulatif", "status": { "name": "En cours" } } }
+        ]
+      }
+    },
+    {
+      "key": "P0326-9321", "id": "189321",
+      "fields": {
+        "summary": "Contrôles de cohérence des données importées",
+        "issuetype": { "name": "Story" }, "status": { "name": "Prêt pour développement", "statusCategory": { "key": "new" } }, "priority": { "name": "Haute" },
+        "labels": ["import", "qualite-donnees"], "components": [{ "name": "Import" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": null, "reporter": { "displayName": "Christel RABAROT" },
+        "created": "2026-09-12T16:00:00.000+0200", "updated": "2026-11-09T15:00:00.000+0100",
+        "customfield_10101": "P0326-9242", "customfield_10106": 5,
+        "description": "En tant qu'analyste, je veux que chaque ligne importée soit contrôlée afin de ne pas fausser la cotation des risques avec des données incohérentes.\n\nh3. CA\nCA1 : une ligne dont le code entité n'existe pas dans le référentiel est rejetée avec le motif « Entité inconnue ».\nCA2 : un montant négatif ou non numérique est rejeté avec le motif « Montant invalide ».\nCA3 : une date d'échéance antérieure à la date d'arrêté est rejetée avec le motif « Échéance incohérente ».\nCA4 : si plus de 5 % des lignes sont rejetées, l'import complet est suspendu et doit être confirmé par un Valideur.\nCA5 : les lignes valides d'un import partiellement rejeté sont conservées.",
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9322", "id": "189322",
+      "fields": {
+        "summary": "Import planifié depuis le serveur SFTP de la production",
+        "issuetype": { "name": "Story" }, "status": { "name": "Backlog", "statusCategory": { "key": "new" } }, "priority": { "name": "Basse" },
+        "labels": ["import", "batch"], "components": [{ "name": "Import" }], "fixVersions": [],
+        "assignee": null, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-10-05T10:30:00.000+0200", "updated": "2026-10-20T09:00:00.000+0200",
+        "customfield_10101": "P0326-9242", "customfield_10106": 13,
+        "description": "Le fichier d'expositions doit être récupéré chaque nuit sur le serveur SFTP de la production et importé automatiquement. Le traitement doit être performant et prévenir l'équipe si besoin. Fréquence et horaire TBD avec l'exploitation.",
+        "issuelinks": [
+          { "type": { "name": "Dependency", "inward": "dépend de", "outward": "est une dépendance de" }, "inwardIssue": { "key": "P0326-9320", "fields": { "summary": "Importer un fichier d'expositions au format CSV" } } }
+        ],
+        "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9323", "id": "189323",
+      "fields": {
+        "summary": "Télécharger le rapport des anomalies d'un import",
+        "issuetype": { "name": "Story" }, "status": { "name": "En recette", "statusCategory": { "key": "indeterminate" } }, "priority": { "name": "Moyenne" },
+        "labels": ["import"], "components": [{ "name": "Import" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Thomas LEROY" }, "reporter": { "displayName": "Christel RABAROT" },
+        "created": "2026-09-18T09:00:00.000+0200", "updated": "2026-11-15T12:00:00.000+0100",
+        "customfield_10101": "P0326-9242", "customfield_10106": 3,
+        "description": "En tant qu'analyste, je veux télécharger la liste des lignes rejetées d'un import afin de les corriger dans le fichier source.\n\nh4. AC\n* Le bouton « Télécharger les anomalies » est visible uniquement si l'import contient au moins un rejet.\n* Le fichier téléchargé est un CSV contenant les colonnes d'origine, le numéro de ligne et le motif de rejet.\n* Le nom du fichier suit le modèle anomalies_<identifiant import>_<date>.csv.\n* Un import sans rejet n'affiche pas le bouton et indique « Aucune anomalie ».",
+        "issuelinks": [],
+        "subtasks": [
+          { "key": "P0326-9381", "fields": { "summary": "Génération du CSV d'anomalies", "status": { "name": "Terminé" } } }
+        ]
+      }
+    },
+    {
+      "key": "P0326-9330", "id": "189330",
+      "fields": {
+        "summary": "Exporter la synthèse des risques en PDF pour le comité",
+        "issuetype": { "name": "Story" }, "status": { "name": "Terminé", "statusCategory": { "key": "done" } }, "priority": { "name": "Haute" },
+        "labels": ["export", "pdf"], "components": [{ "name": "Restitution" }], "fixVersions": [{ "name": "IRMA 1.0" }],
+        "assignee": { "displayName": "Sophie MARCHAND" }, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-03T13:00:00.000+0200", "updated": "2026-10-30T18:00:00.000+0100",
+        "customfield_10101": "P0326-9243", "customfield_10106": 5,
+        "description": "En tant que Valideur, je veux exporter la synthèse des risques de mon entité au format PDF afin de la présenter au comité des risques.",
+        "customfield_10400": "1) Le bouton « Exporter en PDF » est disponible sur le tableau de bord pour les profils Valideur et Administrateur.\n2) Le PDF reprend l'en-tête de la charte CA-TS, l'entité, la date d'arrêté et les filtres appliqués.\n3) Le PDF contient la répartition par niveau, l'évolution sur 12 mois et la liste des risques critiques.\n4) Le PDF est généré en moins de 10 secondes pour 500 risques.\n5) Si la génération échoue, le message « L'export n'a pas pu être généré, réessayez » est affiché et l'erreur est journalisée.",
+        "issuelinks": [],
+        "subtasks": [
+          { "key": "P0326-9391", "fields": { "summary": "Modèle PDF à la charte", "status": { "name": "Terminé" } } }
+        ]
+      }
+    },
+    {
+      "key": "P0326-9331", "id": "189331",
+      "fields": {
+        "summary": "Alertes par e-mail en cas de dépassement de seuil",
+        "issuetype": { "name": "Story" }, "status": { "name": "À faire", "statusCategory": { "key": "new" } }, "priority": { "name": "Haute" },
+        "labels": ["alertes", "e-mail"], "components": [{ "name": "Alertes" }], "fixVersions": [{ "name": "IRMA 1.1" }],
+        "assignee": null, "reporter": { "displayName": "Iman OUBELLA" },
+        "created": "2026-09-25T10:00:00.000+0200", "updated": "2026-11-08T10:00:00.000+0100",
+        "customfield_10101": "P0326-9243", "customfield_10106": 8,
+        "description": "En tant que Valideur, je veux être prévenu par e-mail lorsqu'un risque de mon entité dépasse le seuil d'alerte afin de réagir avant le comité.\n\nh3. Critères d'acceptation\n# Étant donné un seuil d'alerte « Critique » fixé à 1 M€ pour l'entité CA-TS Paris, quand un import fait passer une exposition à 1,2 M€, alors chaque Valideur de l'entité reçoit un e-mail dans les 15 minutes.\n# L'e-mail indique la référence du risque, le montant, le seuil dépassé et un lien direct vers le détail.\n# Un même dépassement ne déclenche qu'une alerte par jour.\n# Si l'envoi échoue, une nouvelle tentative a lieu 3 fois puis une anomalie est créée dans le journal d'exploitation.",
+        "issuelinks": [
+          { "type": { "name": "Blocks", "inward": "est bloqué par", "outward": "bloque" }, "inwardIssue": { "key": "P0326-9320", "fields": { "summary": "Importer un fichier d'expositions au format CSV" } } },
+          { "type": { "name": "Relates", "inward": "est lié à", "outward": "est lié à" }, "outwardIssue": { "key": "P0326-9332", "fields": { "summary": "Paramétrer les seuils d'alerte par portefeuille" } } }
+        ],
+        "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9332", "id": "189332",
+      "fields": {
+        "summary": "Paramétrer les seuils d'alerte par portefeuille",
+        "issuetype": { "name": "Story" }, "status": { "name": "Brouillon", "statusCategory": { "key": "new" } }, "priority": { "name": "Moyenne" },
+        "labels": ["alertes", "parametrage"], "components": [{ "name": "Alertes" }], "fixVersions": [],
+        "assignee": null, "reporter": { "displayName": "Christel RABAROT" },
+        "created": "2026-10-12T14:15:00.000+0200", "updated": "2026-11-16T09:40:00.000+0100",
+        "customfield_10101": "P0326-9243", "customfield_10106": 5,
+        "description": "En tant qu'Administrateur, je veux définir un seuil d'alerte par portefeuille et par niveau de risque afin d'adapter la surveillance à chaque activité.\n\nh3. Critères d'acceptation\n* L'écran « Seuils » liste les portefeuilles avec leur seuil courant par niveau.\n* La modification d'un seuil est historisée (auteur, date, ancienne et nouvelle valeur).\n* Le seuil doit être cohérent avec les autres portefeuilles (règle à définir avec la Direction des risques).\n* Seul un Administrateur peut modifier un seuil ; les autres profils le consultent en lecture seule.",
+        "issuelinks": [], "subtasks": []
+      }
+    },
+    {
+      "key": "P0326-9340", "id": "189340",
+      "fields": {
+        "summary": "Accessibilité RGAA de l'écran de connexion et des messages d'erreur",
+        "issuetype": { "name": "Story" }, "status": { "name": "À faire", "statusCategory": { "key": "new" } }, "priority": { "name": "Basse" },
+        "labels": ["accessibilite", "rgaa"], "components": [{ "name": "Transverse" }], "fixVersions": [{ "name": "IRMA 1.1" }],
+        "assignee": null, "reporter": { "displayName": "Rémy VERGER" },
+        "created": "2026-10-20T11:00:00.000+0200", "updated": "2026-11-03T16:00:00.000+0100",
+        "description": "En tant qu'utilisateur de lecteur d'écran, je veux pouvoir me connecter et comprendre les messages d'erreur afin d'utiliser IRMA comme les autres collaborateurs.\n\n*Acceptance criteria:*\n- Tous les champs ont un libellé associé lu par le lecteur d'écran (NVDA).\n- Les messages d'erreur sont annoncés (rôle alert) et reliés au champ concerné.\n- La navigation complète est possible au clavier, dans un ordre logique.\n- Le contraste des textes respecte un ratio d'au moins 4,5:1.\n- L'interface doit être ergonomique.",
+        "issuelinks": [], "subtasks": []
+      }
+    }
+  ]
+}

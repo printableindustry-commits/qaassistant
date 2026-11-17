@@ -1,177 +1,86 @@
 <!DOCTYPE html>
-
 <html lang="fr">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>Wizard QA Assistant · Sync JIRA</title>
-
+  <title>Sync JIRA — Wizard QA</title>
+  <link rel="icon" href="/assets/logo-qa.png" />
   <link rel="stylesheet" href="/assets/theme.css" />
   <link rel="stylesheet" href="/assets/home-hub.css" />
   <link rel="stylesheet" href="/assets/css_theme_app.css" />
-
 </head>
-
 <body class="page-sync-jira page-hook-compact">
-
   <div class="wrap hub-app">
-
     <div class="hub-hero hub-hero--page hub-hero--page-sm hub-hero-sync">
-
-      <div class="hub-hero-page-logo">
-
-        <img src="/assets/logo-jira.png" alt="Sync JIRA" width="40" height="40" />
-
-      </div>
-
       <div class="hub-hero-page-body">
-
         <div class="hook-hero-head hook-hero-head--sync">
-
           <div class="hook-hero-head-text">
-
             <h1>Sync JIRA — Xray Cloud</h1>
-
             <div class="hook-hero-badges" aria-live="polite">
-
               <span class="file-badge" id="badgeHook">Hook …</span>
-
               <span class="file-badge" id="badgeXray">Xray …</span>
-
               <span class="file-badge" id="badgePlans">Plans …</span>
-
               <span class="file-badge" id="badgeSync">Sync …</span>
-
             </div>
-
           </div>
-
           <nav class="hub-hero-nav hub-hero-nav--sync" aria-label="Navigation Sync JIRA">
-
-            <a href="/" class="btn-hub-home" title="Retour au catalogue">Accueil</a>
-
             <a href="/hook-git.html" class="btn-secondary btn-sm hub-hero-nav-btn hub-btn-with-icon" title="Configuration Hook Git">
               <img src="/assets/logo-git-hook.png" alt="" width="14" height="14" />
               <span>Hook Git</span>
             </a>
-
           </nav>
-
         </div>
-
         <p class="hub-hero-lead">Comparez le local avec JIRA / Xray Cloud, puis synchronisez si nécessaire.</p>
-
         <p class="hint hint-tight hook-readiness-hint" id="readinessHint" hidden></p>
-
       </div>
-
     </div>
-
-
-
     <section class="sync-panels" aria-label="Terminaux Sync JIRA">
-
       <article class="sync-panel hub-onboarding-card">
-
         <header class="sync-panel-head">
-
           <div class="sync-panel-head-text">
-
             <h2 class="sync-panel-title">Étape 1 — Analyse des écarts</h2>
-
             <p class="sync-panel-desc">Compare les scénarios locaux avec JIRA et Xray Cloud, plan par plan, en mode dry-run — aucune modification dans le cloud.</p>
-
           </div>
-
           <span class="console-hint" id="analyzeHint">Prêt</span>
-
         </header>
-
         <pre class="sync-panel-console console" id="analyzeConsole" aria-live="polite">Lancez l'analyse pour afficher le statut JIRA / Xray et la liste des écarts éventuels par plan de test.</pre>
-
         <footer class="sync-panel-foot">
-
           <button type="button" class="btn-primary btn-sm" id="btnAnalyze" disabled>Lancer l'analyse</button>
-
           <button type="button" class="btn-secondary btn-sm" id="btnReadTickets">Relire mes tickets JIRA</button>
-
         </footer>
-
       </article>
-
-
-
       <article class="sync-panel hub-onboarding-card">
-
         <header class="sync-panel-head">
-
           <div class="sync-panel-head-text">
-
             <h2 class="sync-panel-title">Étape 2 — Appliquer la synchronisation</h2>
-
             <p class="sync-panel-desc">Pousse les changements du dépôt vers JIRA et Xray Cloud (créations, suppressions, mises à jour) après aperçu et confirmation.</p>
-
           </div>
-
           <span class="console-hint" id="syncLocalHint">Prêt</span>
-
         </header>
-
         <pre class="sync-panel-console console" id="syncLocalConsole" aria-live="polite">La sortie du script de synchronisation s'affichera ici une fois l'opération confirmée.</pre>
-
         <footer class="sync-panel-foot">
-
           <button type="button" class="btn-secondary btn-sm" id="btnSyncLocal" disabled>Synchroniser vers JIRA</button>
-
         </footer>
-
       </article>
-
     </section>
-
-
-
     <div id="status" class="status hook-status hook-wizard-status" style="display:none"></div>
-
   </div>
-
-
-
   <div id="syncConfirmModal" class="sync-modal" hidden role="dialog" aria-modal="true" aria-labelledby="syncConfirmTitle">
-
     <div class="sync-modal-backdrop" data-close="syncConfirmModal"></div>
-
     <div class="sync-modal-card sync-confirm-card">
-
       <h2 id="syncConfirmTitle" class="sync-modal-title">Confirmer la synchronisation vers JIRA</h2>
-
       <div id="syncConfirmBody" class="sync-confirm-body"></div>
-
       <div class="sync-modal-actions">
-
         <button type="button" class="btn-secondary btn-sm" id="syncConfirmCancel">Annuler</button>
-
         <button type="button" class="btn-primary btn-sm" id="syncConfirmOk">OK — Lancer la synchro</button>
-
       </div>
-
     </div>
-
   </div>
-
-
-
   <script src="/assets/portail.js"></script>
   <script src="/assets/wizard-debug-copilot.js"></script>
   <script src="/assets/wizard-debug-nav.js"></script>
   <script src="/assets/wizard-debug-page-bindings.js"></script>
   <script src="/assets/sync-jira.js"></script>
-
 </body>
-
 </html>
 

@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "description": "Plan d'installation du poste QA (référence). Copié et fusionné dans .wizard-qa/conf/install-plan.conf.json : les nouvelles clés de la référence y sont ajoutées automatiquement, vos valeurs sont conservées.",
+  "selectedStacks": ["playwright", "gherkin", "k6"],
+  "base": ["node", "npm", "npmrc", "git", "workspace", "python", "java"],
+  "stacks": {
+    "playwright": {
+      "label": "Playwright",
+      "description": "Tests de bout en bout dans le navigateur (Chromium par défaut).",
+      "icon": "monitor",
+      "components": ["npm-playwright", "playwright-browsers", "vscode-extensions"]
+    },
+    "gherkin": {
+      "label": "Gherkin / BDD",
+      "description": "Scénarios .feature exécutés par Playwright via playwright-bdd.",
+      "icon": "fileText",
+      "components": ["npm-playwright", "npm-gherkin", "playwright-browsers", "vscode-extensions"]
+    },
+    "k6": {
+      "label": "k6",
+      "description": "Tests de charge et de performance (binaire k6 portable).",
+      "icon": "activity",
+      "components": ["npm-k6", "k6", "vscode-extensions"]
+    },
+    "ia": {
+      "label": "Assistant IA",
+      "description": "GitHub Copilot (extensions VS Code et Copilot CLI) pour le diagnostic et la génération.",
+      "icon": "sparkles",
+      "components": ["vscode-extensions", "copilot-cli"]
+    }
+  },
+  "versions": {
+    "node": "22.20.0",
+    "nodeMinMajor": 20,
+    "playwright": "1.56.1",
+    "dotenv": "^16.4.7",
+    "playwrightBdd": "^8.4.0",
+    "typesK6": "^1.2.0",
+    "k6": "1.3.0",
+    "copilotCli": "latest"
+  },
+  "mirrors": {
+    "node": "https://nodejs.org/dist",
+    "k6": "https://github.com/grafana/k6/releases/download",
+    "playwrightDownloadHost": "",
+    "npmRegistry": ""
+  },
+  "proxy": {
+    "http": "",
+    "https": "",
+    "noProxy": "localhost,127.0.0.1",
+    "strictSsl": true,
+    "caFile": ""
+  },
+  "options": {
+    "browsers": ["chromium"],
+    "addToUserPath": true,
+    "useWinget": true,
+    "vscodeCli": "",
+    "vscodeExtensions": {
+      "playwright": ["ms-playwright.playwright"],
+      "gherkin": ["CucumberOpen.cucumber-official"],
+      "k6": ["k6.k6"],
+      "ia": ["GitHub.copilot", "GitHub.copilot-chat"]
+    }
+  },
+  "components": {
+    "node": {
+      "label": "Node.js",
+      "description": "Node système compatible, sinon Node portable (zip officiel vérifié par SHASUMS256) dans %LOCALAPPDATA%\\wizard-qa\\node.",
+      "required": true,
+      "dependsOn": []
+    },
+    "npm": {
+      "label": "npm",
+      "description": "Gestionnaire de paquets livré avec Node.",
+      "required": true,
+      "dependsOn": ["node"]
+    },
+    "npmrc": {
+      "label": "Configuration npm (.npmrc)",
+      "description": "Registre, proxy et certificats fusionnés clé par clé dans %USERPROFILE%\\.npmrc, puis test « npm ping ».",
+      "required": true,
+      "dependsOn": ["npm"]
+    },
+    "git": {
+      "label": "Git",
+      "description": "Gestion de versions du projet de test (installé par winget si disponible).",
+      "required": false,
+      "dependsOn": []
+    },
+    "workspace": {
+      "label": "Projet de test",
+      "description": "package.json et scripts test:e2e / test:bdd / test:perf, .gitignore, dossiers tests et k6, playwright.config.ts.",
+      "required": true,
+      "dependsOn": []
+    },
+    "npm-playwright": {
+      "label": "Paquets Playwright",
+      "description": "@playwright/test (version épinglée) et dotenv.",
+      "required": true,
+      "dependsOn": ["npm", "npmrc", "workspace"],
+      "packages": [
+        { "name": "@playwright/test", "version": "{playwright}" },
+        { "name": "dotenv", "version": "{dotenv}" }
+      ]
+    },
+    "npm-gherkin": {
+      "label": "Paquets Gherkin",
+      "description": "playwright-bdd : génère les tests Playwright à partir des fichiers .feature.",
+      "required": true,
+      "dependsOn": ["npm-playwright"],
+      "packages": [
+        { "name": "playwright-bdd", "version": "{playwrightBdd}" }
+      ]
+    },
+    "npm-k6": {
+      "label": "Types k6",
+      "description": "@types/k6 : autocomplétion des scripts k6 dans l'éditeur.",
+      "required": false,
+      "dependsOn": ["npm", "npmrc", "workspace"],
+      "packages": [
+        { "name": "@types/k6", "version": "{typesK6}" }
+      ]
+    },
+    "playwright-browsers": {
+      "label": "Navigateurs Playwright",
+      "description": "Navigateurs correspondant exactement à la version de Playwright installée (cache ms-playwright).",
+      "required": true,
+      "dependsOn": ["npm-playwright"]
+    },
+    "k6": {
+      "label": "k6",
+      "description": "Binaire k6 portable épinglé (somme de contrôle vérifiée), repli winget.",
+      "required": true,
+      "dependsOn": []
+    },
+    "vscode-extensions": {
+      "label": "Extensions VS Code",
+      "description": "Extensions utiles aux stacks choisies (si la commande « code » est disponible).",
+      "required": false,
+      "dependsOn": []
+    },
+    "copilot-cli": {
+      "label": "GitHub Copilot CLI",
+      "description": "Commande « copilot » (npm -g @github/copilot) utilisée par l'assistant IA.",
+      "required": false,
+      "dependsOn": ["npm", "npmrc"]
+    },
+    "python": {
+      "label": "Python",
+      "description": "Détection seule : utile aux scripts de documentation.",
+      "required": false,
+      "dependsOn": []
+    },
+    "java": {
+      "label": "Java",
+      "description": "Détection seule : utile à certains outils (Allure, JMeter…).",
+      "required": false,
+      "dependsOn": []
+    }
+  }
+}

@@ -1,6 +1,11 @@
+/**
+ * Arborescence Tribu → Produit → Solution → Campagnes (écran V2 « Scénarios k6 »).
+ * Chaque profil est lu une seule fois ; seules les exécutions réelles sont comptées
+ * (les entrées « configured » postées après un apply sont ignorées).
+ */
 import fs from 'fs'
 import path from 'path'
-import { CONF_DIR, REPO_ROOT } from './paths.mjs'
+import { REPO_ROOT } from './paths.mjs'
 import { listK6Profiles, getK6Profile } from './k6-profiles.mjs'
 import { listK6RunHistory } from './k6-run-history.mjs'
 import { getK6OnboardingContext } from './k6-onboarding-context.mjs'
@@ -12,8 +17,7 @@ function normalizeSolutionCode(code) {
 
 function detectSourceType(folderPath) {
   if (!folderPath) return 'FOLDER'
-  const gitDir = path.join(folderPath, '.git')
-  return fs.existsSync(gitDir) ? 'GIT' : 'FOLDER'
+  return fs.existsSync(path.join(folderPath, '.git')) ? 'GIT' : 'FOLDER'
 }
 
 function profileSolutionCode(full, ctx) {
@@ -34,38 +38,16 @@ function buildSolutionSeed(code, ctx, profileMeta = {}) {
   }
 }
 
-function collectSolutionSeeds(ctx, profiles) {
-  const map = new Map()
-
-  for (const p of profiles) {
-    const full = getK6Profile(p.id)
-    if (!full) continue
-    const code = profileSolutionCode(full, ctx)
-    if (!code) continue
-    if (!map.has(code)) {
-      map.set(code, buildSolutionSeed(code, ctx, full.meta || {}))
-    }
-  }
-
-  return [...map.values()].sort((a, b) => a.solutionCode.localeCompare(b.solutionCode, 'fr'))
-}
-
-function aggregateRuns(runs, profileId) {
-  const related = runs.filter((r) => r.profileId === profileId)
-  if (!related.length) {
-    return { runCount: 0, lastRunAt: null, avgDurationMs: null }
-  }
-  const durations = related
+function averageDuration(runs) {
+  const durations = runs
     .map((r) => Number(r.summary?.durationMs))
     .filter((n) => Number.isFinite(n) && n > 0)
-  const avgDurationMs = durations.length
-    ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-    : null
-  return {
-    runCount: related.length,
-    lastRunAt: related[0]?.runAt || null,
-    avgDurationMs,
-  }
+  return durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : null
+}
+
+function aggregateRuns(runs) {
+  if (!runs.length) return { runCount: 0, lastRunAt: null, avgDurationMs: null }
+  return { runCount: runs.length, lastRunAt: runs[0]?.runAt || null, avgDurationMs: averageDuration(runs) }
 }
 
 function formatDuration(ms) {
@@ -80,7 +62,7 @@ function formatDuration(ms) {
 function buildCampaignEntry(p, full, runs, ctx) {
   const ans = full?.answers || {}
   const meta = full?.meta || {}
-  const stats = aggregateRuns(runs, p.id)
+  const stats = aggregateRuns(runs)
   const folderPath = meta.folderPath || ans.folderPath || ''
   return {
     id: p.id,
@@ -105,67 +87,50 @@ export function buildK6CampaignTree() {
   const productLabel = ctx.applicationLabel || 'Application non renseignée'
 
   const profiles = listK6Profiles()
-  const runs = listK6RunHistory({ limit: 500 })
-  const solutions = collectSolutionSeeds(ctx, profiles)
+  const fullById = new Map(profiles.map((p) => [p.id, getK6Profile(p.id)]).filter(([, full]) => full))
+  const runs = listK6RunHistory({ limit: 500, executedOnly: true })
+  const runsByProfile = new Map()
+  for (const r of runs) {
+    if (!runsByProfile.has(r.profileId)) runsByProfile.set(r.profileId, [])
+    runsByProfile.get(r.profileId).push(r)
+  }
 
   const campaignsBySolution = new Map()
+  const seeds = new Map()
   const orphanCampaigns = []
-
   for (const p of profiles) {
-    const full = getK6Profile(p.id)
+    const full = fullById.get(p.id)
     if (!full) continue
     const code = profileSolutionCode(full, ctx)
-    const entry = buildCampaignEntry(p, full, runs, ctx)
+    const entry = buildCampaignEntry(p, full, runsByProfile.get(p.id) || [], ctx)
     if (!code) {
       orphanCampaigns.push(entry)
       continue
     }
+    if (!seeds.has(code)) seeds.set(code, buildSolutionSeed(code, ctx, full.meta || {}))
     if (!campaignsBySolution.has(code)) campaignsBySolution.set(code, [])
     campaignsBySolution.get(code).push(entry)
   }
 
-  for (const [code, list] of campaignsBySolution) {
-    list.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
-    if (!solutions.find((s) => s.solutionCode === code)) {
-      solutions.push(buildSolutionSeed(code, ctx, getK6Profile(list[0]?.id)?.meta || {}))
-    }
-  }
-  solutions.sort((a, b) => a.solutionCode.localeCompare(b.solutionCode, 'fr'))
-
-  const solutionNodes = solutions.map((sol) => {
-    const campaigns = campaignsBySolution.get(sol.solutionCode) || []
-    const solRuns = runs.filter((r) => {
-      const prof = profiles.find((p) => p.id === r.profileId)
-      if (!prof) return false
-      const full = getK6Profile(prof.id)
-      return profileSolutionCode(full, ctx) === sol.solutionCode
+  const solutionNodes = [...seeds.values()]
+    .sort((a, b) => a.solutionCode.localeCompare(b.solutionCode, 'fr'))
+    .map((sol) => {
+      const campaigns = (campaignsBySolution.get(sol.solutionCode) || [])
+        .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
+      const solRuns = campaigns.flatMap((c) => runsByProfile.get(c.id) || [])
+        .sort((a, b) => String(b.runAt).localeCompare(String(a.runAt)))
+      const avg = averageDuration(solRuns)
+      return {
+        ...sol,
+        campaigns,
+        runCount: solRuns.length,
+        lastRunAt: solRuns[0]?.runAt || null,
+        avgDurationMs: avg,
+        avgDurationLabel: formatDuration(avg),
+      }
     })
 
-    const lastRunAt = solRuns[0]?.runAt || null
-    const durations = solRuns
-      .map((r) => Number(r.summary?.durationMs))
-      .filter((n) => Number.isFinite(n) && n > 0)
-
-    return {
-      ...sol,
-      folderPath: sol.folderPath || sol.relativePath || '',
-      relativePath: sol.relativePath || sol.folderPath || '',
-      sourceType: sol.sourceType || detectSourceType(sol.folderPath),
-      campaigns,
-      runCount: solRuns.length,
-      lastRunAt,
-      avgDurationMs: durations.length
-        ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-        : null,
-      avgDurationLabel: formatDuration(
-        durations.length
-          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-          : null,
-      ),
-    }
-  }).filter((sol) => sol.campaigns.length > 0)
-
-  const allCampaigns = [...campaignsBySolution.values()].flat()
+  const allCampaigns = solutionNodes.flatMap((s) => s.campaigns)
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
 
   const productNode = {
@@ -190,7 +155,9 @@ export function buildK6CampaignTree() {
   }
 
   if (orphanCampaigns.length) {
-    productNode.campaigns = [...(productNode.campaigns || []), ...orphanCampaigns]
+    const orphanRuns = orphanCampaigns.flatMap((c) => runsByProfile.get(c.id) || [])
+    const avg = averageDuration(orphanRuns)
+    productNode.campaigns = [...productNode.campaigns, ...orphanCampaigns]
     productNode.solutions.push({
       solutionCode: '—',
       label: 'Sans code solution',
@@ -199,16 +166,14 @@ export function buildK6CampaignTree() {
       sourceType: detectSourceType(ctx.gitRepository),
       productCode: ctx.productCode,
       campaigns: orphanCampaigns,
-      runCount: 0,
-      lastRunAt: null,
-      avgDurationMs: null,
-      avgDurationLabel: '—',
+      runCount: orphanRuns.length,
+      lastRunAt: orphanRuns.sort((a, b) => String(b.runAt).localeCompare(String(a.runAt)))[0]?.runAt || null,
+      avgDurationMs: avg,
+      avgDurationLabel: formatDuration(avg),
     })
     productNode.solutionCount = productNode.solutions.length
     productNode.campaignCount = productNode.campaigns.length
-    if (!tree.tribu.products.length) {
-      tree.tribu.products = [productNode]
-    }
+    if (!tree.tribu.products.length) tree.tribu.products = [productNode]
   }
 
   return tree

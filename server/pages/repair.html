@@ -3,20 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wizard QA Assistant · Environnement Node / Cypress</title>
+  <title>Poste sans accès Internet — Wizard QA</title>
+  <link rel="icon" href="/assets/logo-qa.png" />
   <link rel="stylesheet" href="/assets/theme.css" />
 </head>
 <body class="page-repair">
   <div class="wrap">
-    <header class="site-header site-header-compact">
-      <div class="logo"><img src="/assets/logo-cats.png" alt="CATS" /></div>
-      <div class="title">
-        <h1>Environnement Node / Cypress</h1>
-        <p>Réparation offline · <code>repair.conf.json</code></p>
-      </div>
-      <p class="tribu-label tribu-label-sm tribu-label-header">TRIBU IT pour CA-TS</p>
-    </header>
-    <nav class="breadcrumb"><a href="/">Accueil</a> › Pré-configuration</nav>
+    <div class="hub-hero">
+      <p class="hub-hero-lead">Réparation hors ligne de l'environnement Node / Cypress à partir d'un paquet portable (<code>vendor/node</code>), piloté par <code>repair.conf.json</code>.</p>
+    </div>
+    <!-- Point d'ancrage de la barre « Configuration wizard » (Portail.injectToolbar) : le fil d'Ariane est masqué, le shell le remplace. -->
+    <nav class="breadcrumb" aria-hidden="true"></nav>
 
     <div class="page-status-bar">
       <div class="page-status-main">
@@ -442,8 +439,9 @@
     }
 
     function linkifyUrl(text, url) {
-      if (!url || url.startsWith('(')) return `<span class="vendor-link-plain">${text || url || '—'}</span>`
-      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      // Seules les adresses http(s) deviennent des liens (ni javascript:, ni data:…).
+      if (!url || !/^https?:\/\//i.test(url)) return `<span class="vendor-link-plain">${esc(text || url || '—')}</span>`
       const full = text || url
       const short = full.length > 52 ? `${full.slice(0, 49)}…` : full
       return `<a class="vendor-ext-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(full)}">${esc(short)}</a>`
@@ -530,7 +528,7 @@
       })
     })
 
-    ['node', 'npm', 'cypressVersion'].forEach(id => {
+    ;['node', 'npm', 'cypressVersion'].forEach(id => {
       $(id)?.addEventListener('change', refreshVendorPanel)
     })
 

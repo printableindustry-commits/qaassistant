@@ -1,0 +1,65 @@
+/*
+ * Réglages — compléments de mise en page (jetons --p-* uniquement).
+ */
+
+.rg-panel { display: flex; flex-direction: column; gap: 16px; }
+
+/* Identité */
+.rg-identity { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.rg-identity .p-avatar { width: 52px; height: 52px; font-size: 18px; flex: none; }
+.rg-identity-name { font-family: var(--p-font-display); font-size: 16px; font-weight: 700; line-height: 1.25; }
+.rg-identity-sub { color: var(--p-text-3); font-size: 12px; margin-top: 2px; }
+.rg-identity .p-row { margin-top: 6px; gap: 6px; }
+
+/* Mot de passe */
+.rg-form { display: flex; flex-direction: column; gap: 12px; }
+.rg-pwd { position: relative; }
+.rg-pwd .p-input { padding-right: 40px; }
+.rg-pwd .p-icon-btn { position: absolute; right: 2px; top: 1px; }
+.rg-strength { display: flex; align-items: center; gap: 10px; }
+.rg-strength .p-meter { flex: 1; }
+.rg-strength-label { font-size: 11.5px; font-weight: 700; color: var(--p-text-3); min-width: 72px; text-align: right; }
+.rg-rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--p-text-3); }
+.rg-rules li { display: flex; align-items: center; gap: 6px; }
+.rg-rules svg { width: 14px; height: 14px; stroke: var(--p-line-strong); }
+.rg-rules li.ok { color: var(--p-green-2); }
+.rg-rules li.ok svg { stroke: var(--p-green-2); }
+
+/* Utilisateurs */
+.rg-user-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rg-user-cell .p-avatar { width: 28px; height: 28px; font-size: 11px; flex: none; }
+.rg-user-name { font-weight: 700; }
+.rg-user-id { color: var(--p-text-3); font-size: 11.5px; font-family: var(--p-font-mono); }
+.rg-actions { text-align: right; white-space: nowrap; }
+.rg-generated { display: flex; align-items: center; gap: 8px; }
+.rg-generated code { flex: 1; font-family: var(--p-font-mono); font-size: 13px; padding: 6px 10px; border-radius: var(--p-radius-xs); background: var(--p-surface-soft); border: 1px solid var(--p-line); overflow-wrap: anywhere; }
+
+/* Configuration */
+.rg-path { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rg-path code { font-family: var(--p-font-mono); font-size: 12px; overflow-wrap: anywhere; }
+.rg-path .p-icon-btn { width: 26px; height: 26px; flex: none; }
+.rg-path .p-icon-btn svg { width: 14px; height: 14px; }
+.rg-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px;
+  border: 1.5px dashed var(--p-line-strong);
+  border-radius: var(--p-radius);
+  background: var(--p-surface-soft);
+  color: var(--p-text-2);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.rg-drop:hover, .rg-drop.is-over { border-color: var(--p-green-2); background: var(--p-mint-2); }
+.rg-drop svg { width: 24px; height: 24px; stroke: var(--p-green); }
+.rg-drop strong { color: var(--p-text); }
+.rg-file-role { color: var(--p-text-2); font-size: 12px; max-width: 420px; }
+.rg-written { margin: 6px 0 0; padding-left: 18px; }
+
+/* À propos */
+.rg-about-head { display: flex; align-items: center; gap: 14px; }
+.rg-about-head img { width: 48px; height: 48px; }
+.rg-list { margin: 0; padding-left: 18px; color: var(--p-text-2); display: flex; flex-direction: column; gap: 4px; }

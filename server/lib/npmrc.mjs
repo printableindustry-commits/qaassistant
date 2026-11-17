@@ -60,6 +60,20 @@ export function emptyFields() {
   }
 }
 
+/**
+ * Préfixe d'authentification du registre : le jeton n'est jamais envoyé à un autre hôte que celui du registre.
+ * Le préfixe historique CAGIP est conservé pour ce registre.
+ */
+export function authPrefixFor(registry) {
+  try {
+    const u = new URL(registry || DEFAULT_REGISTRY)
+    if (u.host === new URL(DEFAULT_REGISTRY).host) return DEFAULT_AUTH_PREFIX
+    return `//${u.host}${u.pathname.endsWith('/') ? u.pathname : `${u.pathname}/`}:_authToken=`
+  } catch {
+    return DEFAULT_AUTH_PREFIX
+  }
+}
+
 function appendOptionalLines(lines, fields, keys) {
   for (const key of keys) {
     const val = String(fields[key] ?? '').trim()
@@ -77,7 +91,7 @@ export function buildNpmrc(fields, { bare = false, exact = false } = {}) {
     `registry=${registry}`,
   ]
   if (useExact || fields.authToken || registry) {
-    lines.push(`${DEFAULT_AUTH_PREFIX}${fields.authToken || ''}`)
+    lines.push(`${authPrefixFor(registry)}${fields.authToken || ''}`)
   }
   if (useExact || fields.SASS_BINARY_SITE || !useExact) {
     lines.push(`SASS_BINARY_SITE=${sass}`)
@@ -162,4 +176,61 @@ export function readEmptyTemplate() {
 
 export function writeEmptyNpmrc() {
   return writeNpmrc(emptyFields(), { bare: true })
+}
+
+/** Toutes les paires clé=valeur d'un .npmrc (commentaires ignorés). */
+export function readNpmrcValues(content) {
+  const values = {}
+  for (const line of String(content || '').replace(/^\uFEFF/, '').split(/\r?\n/)) {
+    const t = line.trim()
+    if (!t || t.startsWith('#') || t.startsWith(';')) continue
+    const eq = t.indexOf('=')
+    if (eq > 0) values[t.slice(0, eq).trim()] = t.slice(eq + 1).trim()
+  }
+  return values
+}
+
+/**
+ * Fusionne des clés dans %USERPROFILE%\.npmrc sans toucher aux autres lignes
+ * (jetons, @scope:registry, cafile… sont conservés). Une valeur null supprime la clé.
+ * Sauvegarde l'ancien fichier (.npmrc.wizard-backup) avant toute modification ; écriture atomique.
+ * Renvoie { path, changed: string[], backup }.
+ */
+export function mergeNpmrcValues(updates, { dryRun = false } = {}) {
+  const npmrcPath = getNpmrcPath()
+  const before = fs.existsSync(npmrcPath) ? fs.readFileSync(npmrcPath, 'utf8') : ''
+  const lines = before ? before.replace(/^\uFEFF/, '').split(/\r?\n/) : []
+  const changed = []
+  for (const [key, raw] of Object.entries(updates)) {
+    if (!/^[^\s=#;]+$/.test(key)) throw new Error(`Clé .npmrc invalide : ${key}`)
+    // Une valeur sur plusieurs lignes injecterait d'autres clés : on ne garde que la première ligne.
+    const value = raw == null ? null : String(raw).split(/[\r\n]/)[0].trim()
+    const idx = lines.findIndex((l) => {
+      const t = l.trim()
+      const eq = t.indexOf('=')
+      return eq > 0 && !t.startsWith('#') && !t.startsWith(';') && t.slice(0, eq).trim() === key
+    })
+    if (value === null) {
+      if (idx >= 0) { lines.splice(idx, 1); changed.push(key) }
+      continue
+    }
+    const line = `${key}=${value}`
+    if (idx >= 0) {
+      if (lines[idx].trim() !== line) { lines[idx] = line; changed.push(key) }
+    } else {
+      while (lines.length && !lines[lines.length - 1].trim()) lines.pop()
+      lines.push(line)
+      changed.push(key)
+    }
+  }
+  if (!changed.length || dryRun) return { path: npmrcPath, changed, backup: null }
+  let backup = null
+  if (before) {
+    backup = `${npmrcPath}.wizard-backup`
+    fs.writeFileSync(backup, before, { encoding: 'utf8', mode: 0o600 })
+  }
+  const tmp = `${npmrcPath}.${process.pid}.tmp`
+  fs.writeFileSync(tmp, `${lines.join('\n').replace(/\n+$/, '')}\n`, { encoding: 'utf8', mode: 0o600 })
+  fs.renameSync(tmp, npmrcPath)
+  return { path: npmrcPath, changed, backup }
 }

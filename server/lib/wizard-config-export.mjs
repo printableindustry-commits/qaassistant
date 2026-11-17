@@ -71,7 +71,8 @@ function writeDocQaPromptArchive(promptFiles = {}) {
   if (!promptFiles || typeof promptFiles !== 'object') return written
   fs.mkdirSync(DOC_QA_PROMPTS_DIR, { recursive: true })
   for (const [name, content] of Object.entries(promptFiles)) {
-    if (!name.endsWith('.md') || content == null || content === '') continue
+    // Nom de fichier simple uniquement : pas de chemin (../) ni de fichier caché.
+    if (!/^[\w-][\w.-]*\.md$/.test(name) || content == null || content === '') continue
     const text = String(content).endsWith('\n') ? String(content) : `${String(content)}\n`
     fs.writeFileSync(path.join(DOC_QA_PROMPTS_DIR, name), text, 'utf8')
     written.push(`.wizard-qa/doc-qa-prompts/${name}`)

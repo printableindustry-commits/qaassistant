@@ -1,0 +1,101 @@
+/* Récits et Gherkin — compléments de mise en page (jetons --p-* uniquement). */
+
+.rc-layout { align-items: start; }
+
+/* Liste maître */
+.rc-list-card .p-card-body { padding: 0; }
+.rc-list { max-height: calc(100vh - 300px); min-height: 240px; overflow-y: auto; }
+.rc-list .p-list-group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--p-surface-soft);
+  border-bottom: 1px solid var(--p-line-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--p-text-3);
+}
+.rc-item-top { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.rc-item-key { font-family: var(--p-font-mono); font-size: 11.5px; color: var(--p-text-2); }
+.rc-item-top .p-badge { margin-left: auto; }
+.rc-item-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Détail */
+.rc-detail { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.rc-head-title { margin: 2px 0 6px; font-family: var(--p-font-display); font-size: 17px; font-weight: 700; color: var(--p-text); }
+.rc-head-key { font-family: var(--p-font-mono); font-size: 12px; color: var(--p-text-2); }
+.rc-stepper .p-card-body { padding: 8px 12px; overflow-x: auto; }
+
+.rc-description { white-space: pre-wrap; font-size: 12.5px; line-height: 1.55; max-height: 280px; overflow: auto; margin: 0; color: var(--p-text); }
+.rc-criteria { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; line-height: 1.5; }
+.rc-criteria li { white-space: pre-wrap; }
+.rc-criteria li::marker { color: var(--p-green); font-weight: 700; }
+.rc-related { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--p-text-2); }
+
+/* Éditeur Gherkin */
+.rc-editor-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.rc-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.rc-editor.mode-edit, .rc-editor.mode-preview { grid-template-columns: minmax(0, 1fr); }
+.rc-editor.mode-edit .rc-preview, .rc-editor.mode-preview .rc-source { display: none; }
+@media (max-width: 1300px) { .rc-editor { grid-template-columns: minmax(0, 1fr); } }
+.rc-source {
+  min-height: 440px;
+  font-family: var(--p-font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+.rc-preview { min-height: 440px; max-height: 640px; font-size: 12.5px; line-height: 1.55; margin: 0; }
+
+.rc-problems { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.rc-problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--p-line-soft);
+  border-radius: var(--p-radius-xs);
+  background: var(--p-surface);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--p-text);
+  cursor: pointer;
+}
+.rc-problem:hover { border-color: var(--p-line-strong); background: var(--p-surface-hover); }
+.rc-problem svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+.rc-problem.error svg { stroke: var(--p-red); }
+.rc-problem.warning svg { stroke: var(--p-amber); }
+.rc-problem.info svg { stroke: var(--p-blue); }
+.rc-problem-line { font-family: var(--p-font-mono); font-size: 11px; color: var(--p-text-3); flex: none; min-width: 52px; }
+
+.rc-outline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rc-outline .p-chip { max-width: 100%; }
+.rc-outline .p-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; }
+
+.rc-ai { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--p-text-2); }
+.rc-ai svg { width: 15px; height: 15px; stroke: var(--p-green); }
+.rc-ai a { color: var(--p-green); }
+
+/* Lot */
+.rc-batch-log { margin-top: 10px; max-height: 200px; overflow: auto; display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.rc-batch-row { display: flex; align-items: center; gap: 8px; }
+.rc-batch-row .rc-item-key { min-width: 92px; }
+
+/* Mode manuel */
+.rc-manual-step { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.rc-manual-step .p-textarea { font-family: var(--p-font-mono); font-size: 12px; }
+.rc-manual-error { margin-top: 10px; }
+
+.rc-export-list { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; }
+.rc-export-list code { font-family: var(--p-font-mono); font-size: 12px; }
