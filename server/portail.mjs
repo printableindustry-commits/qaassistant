@@ -185,10 +185,12 @@ import * as perfRoutes from './lib/perf/routes.mjs'
 import * as exploreRoutes from './lib/explore/routes.mjs'
 import * as xrayRoutes from './lib/xray/routes.mjs'
 import * as livrablesRoutes from './lib/livrables/routes.mjs'
+import * as demoRoutes from './lib/demo/routes.mjs'
+import * as demoTourRoutes from './lib/demo/tour-routes.mjs'
 
 // Modules V3 (Prisme) : chacun déclare ses routes dans son routes.mjs.
 const router = createRouter()
-for (const mod of [authRoutes, dashboardRoutes, installRoutes, jiraRoutes, gherkinRoutes, llmRoutes, perfRoutes, exploreRoutes, xrayRoutes, livrablesRoutes]) {
+for (const mod of [authRoutes, dashboardRoutes, installRoutes, jiraRoutes, gherkinRoutes, llmRoutes, perfRoutes, exploreRoutes, xrayRoutes, livrablesRoutes, demoRoutes, demoTourRoutes]) {
   mod.register(router)
 }
 

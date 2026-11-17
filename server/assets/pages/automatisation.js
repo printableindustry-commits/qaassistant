@@ -271,7 +271,8 @@
           goPanel(5)
         }
       },
-      error: (d) => P.toast(d.message || 'Erreur pendant l’exploration.', 'error', 8000),
+      // d absent : coupure du flux (changement de page), pas une erreur d'exploration
+      error: (d) => { if (d !== undefined) P.toast(d?.message || 'Erreur pendant l’exploration.', 'error', 8000) },
     })
   }
 

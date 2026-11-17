@@ -1,0 +1,130 @@
+{
+  "titre": "Visite Wizard QA",
+  "etapes": [
+    {
+      "id": "pilotage", "page": "/", "cible": ".home-hello, .p-kpis", "secondes": 16,
+      "titre": "Pilotage",
+      "texte": "Le point d’entrée : où en est la campagne de test, en un coup d’œil."
+    },
+    {
+      "id": "pilotage-kpi", "page": "/", "cible": ".p-kpis", "secondes": 16,
+      "titre": "Indicateurs clés",
+      "texte": "Poste de test, récits scannés, points à clarifier et couverture Gherkin."
+    },
+    {
+      "id": "parcours", "page": "/", "cible": ".home-journey, .p-stepper", "secondes": 16,
+      "titre": "Parcours QA",
+      "texte": "Du poste installé aux tests reliés à Xray : chaque étape et son état."
+    },
+    {
+      "id": "url-jira", "page": "/connaissance.html#scan", "cible": "input[type=url], .kn-url-info, .kn-choice", "secondes": 18,
+      "titre": "Une URL JIRA suffit",
+      "texte": "Collez l’adresse d’un tableau ou d’un ticket : instance et projet sont déduits."
+    },
+    {
+      "id": "synthese", "page": "/connaissance.html#synthese", "cible": ".p-kpis", "secondes": 16,
+      "titre": "Synthèse du scan",
+      "texte": "Récits, critères d’acceptation extraits, points à clarifier et épopées."
+    },
+    {
+      "id": "clarifier", "page": "/connaissance.html#synthese", "cible": ".kn-issue", "secondes": 16,
+      "titre": "À clarifier avec le PO",
+      "texte": "Récits sans critère, cas d’erreur absents : les questions sont prêtes."
+    },
+    {
+      "id": "recits-tri", "page": "/recits.html", "cible": ".rc-tabs, .rc-bulk", "secondes": 16,
+      "titre": "Tri des récits",
+      "texte": "À automatiser, plus tard ou ignoré : chaque récit reçoit une décision."
+    },
+    {
+      "id": "recits-suggestions", "page": "/recits.html", "cible": ".rc-decision-card, .rc-decide", "secondes": 16,
+      "titre": "Suggestions motivées",
+      "texte": "L’assistant propose un tri et explique pourquoi ; vous gardez la décision."
+    },
+    {
+      "id": "gherkin", "page": "/recits.html?key=P0326-9301", "cible": ".rc-detail .p-card:has(.rc-editor-bar), .rc-detail .p-card:has(.p-empty)", "secondes": 20,
+      "titre": "Scénarios Gherkin",
+      "texte": "Générés depuis les critères d’acceptation, relus puis validés par le testeur."
+    },
+    {
+      "id": "auto-plan", "page": "/automatisation.html?key=P0326-9301", "action": { "clic": "Expliquer le test" }, "cible": ".au-plan-sc, .au-plan, .au-chat, .p-stepper", "secondes": 20,
+      "titre": "Plan de test IA",
+      "texte": "L’IA déduit les étapes du Gherkin ; le plan reste modifiable avant l’exploration."
+    },
+    {
+      "id": "auto-exploration", "page": "/automatisation.html?key=P0326-9301", "action": { "clic": "Exploration" }, "cible": ".au-grid-explore, .au-shot, .au-steps, .p-stepper", "secondes": 20,
+      "titre": "Exploration",
+      "texte": "L’agent ouvre l’application, trouve les sélecteurs et capture chaque écran."
+    },
+    {
+      "id": "prise-de-main", "page": "/automatisation.html?key=P0326-9310", "action": { "clic": "Exploration" }, "cible": "button", "texteCible": "Prendre la main", "secondes": 18,
+      "titre": "Prenez la main",
+      "texte": "Si l’IA bloque, vous montrez le geste : il est enregistré dans le test."
+    },
+    {
+      "id": "auto-test", "page": "/automatisation.html?key=P0326-9301", "action": { "clic": "Test généré" }, "cible": ".au-panel, .p-code, .p-stepper", "secondes": 20,
+      "titre": "Test Playwright généré",
+      "texte": "Étapes lisibles et code Playwright, éditables avant la validation."
+    },
+    {
+      "id": "auto-rejeu", "page": "/automatisation.html?key=P0326-9301", "action": { "clic": "Test généré" }, "cible": "button", "texteCible": "Rejouer", "secondes": 14,
+      "titre": "Rejeu",
+      "texte": "Le test est rejoué tel quel avant d’être validé : pas de test fragile en base."
+    },
+    {
+      "id": "xray", "page": "/automatisation.html?key=P0326-9301", "action": [{ "clic": "Envoyer dans JIRA" }, { "clic": "Envoyer dans JIRA / Xray", "attente": 1200 }], "cible": ".p-modal:has(.xp-root), .xp-root, .p-modal", "secondes": 20,
+      "titre": "Envoi vers Xray",
+      "texte": "Un ticket Test relié au récit et au plan de test, aperçu avant tout envoi."
+    },
+    {
+      "id": "livrables-campagne", "page": "/livrables.html", "cible": ".lv-camp-sum, .lv-camp-actions", "secondes": 18,
+      "titre": "Campagne d’exécution",
+      "texte": "Les résultats des campagnes nourrissent directement les livrables."
+    },
+    {
+      "id": "livrables-documents", "page": "/livrables.html", "cible": ".lv-doclist", "secondes": 18,
+      "titre": "Documents ISTQB",
+      "texte": "Politique, stratégie, plan, rapports : la structure ISO/IEC/IEEE 29119-3."
+    },
+    {
+      "id": "livrables-relecture", "page": "/livrables.html", "cible": ".lv-dochead-actions", "secondes": 18,
+      "titre": "Relire et approuver",
+      "texte": "Chaque document est généré, relu par l’agent puis approuvé par un humain."
+    },
+    {
+      "id": "livrables-word", "page": "/livrables.html", "cible": ".lv-export", "secondes": 14,
+      "titre": "Export Word",
+      "texte": "Export .docx au modèle de l’entreprise, prêt à diffuser."
+    },
+    {
+      "id": "perf", "page": "/perf.html", "cible": ".p-kpis, .perf-panel", "secondes": 18,
+      "titre": "Performance k6",
+      "texte": "Profils de charge, runs et seuils : la performance suit les exigences des récits."
+    },
+    {
+      "id": "perf-runs", "page": "/perf.html", "action": { "clic": "Runs" }, "cible": ".perf-charts, .perf-table-wrap, .perf-panel", "secondes": 16,
+      "titre": "Historique des runs",
+      "texte": "Temps de réponse p95, débit et erreurs de chaque run, comparables."
+    },
+    {
+      "id": "installation", "page": "/installation.html", "cible": ".inst-stacks, .p-kpis", "secondes": 16,
+      "titre": "Installation du poste",
+      "texte": "Node, Playwright, k6 : tout le poste QA s’installe en une fois."
+    },
+    {
+      "id": "ia", "page": "/ia.html", "action": { "clic": "Brancher Copilot local" }, "cible": ".ia-steps, .ia-panel", "secondes": 18,
+      "titre": "Assistant IA",
+      "texte": "Copilot local via VS Code, ou un autre fournisseur : sans clé exposée."
+    },
+    {
+      "id": "reglages", "page": "/reglages.html", "cible": ".p-tabs, .rg-panel", "secondes": 14,
+      "titre": "Réglages",
+      "texte": "Comptes de l’équipe, connexion JIRA / Xray et configuration du poste."
+    },
+    {
+      "id": "fin", "page": "/", "cible": ".p-tour-launch", "voile": false, "secondes": 10,
+      "titre": "À vous de jouer",
+      "texte": "Relancez la visite à tout moment depuis ce bouton ou la palette Ctrl K."
+    }
+  ]
+}

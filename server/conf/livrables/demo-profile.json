@@ -2,7 +2,8 @@
   "version": 1,
   "description": "Profil de démonstration IRMA (organisation, personnes et dates fictives).",
   "values": {
-    "organisme": "Direction des Risques — Équipe produit IRMA (organisation fictive de démonstration)",
+    "organisme": "Banque Horizon — Direction des Risques, Squad Qualité Risques (organisme fictif de démonstration)",
+    "equipe": "Squad Qualité Risques",
     "produit": "IRMA — Analyse des Risques Métier",
     "versionProduit": "2.4 (release T1)",
     "contexteReglementaire": "IRMA sert au pilotage des risques opérationnels d'un établissement financier. Le produit contribue au dispositif de contrôle interne (traçabilité des cotations, piste d'audit, séparation des rôles Analyste / Valideur), traite des données nominatives d'agents (RGPD : minimisation, durée de conservation, habilitations) et doit respecter le référentiel d'accessibilité RGAA 4.1 pour ses écrans. Les restitutions présentées au comité des risques doivent être exactes et reproductibles.",
@@ -13,16 +14,16 @@
     "archivageTest": "Livrables versionnés et approuvés dans Wizard QA, scripts Playwright dans le dépôt de code, tests et exécutions dans Xray. Conservation alignée sur la piste d'audit du contrôle interne ; les suites de non-régression sont réutilisées à chaque version.",
     "ameliorationProcessus": "Les enseignements de chaque rapport de clôture sont revus avec le PO et l'équipe de développement ; les actions d'amélioration sont suivies dans JIRA. La politique est revue chaque année par le responsable des tests et approuvée par le valideur.",
     "partiesPrenantes": [
-      { "role": "Product Owner", "nom": "PO IRMA", "responsabilite": "Priorise les récits, valide les critères d'acceptation" },
-      { "role": "Responsable des tests", "nom": "QA Lead IRMA", "responsabilite": "Stratégie, plan, rapports, décision de sortie" },
-      { "role": "Testeurs", "nom": "Équipe QA IRMA", "responsabilite": "Conception, automatisation, exécution, anomalies" },
+      { "role": "Product Owner", "nom": "Claire FONTAINE (PO IRMA)", "responsabilite": "Priorise les récits, valide les critères d'acceptation" },
+      { "role": "Responsable des tests", "nom": "VERGER Rémy (QA Lead IRMA)", "responsabilite": "Stratégie, plan, rapports, décision de sortie" },
+      { "role": "Testeurs", "nom": "Inès CARON, Mathis BLANC (Squad Qualité Risques)", "responsabilite": "Conception, automatisation, exécution, anomalies" },
       { "role": "Développeurs", "nom": "Équipe de développement IRMA", "responsabilite": "Correction des anomalies, tests de composants" },
-      { "role": "Métier", "nom": "Représentant Direction des Risques", "responsabilite": "Recette métier, acceptation" },
-      { "role": "Valideur", "nom": "Responsable de domaine Risques", "responsabilite": "Approbation des livrables de test" }
+      { "role": "Métier", "nom": "Nadia PERRIN (Direction des Risques)", "responsabilite": "Recette métier, acceptation" },
+      { "role": "Valideur", "nom": "Olivier MERCIER (Responsable de domaine Risques)", "responsabilite": "Approbation des livrables de test" }
     ],
-    "responsableTest": "QA Lead IRMA",
-    "testeurs": ["Testeur QA 1", "Testeur QA 2"],
-    "valideur": "Responsable de domaine Risques",
+    "responsableTest": "VERGER Rémy",
+    "testeurs": ["Inès CARON", "Mathis BLANC"],
+    "valideur": "Olivier MERCIER",
     "dansPerimetre": [
       "Accès et habilitations (SSO, profils Analyste / Valideur / Administrateur)",
       "Tableau de bord des risques",

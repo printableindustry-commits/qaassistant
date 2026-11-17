@@ -31,6 +31,9 @@ où l'on crée aussi les autres comptes (rôles `admin` ou `user`).
 Sans accès JIRA, **Prise de connaissance → Scanner** propose un jeu de données de démonstration (projet IRMA)
 pour essayer toute la chaîne : scan → Gherkin → export → test de charge simulé.
 
+Pour une démonstration complète en un clic (récits triés, Gherkin, sessions d'automatisation, envois Xray, campagnes,
+runs k6 et livrables, données 100 % fictives) : **Réglages → Démonstration → Charger la démo**, voir [docs/demo/DEMO.md](docs/demo/DEMO.md).
+
 ### Variables d'environnement
 
 | Variable | Défaut | Rôle |

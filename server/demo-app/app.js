@@ -9,25 +9,25 @@
   'use strict'
 
   const COMPTES = {
-    agent: { motDePasse: 'agent-demo-2026', nom: 'Alex Martin', profil: 'Analyste' },
-    gestionnaire: { motDePasse: 'gestion-demo-2026', nom: 'Camille Dubois', profil: 'Valideur' },
+    agent: { motDePasse: 'agent-demo-2026', nom: 'Alex MARTIN', profil: 'Analyste' },
+    gestionnaire: { motDePasse: 'gestion-demo-2026', nom: 'Camille DUBOIS', profil: 'Valideur' },
   }
-  const ENTITE = 'CA-TS Paris'
+  const ENTITE = 'Horizon Paris'
   const NIVEAUX = ['Faible', 'Modéré', 'Élevé', 'Critique']
 
   const RISQUES_INITIAUX = [
-    ['RSK-001', 'Concentration des expositions sur un même groupe', 'Critique', '2026-08-12', 'Sophie Marchand', 1450000],
-    ['RSK-002', 'Défaut de contrôle des habilitations applicatives', 'Élevé', '2026-09-03', 'Karim Benali', 0],
-    ['RSK-003', 'Retard de réconciliation des comptes de passage', 'Modéré', '2026-09-18', 'Thomas Leroy', 120000],
-    ['RSK-004', 'Erreur de saisie des taux dans l’outil de cotation', 'Élevé', '2026-10-01', 'Sophie Marchand', 380000],
-    ['RSK-005', 'Indisponibilité du serveur d’import SFTP', 'Modéré', '2026-10-07', 'Thomas Leroy', 0],
-    ['RSK-006', 'Documentation de la procédure KYC incomplète', 'Faible', '2026-10-09', 'Iman Oubella', 0],
-    ['RSK-007', 'Dépassement du seuil d’alerte du portefeuille PME', 'Critique', '2026-10-15', 'Christel Rabarot', 1200000],
-    ['RSK-008', 'Double saisie des expositions mensuelles', 'Modéré', '2026-10-21', 'Karim Benali', 45000],
-    ['RSK-009', 'Absence de revue annuelle des seuils', 'Faible', '2026-10-28', 'Iman Oubella', 0],
-    ['RSK-010', 'Fichier d’expositions transmis hors délai', 'Élevé', '2026-11-02', 'Thomas Leroy', 250000],
-    ['RSK-011', 'Accès partagé à un poste de saisie', 'Faible', '2026-11-05', 'Christel Rabarot', 0],
-    ['RSK-012', 'Écart de cotation entre deux comités', 'Modéré', '2026-11-10', 'Sophie Marchand', 90000],
+    ['RSK-001', 'Concentration des expositions sur un même groupe', 'Critique', '2026-08-12', 'Léa ROUSSEL', 1450000],
+    ['RSK-002', 'Défaut de contrôle des habilitations applicatives', 'Élevé', '2026-09-03', 'Hugo LAMBERT', 0],
+    ['RSK-003', 'Retard de réconciliation des comptes de passage', 'Modéré', '2026-09-18', 'Bastien GIRARD', 120000],
+    ['RSK-004', 'Erreur de saisie des taux dans l’outil de cotation', 'Élevé', '2026-10-01', 'Léa ROUSSEL', 380000],
+    ['RSK-005', 'Indisponibilité du serveur d’import SFTP', 'Modéré', '2026-10-07', 'Bastien GIRARD', 0],
+    ['RSK-006', 'Documentation de la procédure KYC incomplète', 'Faible', '2026-10-09', 'Claire FONTAINE', 0],
+    ['RSK-007', 'Dépassement du seuil d’alerte du portefeuille PME', 'Critique', '2026-10-15', 'Nadia PERRIN', 1200000],
+    ['RSK-008', 'Double saisie des expositions mensuelles', 'Modéré', '2026-10-21', 'Hugo LAMBERT', 45000],
+    ['RSK-009', 'Absence de revue annuelle des seuils', 'Faible', '2026-10-28', 'Claire FONTAINE', 0],
+    ['RSK-010', 'Fichier d’expositions transmis hors délai', 'Élevé', '2026-11-02', 'Bastien GIRARD', 250000],
+    ['RSK-011', 'Accès partagé à un poste de saisie', 'Faible', '2026-11-05', 'Nadia PERRIN', 0],
+    ['RSK-012', 'Écart de cotation entre deux comités', 'Modéré', '2026-11-10', 'Léa ROUSSEL', 90000],
   ].map(([ref, libelle, niveau, date, porteur, montant]) => ({
     ref, libelle, niveau, date, porteur, montant, entite: ENTITE, description: '',
     cotations: [
@@ -35,9 +35,9 @@
     ],
   }))
   RISQUES_INITIAUX[0].cotations = [
-    { date: '2026-11-04', niveau: 'Critique', auteur: 'Camille Dubois', commentaire: 'Hausse des expositions constatée au comité de novembre' },
-    { date: '2026-09-30', niveau: 'Élevé', auteur: 'Sophie Marchand', commentaire: 'Nouvelles lignes de crédit accordées' },
-    { date: '2026-08-12', niveau: 'Modéré', auteur: 'Sophie Marchand', commentaire: 'Cotation initiale' },
+    { date: '2026-11-04', niveau: 'Critique', auteur: 'Camille DUBOIS', commentaire: 'Hausse des expositions constatée au comité de novembre' },
+    { date: '2026-09-30', niveau: 'Élevé', auteur: 'Léa ROUSSEL', commentaire: 'Nouvelles lignes de crédit accordées' },
+    { date: '2026-08-12', niveau: 'Modéré', auteur: 'Léa ROUSSEL', commentaire: 'Cotation initiale' },
   ]
 
   function lire(cle, defaut) {

@@ -14,7 +14,7 @@
   const P = window.Prisme
   const { h } = P
 
-  const TAB_IDS = ['compte', 'utilisateurs', 'configuration', 'jira-xray', 'a-propos']
+  const TAB_IDS = ['compte', 'utilisateurs', 'configuration', 'demo', 'jira-xray', 'a-propos']
   const ROLE_LABEL = { admin: 'Administrateur', user: 'Utilisateur' }
   const isLocalHost = ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)
 
@@ -28,6 +28,7 @@
     meta: null,
     health: null,
     xray: null,
+    demo: null,
   }
 
   let app = null
@@ -160,6 +161,7 @@
         tone: state.users?.some((u) => u.demo) ? 'amber' : '',
       })
       items.push({ id: 'configuration', label: 'Configuration', icon: 'settings', count: state.files ? state.files.length : null })
+      items.push({ id: 'demo', label: 'Démonstration', icon: 'play', tone: state.demo?.loaded ? 'amber' : '' })
     }
     items.push({ id: 'jira-xray', label: 'JIRA / Xray', icon: 'link', tone: state.xray && !state.xray.settings.configured ? 'amber' : '', count: state.xray ? state.xray.pushed.length : null })
     items.push({ id: 'a-propos', label: 'À propos', icon: 'info' })
@@ -185,6 +187,7 @@
       compte: renderAccount,
       utilisateurs: renderUsers,
       configuration: renderConfiguration,
+      demo: renderDemo,
       'jira-xray': renderXray,
       'a-propos': renderAbout,
     }[state.tab]
@@ -1041,6 +1044,84 @@
         h('div', null, h('strong', null, c.label), c.message ? h('span', null, ` — ${c.message}`) : null, c.hint ? h('div', { class: 'p-hint' }, c.hint) : null)))))
   }
 
+  // ---------------------------------------------------------------- Démonstration
+
+  const DEMO_COUNTS = [
+    ['stories', 'Récits JIRA'], ['triage', 'Récits triés'], ['gherkinValidated', 'Gherkin validés'], ['gherkinDraft', 'Gherkin brouillons'],
+    ['sessions', 'Sessions d’automatisation'], ['xray', 'Envois Xray simulés'], ['campaigns', 'Campagnes d’exécution'], ['defects', 'Anomalies'],
+    ['perfRuns', 'Runs k6'], ['livrables', 'Livrables générés'], ['livrablesReviewed', 'Relus par l’agent'], ['livrablesApproved', 'Approuvés'],
+  ]
+
+  async function loadDemoStatus() {
+    state.demo = await P.api('/api/demo/status')
+    refreshTabs()
+  }
+
+  function renderDemo() {
+    const root = h('div', { class: 'rg-panel' })
+    if (!state.demo) {
+      root.appendChild(loadingCard('Lecture de l’état de la démonstration…'))
+      loadDemoStatus().then(renderPanel, (err) => {
+        P.clear(root)
+        root.appendChild(errorBanner(err, () => renderPanel()))
+      })
+      return root
+    }
+    root.appendChild(demoCard())
+    return root
+  }
+
+  function demoCard() {
+    const d = state.demo
+    const result = h('div')
+    const loadBtn = h('button', { class: 'p-btn p-btn--primary', type: 'button', id: 'demoLoad', 'data-tour': 'demo-load' }, P.icon('play'), d.loaded ? 'Recharger la démo' : 'Charger la démo')
+    const resetBtn = h('button', { class: 'p-btn', type: 'button', id: 'demoReset', disabled: !d.loaded }, P.icon('trash'), 'Réinitialiser')
+    loadBtn.addEventListener('click', () => P.busy(loadBtn, async () => {
+      P.clear(result)
+      if (d.loaded && !(await P.confirm('Les données de démonstration actuelles seront remplacées par un jeu neuf (dates recalculées à partir de maintenant).', { title: 'Recharger la démo', okLabel: 'Recharger' }))) return
+      try {
+        const r = await P.api('/api/demo/load', { body: {} })
+        P.toast('Données de démonstration chargées')
+        await loadDemoStatus()
+        renderPanel()
+        if (r.warnings?.length) P.toast(`Chargé avec réserves : ${r.warnings.join(' ; ')}`, 'error', 8000)
+      } catch (err) {
+        result.appendChild(P.banner('error', `Chargement impossible : ${err.message}`))
+      }
+    }))
+    resetBtn.addEventListener('click', () => P.busy(resetBtn, async () => {
+      P.clear(result)
+      const ok = await P.confirm('Les récits, scénarios, sessions, envois Xray simulés, campagnes, runs k6 et livrables créés par la démo seront effacés, et votre profil « Mon projet » d’avant la démo sera restauré.', { title: 'Réinitialiser la démo', okLabel: 'Réinitialiser', danger: true })
+      if (!ok) return
+      try {
+        const r = await P.api('/api/demo/reset', { body: {} })
+        P.toast(`Démo réinitialisée (${r.removed} élément(s) effacé(s))`)
+        await loadDemoStatus()
+        renderPanel()
+      } catch (err) {
+        result.appendChild(P.banner('error', `Réinitialisation impossible : ${err.message}`))
+      }
+    }))
+    const counts = d.loaded && d.counts
+      ? h('div', { class: 'p-kpis' }, DEMO_COUNTS.filter(([k]) => d.counts[k] != null).map(([k, label]) => P.kpi({ label, value: String(d.counts[k]) })))
+      : null
+    return P.card({
+      title: 'Données de démonstration',
+      sub: d.loaded ? `Chargées le ${new Date(d.at).toLocaleString('fr-FR')}` : 'Un jeu fictif complet, chargé en un clic',
+      icon: 'play',
+      actions: d.loaded ? P.badge('◇ Démo chargée', 'amber') : null,
+      body: h('div', { class: 'rg-form' },
+        h('p', { class: 'p-muted', style: { margin: 0 } },
+          'Projet fictif « IRMA – Analyse des Risques Métier » de l’organisme fictif « Banque Horizon » : scan JIRA, tri, scénarios Gherkin, ',
+          'sessions d’automatisation, envois Xray simulés, campagnes d’exécution, runs k6 et livrables ISTQB. ',
+          'Toutes les personnes, entités et données sont inventées ; rien n’est envoyé vers JIRA, Xray ou k6.'),
+        counts,
+        h('div', { class: 'p-row' }, loadBtn, resetBtn,
+          h('a', { class: 'p-btn p-btn--ghost', href: '/' }, P.icon('gauge'), 'Voir le pilotage')),
+        result),
+    })
+  }
+
   // ---------------------------------------------------------------- À propos
 
   async function loadAbout() {
@@ -1140,6 +1221,7 @@
     if (state.isAdmin) {
       if (!state.users) loadUsers().catch(() => {})
       if (!state.files) loadConfiguration().catch(() => {})
+      if (!state.demo) loadDemoStatus().catch(() => {})
     }
     window.addEventListener('hashchange', () => {
       const id = location.hash.replace(/^#/, '')

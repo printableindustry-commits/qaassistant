@@ -12,6 +12,7 @@
   const P = window.Prisme
   if (!P || document.querySelector('.p-rail')) return
   const { h, icon } = P
+  const VER = ((document.currentScript && document.currentScript.src) || '').match(/[?&]v=([^&]+)/)?.[1] || ''
 
   let resolveReady
   const ready = new Promise((r) => { resolveReady = r })
@@ -59,6 +60,8 @@
   const header = h('header', { class: 'p-header' },
     h('div', { class: 'p-header-titles' }, crumb, title),
     actions,
+    h('button', { class: 'p-btn p-btn--sm p-tour-launch', type: 'button', title: 'Visite guidée de l’application (autodémo)', onclick: () => startTour() },
+      icon('play'), h('span', null, 'Visite guidée')),
     h('button', { class: 'p-search', type: 'button', onclick: () => openPalette() },
       icon('search'), h('span', null, 'Rechercher ou lancer…'), h('span', { class: 'p-kbd' }, 'Ctrl K')),
     h('a', { class: 'p-icon-btn', href: '/wiki.html', title: 'Aide' }, icon('help')),
@@ -202,6 +205,7 @@
       { group: 'Actions', label: 'Générer les scénarios Gherkin', icon: 'wand', href: '/recits.html' },
       { group: 'Actions', label: 'Lancer un test de charge k6', icon: 'play', href: '/perf.html' },
       { group: 'Actions', label: 'Configurer l’assistant IA (Copilot local…)', icon: 'sparkles', href: '/ia.html' },
+      { group: 'Actions', label: 'Visite guidée (autodémo)', sub: 'Démonstration', icon: 'play', run: () => startTour() },
     ]
     if (!state.user?.embedded) acts.push({ group: 'Actions', label: 'Se déconnecter', icon: 'logout', run: logout })
     return [...acts, ...pages]
@@ -286,6 +290,42 @@
     }
   })
 
+  // ---------------------------------------------------------------- visite guidée (prisme-tour.js)
+
+  let tourLoading = null
+  function loadTour() {
+    if (P.tour) return Promise.resolve(P.tour)
+    if (!tourLoading) {
+      tourLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = `/assets/prisme/prisme-tour.js${VER ? `?v=${VER}` : ''}`
+        s.onload = () => (P.tour ? resolve(P.tour) : reject(new Error('Visite guidée indisponible')))
+        s.onerror = () => reject(new Error('Visite guidée indisponible'))
+        document.head.appendChild(s)
+      })
+    }
+    return tourLoading
+  }
+
+  function startTour(fromId) {
+    loadTour().then((t) => t.start(fromId)).catch((e) => P.toast(e.message || 'Visite guidée indisponible', 'error'))
+  }
+
+  /** ?visite=1 (ou ?visite=<id d'étape>) lance la visite ; sinon une visite en cours dans l'onglet reprend. */
+  function bootTour() {
+    const params = new URLSearchParams(location.search)
+    const wanted = params.get('visite')
+    if (wanted != null) {
+      params.delete('visite')
+      const qs = params.toString()
+      history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`)
+      return startTour(wanted && wanted !== '1' && wanted !== 'true' ? wanted : undefined)
+    }
+    let running = false
+    try { running = Boolean(sessionStorage.getItem('p-tour')) } catch { /* stockage indisponible */ }
+    if (running) loadTour().then((t) => t.restore()).catch((e) => console.error('[visite]', e))
+  }
+
   // ---------------------------------------------------------------- démarrage
 
   async function boot() {
@@ -302,6 +342,7 @@
     renderGuide()
     refreshStrip()
     resolveReady({ ...state })
+    bootTour()
   }
 
   P.shell = {
@@ -316,6 +357,8 @@
     },
     refreshStrip,
     openPalette,
+    startTour,
+    loadTour,
     get state() { return { ...state } },
   }
 

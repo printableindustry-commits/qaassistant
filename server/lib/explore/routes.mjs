@@ -173,6 +173,11 @@ export function register(router) {
     stream.send('status', { status: rec.status, label: S.STATUS_LABEL[rec.status], reason: rec.statusReason || '', session: S.publicSession(rec) })
     const rt = S.runtimeOf(rec.id)
     if (rt.lastScreenshot && rt.browser) stream.send('screenshot', rt.lastScreenshot)
+    else {
+      // navigateur fermé : réaffiche la dernière capture enregistrée plutôt qu'un cadre vide
+      const shot = S.lastSavedShot(rec.id)
+      if (shot) stream.send('screenshot', shot)
+    }
     if (rec.status === 'needs-human' && rec.needsHuman) stream.send('needs-human', rec.needsHuman)
     const off = S.subscribe(rec.id, (type, data) => {
       if (stream.closed) return off()

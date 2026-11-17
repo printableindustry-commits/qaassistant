@@ -444,3 +444,11 @@ Routes (`routes.mjs`, toutes authentifiées) :
 - Champs manquants listés avec bouton « Compléter » qui ouvre l'**assistant Informations projet** (fenêtre pas à pas, préremplissage visible, « Remplir avec la démo IRMA »).
 - Carte « Campagne d'exécution » : lancer (réelle ou simulée), suivi, résultat par test, lien vers le Journal et les Anomalies.
 - Actions globales : Tout générer, Exporter le pack (ZIP).
+
+## 7. Données de démonstration — `server/lib/demo/`
+
+`seed.mjs` charge un état complet et **fictif** (projet IRMA, organisme « Banque Horizon ») en passant par les fonctions des
+modules (scan, tri, Gherkin, sessions, push Xray simulé, profil, génération/relecture/approbation des livrables) ou en écrivant
+leurs fichiers aux formats exacts (campagnes, runs k6, historique d'installation). Manifeste : `<REPO_ROOT>/.wizard-qa/demo/manifest.json`.
+Routes : `GET /api/demo/status` ; `POST /api/demo/load` et `POST /api/demo/reset` (admin). Interface : **Réglages → Démonstration**.
+Voir [demo/DEMO.md](demo/DEMO.md) et [demo/DONNEES-FICTIVES.md](demo/DONNEES-FICTIVES.md).

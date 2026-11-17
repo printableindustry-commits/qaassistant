@@ -1075,3 +1075,161 @@ button.p-step:hover { background: var(--p-mint-2); }
   .p-rail, .p-header, .p-strip, .p-toasts { display: none !important; }
   .p-shell-main { margin-left: 0; }
 }
+
+/* ------------------------------------------------------------------ visite guidée (prisme-tour.js) */
+
+html.p-tour-on .p-shell-main { padding-bottom: 64px; }
+html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 72px; }
+.p-tour-ui { font-family: var(--p-font); }
+
+/* découpe du voile : le halo porte une ombre immense qui assombrit tout le reste de l'écran */
+.p-tour-hole {
+  position: fixed;
+  z-index: 9000;
+  pointer-events: none;
+  border-radius: 10px;
+  display: none;
+  box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52);
+  transition: left 0.35s ease, top 0.35s ease, width 0.35s ease, height 0.35s ease;
+}
+.p-tour-hole.is-on { display: block; }
+.p-tour-hole.is-on:not(.is-target) { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.32); }
+.p-tour-hole.no-veil { box-shadow: none; }
+.p-tour-hole.is-target {
+  outline: 3px solid #3FD39A;
+  outline-offset: 2px;
+  animation: p-tour-breathe 2.2s ease-in-out infinite;
+}
+.p-tour-hole.no-veil.is-target { animation-name: p-tour-breathe-light; }
+@keyframes p-tour-breathe {
+  0%, 100% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52), 0 0 0 3px rgba(63, 211, 154, 0.35), 0 0 18px 4px rgba(63, 211, 154, 0.45); }
+  50% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52), 0 0 0 9px rgba(63, 211, 154, 0.18), 0 0 34px 12px rgba(63, 211, 154, 0.55); }
+}
+@keyframes p-tour-breathe-light {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(63, 211, 154, 0.35), 0 0 18px 4px rgba(63, 211, 154, 0.45); }
+  50% { box-shadow: 0 0 0 9px rgba(63, 211, 154, 0.18), 0 0 34px 12px rgba(63, 211, 154, 0.55); }
+}
+
+.p-tour-label {
+  position: fixed;
+  z-index: 9002;
+  display: none;
+  width: min(340px, calc(100vw - 24px));
+  padding: 12px 14px 13px;
+  border-radius: var(--p-radius);
+  background: var(--p-surface);
+  color: var(--p-text);
+  border: 1px solid var(--p-mint-line);
+  border-left: 4px solid var(--p-green-2);
+  box-shadow: var(--p-shadow-pop);
+  transition: left 0.35s ease, top 0.35s ease;
+  pointer-events: none;
+}
+.p-tour-label.is-on { display: block; }
+.p-tour-label-head { display: flex; align-items: center; gap: 9px; }
+.p-tour-num {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--p-green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+.p-tour-title { font-family: var(--p-font-display); font-weight: 650; font-size: 15px; line-height: 1.2; }
+.p-tour-pause { display: none; margin-left: auto; font-size: 11px; color: var(--p-amber-text); background: var(--p-amber-soft); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.p-tour-label.is-paused .p-tour-pause { display: inline-block; }
+.p-tour-text { margin-top: 6px; font-size: 13px; line-height: 1.45; color: var(--p-text-2); }
+
+.p-tour-bar {
+  position: fixed;
+  z-index: 9003;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: #0F2C22;
+  color: #E7F3EE;
+  box-shadow: 0 -6px 24px rgba(10, 30, 23, 0.28);
+  font-size: 12.5px;
+}
+.p-tour-brand { display: flex; align-items: center; gap: 7px; font-weight: 650; white-space: nowrap; color: #9FE6C6; }
+.p-tour-diamond { font-size: 15px; }
+.p-tour-ctrl { display: flex; gap: 4px; }
+.p-tour-btn {
+  min-width: 34px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.p-tour-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.p-tour-play { background: var(--p-green-2); border-color: var(--p-green-2); }
+.p-tour-play.is-paused { background: #C98A1E; border-color: #C98A1E; }
+.p-tour-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.p-tour-track { display: flex; gap: 3px; height: 9px; }
+.p-tour-seg {
+  flex-basis: 0;
+  min-width: 6px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.p-tour-seg:hover { background: rgba(255, 255, 255, 0.32); }
+.p-tour-seg-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: #3FD39A; }
+.p-tour-seg.current { box-shadow: 0 0 0 1px #3FD39A; }
+.p-tour-info { display: flex; gap: 12px; align-items: baseline; min-width: 0; }
+.p-tour-now { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.p-tour-time { white-space: nowrap; color: #B5CEC4; font-size: 12px; }
+.p-tour-speed { display: flex; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 8px; overflow: hidden; }
+.p-tour-speed button { border: 0; background: transparent; color: #CFE3DA; padding: 6px 9px; cursor: pointer; font-size: 12px; }
+.p-tour-speed button.active { background: rgba(63, 211, 154, 0.22); color: #fff; font-weight: 650; }
+.p-tour-actions { display: flex; gap: 6px; align-items: center; }
+.p-tour-stop, .p-tour-resume {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 0;
+  font-weight: 650;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.p-tour-stop { background: #E04B57; color: #fff; }
+.p-tour-stop:hover { background: #C8323F; }
+.p-tour-resume { background: #3FD39A; color: #0F2C22; }
+.p-tour-bar.is-stopped .p-tour-speed, .p-tour-bar.is-stopped .p-tour-ctrl .p-tour-btn:not(.p-tour-play) { opacity: 0.55; }
+.p-tour-ui button:focus-visible { outline: 2px solid #3FD39A; outline-offset: 2px; }
+
+/* bouton de lancement dans l'en-tête de la coquille */
+.p-tour-launch { white-space: nowrap; }
+
+@media (max-width: 700px) {
+  .p-tour-bar { gap: 8px; padding: 6px 10px; flex-wrap: wrap; }
+  .p-tour-brand-text, .p-tour-speed, .p-tour-time { display: none; }
+  .p-tour-mid { order: 5; flex-basis: 100%; }
+  .p-tour-actions { margin-left: auto; }
+  .p-tour-stop, .p-tour-resume { height: 30px; padding: 0 10px; }
+  html.p-tour-on .p-shell-main { padding-bottom: 96px; }
+  .p-tour-launch span { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-tour-hole, .p-tour-label { transition: none; }
+  .p-tour-hole.is-target { animation: none; }
+}

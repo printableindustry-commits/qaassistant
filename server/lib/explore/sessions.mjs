@@ -111,6 +111,12 @@ function load(id) {
   return rec
 }
 
+/** Oublie une session en mémoire (après suppression de son dossier, ex. réinitialisation de la démo). */
+export function forgetSession(id) {
+  records.delete(id)
+  runtimes.delete(id)
+}
+
 export function getSession(id) {
   return load(String(id || ''))
 }
@@ -234,6 +240,20 @@ export function subscribe(id, fn) {
   const rt = runtimeOf(id)
   rt.listeners.add(fn)
   return () => rt.listeners.delete(fn)
+}
+
+/** Dernière capture enregistrée sur disque (session rouverte sans navigateur actif) : { dataUrl, url } ou null. */
+export function lastSavedShot(id) {
+  if (!isValidId(id)) return null
+  try {
+    const dir = path.join(dirOf(id), 'shots')
+    const last = fs.readdirSync(dir).filter((f) => f.endsWith('.jpg')).sort().pop()
+    if (!last) return null
+    const rec = records.get(id)
+    return { dataUrl: 'data:image/jpeg;base64,' + fs.readFileSync(path.join(dir, last)).toString('base64'), url: rec?.lastUrl || '' }
+  } catch {
+    return null
+  }
 }
 
 /** Derniers événements du journal (hors captures), pour réafficher l'historique. */
