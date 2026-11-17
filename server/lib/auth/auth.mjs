@@ -71,7 +71,7 @@ function loadUsers() {
     version: 1,
     users: [{
       username: 'demo',
-      displayName: 'Compte de démonstration',
+      displayName: 'VERGER Rémy',
       role: 'admin',
       demo: true,
       createdAt: new Date().toISOString(),

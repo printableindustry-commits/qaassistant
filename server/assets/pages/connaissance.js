@@ -719,7 +719,7 @@
 
   function epicCard(o) {
     return P.card({
-      title: 'Par épopée',
+      title: 'Par récit',
       sub: `${o.byEpic.length} groupe(s)`,
       icon: 'layers',
       tone: 'purple',
