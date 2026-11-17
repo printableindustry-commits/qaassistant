@@ -318,10 +318,26 @@ parcours complet est présentable sans JIRA ni application réelle.
 | `cloture` | Rapport de clôture des tests | Gestion | 29119-3 §7.4 |
 | `conception` | Spécification de conception et des cas de test | Conception | 29119-3 §8.2–8.3 |
 | `procedures` | Spécification des procédures de test (scripts automatisés) | Conception | 29119-3 §8.4 |
-| `tracabilite` | Matrice de traçabilité exigences ↔ tests | Conception | ISTQB CTFL §1.4.4 |
+| `tracabilite` | Matrice de traçabilité exigences ↔ tests | Conception | ISTQB CTFL §1.4.4 / 29119-3 §8.2–8.3 |
 | `environnement` | Disponibilité de l'environnement et des données de test | Exécution | 29119-3 §8.5–8.6 |
 | `journal` | Journal d'exécution des tests | Exécution | 29119-3 §8.7 |
 | `anomalies` | Rapports d'anomalies | Exécution | 29119-3 §8.8 |
+
+Rubriques (ordre du modèle, cartouche en tête et historique des versions en fin) :
+
+- `politique` : Objet et domaine d'application ; Objectifs du test ; Processus de test ; Organisation et rôles ; Formation des testeurs ; Éthique ; Normes et exigences réglementaires ; Mesure de la valeur du test ; Archivage et réutilisation des actifs de test ; Amélioration du processus ; Circuit d'approbation.
+- `strategie` : Périmètre ; Gestion des risques ; Niveaux et types de test ; Techniques de conception ; Indépendance du test ; Critères de complétude ; Tests de confirmation et de non-régression ; Automatisation ; Données et environnements de test ; Gestion des anomalies ; Métriques ; Documentation et reporting.
+- `plan` : Contexte ; Hypothèses et contraintes ; Parties prenantes ; Communication ; Registre des risques ; Stratégie de test appliquée ; Critères d'entrée et de sortie ; Critères de suspension et de reprise ; Environnement et données de test ; Livrables de test ; Calendrier ; Rôles et responsabilités ; Besoins en formation ; Approbations.
+- `avancement` : Synthèse ; Avancement par rapport au plan ; Métriques d'exécution ; Obstacles ; Risques ; Activités prévues pour la période suivante.
+- `cloture` : Synthèse et recommandation ; Tests réalisés et métriques finales ; Évaluation des critères de sortie ; Écarts par rapport au plan ; Anomalies ouvertes ; Risques résiduels ; Livrables produits ; Leçons apprises.
+- `conception` : Bases de test ; Ensembles de fonctionnalités ; Conditions de test ; Éléments de couverture ; Cas de test ; Récits non couverts.
+- `procedures` : Outillage ; Scripts de test ; Ordre d'exécution ; Préconditions ; Jeu de comptes de test ; Tests de performance.
+- `tracabilite` : Synthèse de couverture ; Matrice ; Traçabilité inverse (scripts → exigences) ; Écarts de traçabilité.
+- `environnement` : Exigences d'environnement ; Outillage ; Données de test ; Confidentialité et protection des données ; État de disponibilité.
+- `journal` : Objet ; Campagnes d'exécution ; Détail de la dernière campagne ; Publication dans Xray.
+- `anomalies` : Synthèse des anomalies ; Rapports détaillés ; Processus de traitement.
+
+Les champs `profile.*` cités par un modèle figurent tous dans le questionnaire, avec ce document dans leur `appliesTo`.
 
 Entrée de catalogue : `{ id, title, phase, ref, purpose, audience, sections: [{ id, title, required, from: 'facts'|'profile'|'mixed' }], requires: ['profile.<champ>' | 'facts.<chemin>'] }`.
 

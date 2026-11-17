@@ -25,7 +25,7 @@
 
 ## Scripts de test
 
-Chaque procédure de test est un fichier de spécification Playwright ; son rattachement au récit se fait par l'étiquette `@CLÉ` du titre ou la clé dans le nom du fichier.
+Chaque procédure de test est un fichier de spécification Playwright qui exécute les cas de test (scénarios Gherkin) d'un récit ; le rattachement se fait par l'étiquette `@CLÉ` du titre du test ou la clé dans le nom du fichier. Le code du script décrit les étapes ; il est versionné avec le projet de test.
 
 | Script | Récit | Tests |
 |---|---|---|
@@ -35,36 +35,50 @@ Chaque procédure de test est un fichier de spécification Playwright ; son ratt
 | Aucun script | — | — |
 {{/each}}
 
-Sessions d'exploration (génération assistée de scripts) : {{facts.automation.sessions.total}} session(s), {{facts.automation.sessions.validated}} validée(s), {{facts.automation.sessions.needsHuman}} en attente d'intervention.
+{{#if facts.automation.sessions.total}}
+Scripts issus des sessions d'exploration assistée : {{facts.automation.sessions.total}} session(s), {{facts.automation.sessions.validated}} validée(s) par un testeur, {{facts.automation.sessions.needsHuman}} en attente d'intervention.
 
 | Récit | Session | Script | Étapes | Validée | Cible |
 |---|---|---|---|---|---|
 {{#each calc.automationRows}}
 | {{this.storyKey}} | {{this.sessionId|—}} | {{this.relPath|—}} | {{this.steps|—}} | {{this.validated|ouinon}} | {{this.target|—}} |
-{{else}}
-| — | Aucune session d'exploration | — | — | — | — |
 {{/each}}
+{{else}}
+Aucune session d'exploration assistée enregistrée.
+{{/if}}
 
-## Lancement et ordonnancement
+## Ordre d'exécution
 
-Les procédures sont exécutées en campagne par la commande `npx playwright test --reporter=json` depuis le projet de test ; l'ordre d'exécution n'est pas imposé (tests indépendants), les tests à risque élevé étant prioritaires en cas de campagne partielle. {{profile.ordonnancement|Une campagne complète est lancée à chaque livraison sur l'environnement de test, puis avant la mise en production.}}
+Commande de campagne : `npx playwright test --reporter=json`, depuis le projet de test. Les tests sont indépendants les uns des autres.
 
-Chaque campagne est consignée dans le journal d'exécution ; les résultats sont publiés dans Xray.
+{{profile.ordonnancement}}
 
-## Prérequis
+Chaque campagne est consignée dans le journal d'exécution{{#if facts.tools.xray.configured}} et ses résultats sont publiés dans Xray{{else}} ; la publication dans Xray n'est pas configurée{{/if}}.
+
+## Préconditions
 
 {{#each facts.automation.targets}}
-- Application **{{this.name}}** accessible à l'adresse {{this.baseUrl}} (navigateur {{this.browser}}, {{this.accounts}} compte(s) de test).
+- Application **{{this.name}}** accessible à l'adresse {{this.baseUrl}} (navigateur {{this.browser}}, {{this.accounts}} compte(s) de test déclaré(s)).
 {{else}}
-- {{profile.environnements}}
+- Aucune cible d'exécution déclarée dans Wizard QA.
 {{/each}}
 - Dépendances du projet de test installées (`npm ci`) et navigateurs Playwright disponibles.
-- Comptes et jeux de données de test conformes au document « Disponibilité de l'environnement et des données de test ».
+- Données de test chargées conformément au document « Disponibilité de l'environnement et des données de test ».
+
+## Jeu de comptes de test
+
+Seuls les profils sont indiqués ; les identifiants et mots de passe sont conservés dans le coffre de Wizard QA et ne figurent ni dans les scripts ni dans ce document.
+
+| Environnement | Comptes (profils) | Usage |
+|---|---|---|
+{{#each profile.environnements}}
+| {{this.nom}} | {{this.comptes|—}} | {{this.usage|—}} |
+{{/each}}
 
 ## Tests de performance
 
 {{#if facts.perf.last}}
-{{facts.perf.runs}} tir(s) k6 enregistré(s). Dernier tir : profil « {{facts.perf.last.profile}} » du {{facts.perf.last.at|datetime}}, verdict **{{facts.perf.last.verdict}}**, p95 = {{facts.perf.last.p95}} ms, taux d'erreur = {{facts.perf.last.errorRate}}.
+{{facts.perf.runs}} tir(s) k6 enregistré(s). Dernier tir : profil « {{facts.perf.last.profile}} » du {{facts.perf.last.at|datetime}}, verdict k6 `{{facts.perf.last.verdict}}`, p95 = {{facts.perf.last.p95}} ms, taux d'erreur HTTP (ratio) = {{facts.perf.last.errorRate}}.
 {{else}}
 Aucun tir de performance k6 enregistré à ce jour.
 {{/if}}

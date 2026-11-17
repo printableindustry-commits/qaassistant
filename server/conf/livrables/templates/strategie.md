@@ -12,10 +12,16 @@
 | Auteur | {{doc.author}} |
 | Relu par | {{doc.reviewedBy|En attente de relecture}} |
 | Approuvé par | {{doc.approvedBy|En attente d'approbation}} |
+| Confidentialité | {{profile.confidentialite}} |
+| Diffusion | {{profile.diffusion|join}} |
 
 > Données au {{doc.dataDate|datetime}} — source : {{doc.dataSource}}.{{#if doc.demo}} **Données de démonstration.**{{/if}}
 
 ## Périmètre
+
+La présente stratégie décline la politique de test de {{profile.organisme}}. Objectifs qualité visés :
+
+{{profile.objectifsQualite}}
 
 **Dans le périmètre :**
 
@@ -30,44 +36,29 @@
 {{#each profile.horsPerimetre}}
 - {{this}}
 {{else}}
-- {{profile.horsPerimetre|Aucune exclusion déclarée.}}
+- Aucune exclusion déclarée.
 {{/each}}
 
-Le périmètre fonctionnel est constitué des {{facts.coverage.stories}} récits du projet {{facts.project.key}}, regroupés en {{facts.epics|count}} épopées :
+Bases de test : {{facts.coverage.stories}} récits du projet {{facts.project.key}}, répartis en {{facts.epics|count}} épopées.
 
-| Épopée | Intitulé | Récits |
-|---|---|---|
-{{#each facts.epics}}
-| {{this.key}} | {{this.summary}} | {{this.stories}} |
-{{/each}}
+## Gestion des risques
 
-## Analyse des risques produit
+Le test est piloté par les risques. Chaque récit reçoit un score de risque (priorité, épopée, critères d'acceptation, état des scénarios) qui le classe en niveau élevé, moyen ou faible. Les récits à risque élevé sont conçus, automatisés et exécutés en priorité ; les risques produit retenus et leurs mesures figurent au registre du plan de test.
 
-Le niveau de risque de chaque récit est évalué à partir de sa priorité, de son épopée et de ses critères d'acceptation (score de 0 à 100). Les récits à risque **élevé** sont testés en priorité et automatisés.
+Récits à risque élevé ({{calc.storiesHighRisk|count}}) :
 
-| Récit | Intitulé | Score | Niveau |
+| Récit | Intitulé | Priorité | Score |
 |---|---|---|---|
 {{#each calc.storiesHighRisk}}
-| {{this.key}} | {{this.summary}} | {{this.risk.score}} | {{this.risk.level}} |
+| {{this.key}} | {{this.summary}} | {{this.priority|—}} | {{this.risk.score}} |
 {{else}}
 | — | Aucun récit à risque élevé | — | — |
 {{/each}}
 
-{{#if profile.risquesProduit}}
-Risques produit complémentaires identifiés par l'équipe :
-
-| Risque | Probabilité | Impact | Mesure de réduction |
-|---|---|---|---|
-{{#each profile.risquesProduit}}
-| {{this.risque}} | {{this.probabilite|—}} | {{this.impact|—}} | {{this.mesure|—}} |
-{{/each}}
-{{/if}}
-
 ## Niveaux et types de test
 
-**Niveaux de test :** {{profile.niveauxTest|join}}
-
-**Types de test :** {{profile.typesTest|join}}
+- **Niveaux :** {{profile.niveauxTest|join}}
+- **Types :** {{profile.typesTest|join}}
 
 {{#if profile.nonFonctionnel}}
 **Exigences non fonctionnelles :** {{profile.nonFonctionnel}}
@@ -81,70 +72,77 @@ Risques produit complémentaires identifiés par l'équipe :
 - {{profile.techniquesTest}}
 {{/each}}
 
-Les conditions de test sont dérivées des critères d'acceptation des récits ({{facts.coverage.withCriteria}} récits sur {{facts.coverage.stories}} en comportent) et formalisées en scénarios Gherkin (Étant donné / Quand / Alors) : {{facts.gherkin.total}} fichier(s), {{facts.gherkin.scenarios}} scénario(s), dont {{facts.gherkin.validated}} validé(s).
+Les conditions de test sont dérivées des critères d'acceptation ({{facts.coverage.withCriteria}} récits sur {{facts.coverage.stories}} en comportent) et formalisées en scénarios Gherkin : {{facts.gherkin.total}} fichier(s), {{facts.gherkin.scenarios}} scénario(s), dont {{facts.gherkin.validated}} fichier(s) validé(s).
 
-## Automatisation
+## Indépendance du test
 
-{{profile.approcheAutomatisation|Les récits triés « À automatiser » sont couverts par des scripts Playwright générés et relus, exécutés en campagne et rattachés à des tests Xray.}}
+{{profile.independanceTest}}
 
-| Indicateur | Valeur |
-|---|---|
-| Récits triés « À automatiser » | {{facts.triage.todo}} |
-| Récits « Plus tard » / « Non retenu » | {{facts.triage.later}} / {{facts.triage.skip}} |
-| Récits non triés | {{facts.triage.untriaged}} |
-| Scripts Playwright | {{facts.automation.specs|count}} |
-| Sessions d'exploration validées | {{facts.automation.sessions.validated}} / {{facts.automation.sessions.total}} |
-| Récits automatisés | {{facts.coverage.automated}} ({{facts.coverage.pctAutomated|pct}}) |
-
-## Environnements et outillage
-
-{{#if profile.environnements}}
-| Environnement | URL | Navigateur | Données |
-|---|---|---|---|
-{{#each profile.environnements}}
-| {{this.nom}} | {{this.url|—}} | {{this.navigateur|—}} | {{this.donnees|—}} |
-{{/each}}
-{{else}}
-| Cible | URL | Navigateur | Comptes de test |
-|---|---|---|---|
-{{#each facts.automation.targets}}
-| {{this.name}} | {{this.baseUrl}} | {{this.browser}} | {{this.accounts}} |
-{{else}}
-| {{profile.environnements}} | — | — | — |
-{{/each}}
-{{/if}}
-
-Outillage : {{calc.tools|join}}.
-
-## Critères d'entrée et de sortie
+## Critères de complétude
 
 **Critères d'entrée :**
 
 {{#each profile.criteresEntree}}
 - {{this}}
 {{else}}
-- {{profile.criteresEntree|Version livrée sur l'environnement de test et récits du périmètre triés.}}
+- {{profile.criteresEntree}}
 {{/each}}
 
 **Critères de sortie :**
 
 - taux de réussite des tests exécutés ≥ {{profile.seuilReussite}} % ;
-- anomalies bloquantes ouvertes ≤ {{profile.anomaliesBloquantesMax|0}} ;
-- récits « À automatiser » couverts par un test automatisé ≥ {{profile.seuilCouverture|100}} %.
+- anomalies bloquantes ouvertes ≤ {{profile.maxAnomaliesBloquantes}} ;
+- anomalies majeures ouvertes tolérées : {{profile.maxAnomaliesMajeures|sans plafond fixé}} ;
+- récits « À automatiser » couverts par un test automatisé ≥ {{profile.couvertureMin}} %.
+
+## Tests de confirmation et de non-régression
+
+{{profile.retestRegression}}
+
+## Automatisation
+
+{{profile.strategieAutomatisation}}
+
+| Indicateur | Valeur |
+|---|---|
+| Récits triés « À automatiser » / « Plus tard » / « Non retenu » | {{facts.triage.todo}} / {{facts.triage.later}} / {{facts.triage.skip}} |
+| Récits non triés | {{facts.triage.untriaged}} |
+| Scripts Playwright | {{facts.automation.specs|count}} |
+| Parcours explorés validés | {{facts.automation.sessions.validated}} / {{facts.automation.sessions.total}} |
+| Récits automatisés | {{facts.coverage.automated}} ({{facts.coverage.pctAutomated|pct}}) |
+
+## Données et environnements de test
+
+{{profile.donneesTest}}
+
+Environnements :
+
+{{#each profile.environnements}}
+- **{{this.nom}}** ({{this.navigateur|navigateur non précisé}}) : {{this.usage|usage non précisé}}
+{{else}}
+- {{profile.environnements}}
+{{/each}}
+
+Outillage : {{profile.outils|join}}. Versions détectées : {{calc.tools|join}}.
 
 ## Gestion des anomalies
 
-Les anomalies sont dérivées des échecs des campagnes d'exécution, regroupées par test, qualifiées (bloquante, majeure, mineure) et suivies jusqu'à correction. {{profile.processusAnomalies|Chaque anomalie bloquante ou majeure est remontée dans JIRA et rattachée au récit concerné.}}
+{{profile.gestionAnomalies}}
 
-## Livrables de test
+## Métriques
 
-| Livrable | Référence | État | Version |
-|---|---|---|---|
-{{#each calc.docs}}
-| {{this.title}} | {{this.ref}} | {{this.status}} | {{this.version}} |
-{{/each}}
+| Métrique | Valeur au {{doc.dataDate|date}} |
+|---|---|
+| Récits avec critères d'acceptation | {{facts.coverage.withCriteria}} / {{facts.coverage.stories}} |
+| Récits couverts par un scénario Gherkin | {{facts.coverage.withGherkin}} / {{facts.coverage.stories}} |
+| Écarts de traçabilité détectés | {{facts.gaps|count}} |
+| Récits réussis (sur les récits exécutés) | {{facts.coverage.passed}} / {{facts.coverage.executed}} ({{facts.coverage.pctPassed|pct}}) |
+| Anomalies ouvertes (bloquantes / majeures / mineures) | {{calc.defectsCount.bloquante}} / {{calc.defectsCount.majeure}} / {{calc.defectsCount.mineure}} |
+| Campagnes d'exécution | {{facts.campaigns|count}} |
 
-Circuit de validation : {{profile.circuitValidation|rédaction par l'équipe de test, relecture par l'agent QA, approbation par le valideur.}}
+## Documentation et reporting
+
+Livrables produits : {{calc.docs|join}}. Fréquence des rapports d'avancement : {{profile.frequenceReporting|lower}}.
 
 ## Historique des versions
 

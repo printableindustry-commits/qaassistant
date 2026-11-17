@@ -9,10 +9,14 @@
       "fields": [
         { "id": "organisme", "label": "Organisme", "help": "Entité qui porte les tests (direction, tribu, équipe).", "type": "text", "required": true, "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
         { "id": "produit", "label": "Produit testé", "type": "text", "required": true, "prefill": "facts.project.name", "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
-        { "id": "versionProduit", "label": "Version ou release testée", "help": "Exemple : 2.4 (release de mars).", "type": "text", "required": true, "appliesTo": ["plan", "avancement", "cloture", "journal", "anomalies", "environnement"] },
+        { "id": "versionProduit", "label": "Version ou release testée", "help": "Exemple : 2.4 (release de mars).", "type": "text", "required": true, "appliesTo": ["plan", "avancement", "cloture", "journal", "anomalies", "environnement", "conception", "procedures", "strategie", "tracabilite"] },
         { "id": "contexteReglementaire", "label": "Contexte réglementaire et normatif", "help": "Obligations qui pèsent sur le produit (contrôle interne, RGPD, accessibilité, sécurité…).", "type": "textarea", "required": true, "appliesTo": ["politique", "strategie", "plan"] },
         { "id": "normes", "label": "Normes et référentiels appliqués", "type": "list", "options": ["ISO/IEC/IEEE 29119", "ISTQB", "ISO 25010", "RGAA 4.1", "RGPD", "OWASP ASVS"], "appliesTo": ["politique", "strategie", "plan"] },
         { "id": "objectifsQualite", "label": "Objectifs qualité", "help": "Ce que les tests doivent garantir (non-régression, conformité, fiabilité…).", "type": "textarea", "required": true, "appliesTo": ["politique", "strategie"] },
+        { "id": "formationTesteurs", "label": "Formation des testeurs", "help": "Certifications attendues et formations (outils, domaine métier).", "type": "textarea", "appliesTo": ["politique"] },
+        { "id": "ethiqueTest", "label": "Éthique du test", "help": "Règles de conduite des testeurs (code d'éthique ISTQB, confidentialité, objectivité).", "type": "textarea", "appliesTo": ["politique"] },
+        { "id": "archivageTest", "label": "Archivage et réutilisation des actifs de test", "help": "Où sont conservés livrables, scripts et résultats, et pour combien de temps.", "type": "textarea", "appliesTo": ["politique"] },
+        { "id": "ameliorationProcessus", "label": "Amélioration du processus de test", "help": "Comment les enseignements sont capitalisés et la politique révisée.", "type": "textarea", "appliesTo": ["politique"] },
         { "id": "partiesPrenantes", "label": "Parties prenantes et rôles", "type": "table", "columns": [{ "id": "role", "label": "Rôle" }, { "id": "nom", "label": "Nom ou équipe" }, { "id": "responsabilite", "label": "Responsabilité" }], "required": true, "appliesTo": ["politique", "strategie", "plan", "cloture"] },
         { "id": "responsableTest", "label": "Responsable des tests", "help": "Auteur des documents (cartouche).", "type": "text", "required": true, "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
         { "id": "testeurs", "label": "Testeurs", "type": "list", "appliesTo": ["plan", "journal"] },
@@ -27,7 +31,8 @@
         { "id": "dansPerimetre", "label": "Dans le périmètre", "type": "list", "required": true, "prefill": "facts.derived.inScope", "appliesTo": ["strategie", "plan", "conception", "tracabilite", "cloture"] },
         { "id": "horsPerimetre", "label": "Hors périmètre", "type": "list", "prefill": "facts.derived.outOfScope", "appliesTo": ["strategie", "plan", "cloture"] },
         { "id": "niveauxTest", "label": "Niveaux de test", "type": "list", "required": true, "options": ["Tests de composants", "Tests d'intégration", "Tests système", "Tests d'acceptation"], "appliesTo": ["strategie", "plan"] },
-        { "id": "hypotheses", "label": "Hypothèses et dépendances", "type": "textarea", "appliesTo": ["plan"] }
+        { "id": "hypotheses", "label": "Hypothèses et dépendances", "type": "textarea", "appliesTo": ["plan"] },
+        { "id": "contraintesProjet", "label": "Contraintes", "help": "Délais, accès, environnements ou données imposés au projet de test.", "type": "textarea", "appliesTo": ["plan"] }
       ]
     },
     {
@@ -36,7 +41,8 @@
       "help": "Préremplis depuis les récits à risque élevé (priorité, score de tri) : ajustez probabilité, impact et mesures.",
       "fields": [
         { "id": "risquesProduit", "label": "Risques produit", "type": "table", "columns": [{ "id": "risque", "label": "Risque" }, { "id": "source", "label": "Récit / épopée" }, { "id": "probabilite", "label": "Probabilité" }, { "id": "impact", "label": "Impact" }, { "id": "niveau", "label": "Niveau" }, { "id": "attenuation", "label": "Mesure de test" }], "required": true, "prefill": "facts.derived.risks", "appliesTo": ["strategie", "plan", "avancement", "cloture"] },
-        { "id": "risquesProjet", "label": "Risques projet", "type": "table", "columns": [{ "id": "risque", "label": "Risque" }, { "id": "impact", "label": "Impact" }, { "id": "attenuation", "label": "Mesure" }], "appliesTo": ["plan", "avancement"] }
+        { "id": "risquesProjet", "label": "Risques projet", "type": "table", "columns": [{ "id": "risque", "label": "Risque" }, { "id": "impact", "label": "Impact" }, { "id": "attenuation", "label": "Mesure" }], "appliesTo": ["plan", "avancement"] },
+        { "id": "risquesResiduels", "label": "Risques résiduels acceptés à la clôture", "help": "Risques non couverts ou partiellement couverts au moment de la décision, et qui les accepte.", "type": "textarea", "appliesTo": ["cloture"] }
       ]
     },
     {
@@ -45,11 +51,15 @@
       "help": "Comment on teste : types et techniques, automatisation, non-fonctionnel, gestion des anomalies.",
       "fields": [
         { "id": "typesTest", "label": "Types de test", "type": "list", "required": true, "options": ["Fonctionnel", "Non-régression", "Accessibilité", "Performance", "Sécurité", "Compatibilité navigateurs"], "appliesTo": ["strategie", "plan"] },
-        { "id": "techniquesTest", "label": "Techniques de conception", "type": "list", "options": ["Partitions d'équivalence", "Valeurs limites", "Tables de décision", "Transitions d'état", "Cas d'utilisation", "Test exploratoire", "BDD (Gherkin)"], "appliesTo": ["strategie", "conception"] },
+        { "id": "techniquesTest", "label": "Techniques de conception", "type": "list", "options": ["Partitions d'équivalence", "Valeurs limites", "Tables de décision", "Transitions d'état", "Cas d'utilisation", "Test exploratoire", "BDD (Gherkin)"], "appliesTo": ["strategie", "conception", "plan"] },
+        { "id": "independanceTest", "label": "Indépendance du test", "help": "Qui conçoit et exécute les tests par rapport à ceux qui développent.", "type": "textarea", "required": true, "appliesTo": ["strategie", "plan"] },
+        { "id": "retestRegression", "label": "Tests de confirmation et de non-régression", "help": "Règles de retest des corrections et périmètre de la non-régression.", "type": "textarea", "required": true, "appliesTo": ["strategie", "plan"] },
         { "id": "strategieAutomatisation", "label": "Stratégie d'automatisation", "type": "textarea", "required": true, "prefill": "facts.derived.automationSummary", "appliesTo": ["strategie", "plan", "procedures"] },
+        { "id": "ordonnancement", "label": "Ordre d'exécution des procédures", "help": "Ordre de lancement des scripts en campagne (test de fumée, priorités par risque), fréquence et déclencheur des campagnes.", "type": "textarea", "appliesTo": ["procedures"] },
         { "id": "outils", "label": "Outils", "type": "list", "prefill": "facts.derived.tools", "appliesTo": ["strategie", "plan", "environnement", "procedures"] },
         { "id": "nonFonctionnel", "label": "Tests non fonctionnels", "type": "textarea", "prefill": "facts.derived.perfSummary", "appliesTo": ["strategie", "plan"] },
-        { "id": "gestionAnomalies", "label": "Gestion des anomalies", "help": "Outil, cycle de vie, délais de prise en charge par sévérité.", "type": "textarea", "required": true, "appliesTo": ["politique", "strategie", "anomalies"] }
+        { "id": "gestionAnomalies", "label": "Gestion des anomalies", "help": "Outil, cycle de vie, délais de prise en charge par sévérité.", "type": "textarea", "required": true, "appliesTo": ["politique", "strategie", "anomalies"] },
+        { "id": "prioriteAnomalies", "label": "Règle de priorisation des anomalies", "help": "Qui fixe la priorité de correction et selon quelle règle (affichée dans chaque fiche d'anomalie).", "type": "text", "appliesTo": ["anomalies"] }
       ]
     },
     {
@@ -57,8 +67,9 @@
       "title": "Environnements",
       "help": "Préremplis depuis les cibles d'exploration (sans mot de passe).",
       "fields": [
-        { "id": "environnements", "label": "Environnements de test", "type": "table", "columns": [{ "id": "nom", "label": "Environnement" }, { "id": "url", "label": "Adresse" }, { "id": "navigateur", "label": "Navigateur" }, { "id": "comptes", "label": "Comptes" }, { "id": "usage", "label": "Usage" }], "required": true, "prefill": "facts.derived.environments", "appliesTo": ["plan", "environnement", "journal"] },
-        { "id": "donneesTest", "label": "Données de test", "help": "Origine, anonymisation, jeux de référence, réinitialisation.", "type": "textarea", "required": true, "appliesTo": ["environnement", "plan"] },
+        { "id": "environnements", "label": "Environnements de test", "type": "table", "columns": [{ "id": "nom", "label": "Environnement" }, { "id": "url", "label": "Adresse" }, { "id": "navigateur", "label": "Navigateur" }, { "id": "comptes", "label": "Comptes" }, { "id": "usage", "label": "Usage" }], "required": true, "prefill": "facts.derived.environments", "appliesTo": ["plan", "environnement", "journal", "procedures", "strategie"] },
+        { "id": "donneesTest", "label": "Données de test", "help": "Origine, anonymisation, jeux de référence, réinitialisation.", "type": "textarea", "required": true, "appliesTo": ["environnement", "plan", "strategie"] },
+        { "id": "protectionDonnees", "label": "Protection des données de test (RGPD)", "help": "Origine des données, anonymisation ou pseudonymisation, accès, durée de conservation et purge des données de test.", "type": "textarea", "required": true, "appliesTo": ["environnement", "plan"] },
         { "id": "responsableEnvironnement", "label": "Responsable des environnements", "type": "text", "appliesTo": ["environnement"] }
       ]
     },
@@ -68,10 +79,10 @@
       "help": "Critères chiffrés : ils sont comparés automatiquement aux résultats des campagnes dans le rapport de clôture.",
       "fields": [
         { "id": "criteresEntree", "label": "Critères d'entrée", "type": "list", "required": true, "appliesTo": ["plan", "strategie"] },
-        { "id": "seuilReussite", "label": "Taux de réussite minimal (%)", "type": "number", "required": true, "appliesTo": ["plan", "avancement", "cloture"] },
-        { "id": "maxAnomaliesBloquantes", "label": "Anomalies bloquantes ouvertes tolérées", "type": "number", "required": true, "appliesTo": ["plan", "cloture", "anomalies"] },
-        { "id": "maxAnomaliesMajeures", "label": "Anomalies majeures ouvertes tolérées", "type": "number", "appliesTo": ["plan", "cloture", "anomalies"] },
-        { "id": "couvertureMin", "label": "Couverture minimale des récits « À automatiser » (%)", "type": "number", "required": true, "appliesTo": ["plan", "cloture", "tracabilite"] },
+        { "id": "seuilReussite", "label": "Taux de réussite minimal (%)", "type": "number", "required": true, "appliesTo": ["plan", "avancement", "cloture", "strategie"] },
+        { "id": "maxAnomaliesBloquantes", "label": "Anomalies bloquantes ouvertes tolérées", "type": "number", "required": true, "appliesTo": ["plan", "cloture", "anomalies", "strategie"] },
+        { "id": "maxAnomaliesMajeures", "label": "Anomalies majeures ouvertes tolérées", "type": "number", "appliesTo": ["plan", "cloture", "anomalies", "strategie"] },
+        { "id": "couvertureMin", "label": "Couverture minimale des récits « À automatiser » (%)", "type": "number", "required": true, "appliesTo": ["plan", "cloture", "tracabilite", "avancement", "strategie"] },
         { "id": "criteresSuspension", "label": "Critères de suspension", "type": "textarea", "appliesTo": ["plan"] },
         { "id": "criteresReprise", "label": "Critères de reprise", "type": "textarea", "appliesTo": ["plan"] }
       ]
@@ -82,7 +93,10 @@
       "help": "Jalons de la campagne de test et rythme des rapports.",
       "fields": [
         { "id": "jalons", "label": "Jalons", "type": "table", "columns": [{ "id": "jalon", "label": "Jalon" }, { "id": "date", "label": "Date" }, { "id": "livrable", "label": "Livrable attendu" }], "required": true, "appliesTo": ["plan", "avancement"] },
-        { "id": "frequenceReporting", "label": "Fréquence des rapports d'avancement", "type": "select", "options": ["Quotidienne", "Hebdomadaire", "À chaque sprint", "À chaque campagne"], "appliesTo": ["plan", "avancement"] }
+        { "id": "frequenceReporting", "label": "Fréquence des rapports d'avancement", "type": "select", "options": ["Quotidienne", "Hebdomadaire", "À chaque sprint", "À chaque campagne"], "appliesTo": ["plan", "avancement", "strategie"] },
+        { "id": "besoinsFormation", "label": "Besoins en formation du projet", "help": "Formations nécessaires à l'équipe pour cette version.", "type": "textarea", "appliesTo": ["plan"] },
+        { "id": "periodeRapport", "label": "Période couverte par le rapport d'avancement", "help": "Période de reporting du rapport en cours (ex. semaine ou sprint, avec dates).", "type": "text", "required": true, "appliesTo": ["avancement"] },
+        { "id": "obstaclesPeriode", "label": "Obstacles rencontrés sur la période", "help": "Ce qui a freiné les tests (environnement, données, dépendances, disponibilité des équipes).", "type": "textarea", "appliesTo": ["avancement"] }
       ]
     },
     {
@@ -92,7 +106,8 @@
       "fields": [
         { "id": "circuitValidation", "label": "Circuit de validation", "type": "table", "columns": [{ "id": "document", "label": "Document" }, { "id": "redacteur", "label": "Rédacteur" }, { "id": "relecteur", "label": "Relecteur" }, { "id": "approbateur", "label": "Approbateur" }], "required": true, "appliesTo": ["politique", "plan"] },
         { "id": "diffusion", "label": "Liste de diffusion", "type": "list", "appliesTo": ["politique", "strategie", "plan", "cloture"] },
-        { "id": "confidentialite", "label": "Niveau de confidentialité", "type": "select", "options": ["Public", "Interne", "Confidentiel", "Secret"], "required": true, "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] }
+        { "id": "confidentialite", "label": "Niveau de confidentialité", "type": "select", "options": ["Public", "Interne", "Confidentiel", "Secret"], "required": true, "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
+        { "id": "leconsApprises", "label": "Leçons apprises", "help": "Ce qui a bien ou mal fonctionné et les actions d'amélioration pour la prochaine release.", "type": "textarea", "appliesTo": ["cloture"] }
       ]
     }
   ]

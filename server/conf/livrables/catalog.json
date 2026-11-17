@@ -11,11 +11,16 @@
       "audience": "Direction, responsables qualité et projet",
       "sections": [
         { "id": "objet", "title": "Objet et domaine d'application", "required": true, "from": "profile" },
-        { "id": "objectifs", "title": "Objectifs du test", "required": true, "from": "mixed" },
+        { "id": "objectifs", "title": "Objectifs du test", "required": true, "from": "profile" },
         { "id": "processus", "title": "Processus de test", "required": true, "from": "mixed" },
         { "id": "organisation", "title": "Organisation et rôles", "required": true, "from": "profile" },
+        { "id": "formation", "title": "Formation des testeurs", "required": true, "from": "profile" },
+        { "id": "ethique", "title": "Éthique", "required": true, "from": "profile" },
         { "id": "normes", "title": "Normes et exigences réglementaires", "required": true, "from": "profile" },
-        { "id": "amelioration", "title": "Mesure et amélioration du processus", "required": false, "from": "facts" }
+        { "id": "mesure", "title": "Mesure de la valeur du test", "required": true, "from": "facts" },
+        { "id": "archivage", "title": "Archivage et réutilisation des actifs de test", "required": false, "from": "profile" },
+        { "id": "amelioration", "title": "Amélioration du processus", "required": true, "from": "profile" },
+        { "id": "approbation", "title": "Circuit d'approbation", "required": false, "from": "profile" }
       ],
       "requires": ["profile.organisme", "profile.produit", "profile.contexteReglementaire", "profile.responsableTest"]
     },
@@ -27,15 +32,18 @@
       "purpose": "Décrire l'approche de test retenue : niveaux, types, techniques, automatisation, critères et risques.",
       "audience": "Équipe projet, équipe de test, valideurs",
       "sections": [
-        { "id": "perimetre", "title": "Périmètre", "required": true, "from": "profile" },
-        { "id": "risques", "title": "Analyse des risques produit", "required": true, "from": "mixed" },
+        { "id": "perimetre", "title": "Périmètre", "required": true, "from": "mixed" },
+        { "id": "risques", "title": "Gestion des risques", "required": true, "from": "mixed" },
         { "id": "niveaux", "title": "Niveaux et types de test", "required": true, "from": "profile" },
-        { "id": "techniques", "title": "Techniques de conception", "required": true, "from": "profile" },
+        { "id": "techniques", "title": "Techniques de conception", "required": true, "from": "mixed" },
+        { "id": "independance", "title": "Indépendance du test", "required": true, "from": "profile" },
+        { "id": "criteres", "title": "Critères de complétude", "required": true, "from": "profile" },
+        { "id": "regression", "title": "Tests de confirmation et de non-régression", "required": true, "from": "profile" },
         { "id": "automatisation", "title": "Automatisation", "required": true, "from": "mixed" },
-        { "id": "environnements", "title": "Environnements et outillage", "required": true, "from": "mixed" },
-        { "id": "criteres", "title": "Critères d'entrée et de sortie", "required": true, "from": "profile" },
-        { "id": "anomalies", "title": "Gestion des anomalies", "required": false, "from": "profile" },
-        { "id": "livrables", "title": "Livrables de test", "required": false, "from": "facts" }
+        { "id": "environnements", "title": "Données et environnements de test", "required": true, "from": "mixed" },
+        { "id": "anomalies", "title": "Gestion des anomalies", "required": true, "from": "profile" },
+        { "id": "metriques", "title": "Métriques", "required": true, "from": "facts" },
+        { "id": "reporting", "title": "Documentation et reporting", "required": false, "from": "mixed" }
       ],
       "requires": ["profile.dansPerimetre", "profile.niveauxTest", "profile.typesTest", "profile.seuilReussite"]
     },
@@ -47,15 +55,20 @@
       "purpose": "Planifier les activités de test du projet : périmètre, risques, approche, ressources, calendrier et critères.",
       "audience": "Chef de projet, équipe de test, valideur",
       "sections": [
-        { "id": "contexte", "title": "Contexte du test", "required": true, "from": "profile" },
-        { "id": "elements", "title": "Éléments de test", "required": true, "from": "facts" },
+        { "id": "contexte", "title": "Contexte", "required": true, "from": "mixed" },
+        { "id": "hypotheses", "title": "Hypothèses et contraintes", "required": true, "from": "profile" },
+        { "id": "parties", "title": "Parties prenantes", "required": true, "from": "profile" },
+        { "id": "communication", "title": "Communication", "required": true, "from": "profile" },
         { "id": "risques", "title": "Registre des risques", "required": true, "from": "mixed" },
-        { "id": "approche", "title": "Approche de test", "required": true, "from": "mixed" },
-        { "id": "criteres", "title": "Critères d'achèvement", "required": true, "from": "profile" },
-        { "id": "suspension", "title": "Critères de suspension et de reprise", "required": false, "from": "profile" },
-        { "id": "ressources", "title": "Rôles et responsabilités", "required": true, "from": "profile" },
+        { "id": "approche", "title": "Stratégie de test appliquée", "required": true, "from": "mixed" },
+        { "id": "criteres", "title": "Critères d'entrée et de sortie", "required": true, "from": "profile" },
+        { "id": "suspension", "title": "Critères de suspension et de reprise", "required": true, "from": "profile" },
+        { "id": "environnement", "title": "Environnement et données de test", "required": true, "from": "profile" },
+        { "id": "livrables", "title": "Livrables de test", "required": true, "from": "facts" },
         { "id": "planning", "title": "Calendrier", "required": true, "from": "profile" },
-        { "id": "livrables", "title": "Livrables de test", "required": false, "from": "facts" }
+        { "id": "ressources", "title": "Rôles et responsabilités", "required": true, "from": "profile" },
+        { "id": "formation", "title": "Besoins en formation", "required": false, "from": "profile" },
+        { "id": "approbations", "title": "Approbations", "required": true, "from": "profile" }
       ],
       "requires": ["profile.produit", "profile.versionProduit", "profile.seuilReussite", "profile.jalons"]
     },
@@ -68,13 +81,13 @@
       "audience": "Comité de pilotage, chef de projet",
       "sections": [
         { "id": "synthese", "title": "Synthèse", "required": true, "from": "facts" },
-        { "id": "preparation", "title": "Avancement de la préparation", "required": true, "from": "facts" },
-        { "id": "resultats", "title": "Résultats d'exécution", "required": true, "from": "facts" },
-        { "id": "anomalies", "title": "Anomalies", "required": true, "from": "facts" },
-        { "id": "risques", "title": "Risques et points d'attention", "required": true, "from": "mixed" },
-        { "id": "prochaines", "title": "Activités prévues", "required": false, "from": "facts" }
+        { "id": "avancement", "title": "Avancement par rapport au plan", "required": true, "from": "mixed" },
+        { "id": "metriques", "title": "Métriques d'exécution", "required": true, "from": "facts" },
+        { "id": "obstacles", "title": "Obstacles", "required": true, "from": "mixed" },
+        { "id": "risques", "title": "Risques", "required": true, "from": "mixed" },
+        { "id": "prochaines", "title": "Activités prévues pour la période suivante", "required": true, "from": "facts" }
       ],
-      "requires": ["facts.lastCampaign"]
+      "requires": ["facts.lastCampaign", "profile.periodeRapport"]
     },
     {
       "id": "cloture",
@@ -85,11 +98,13 @@
       "audience": "Valideur, comité de mise en production",
       "sections": [
         { "id": "synthese", "title": "Synthèse et recommandation", "required": true, "from": "mixed" },
-        { "id": "realise", "title": "Tests réalisés", "required": true, "from": "facts" },
+        { "id": "realise", "title": "Tests réalisés et métriques finales", "required": true, "from": "facts" },
         { "id": "criteres", "title": "Évaluation des critères de sortie", "required": true, "from": "mixed" },
-        { "id": "anomalies", "title": "Anomalies résiduelles", "required": true, "from": "facts" },
-        { "id": "ecarts", "title": "Écarts par rapport au plan", "required": true, "from": "facts" },
-        { "id": "lecons", "title": "Enseignements", "required": false, "from": "facts" }
+        { "id": "ecarts", "title": "Écarts par rapport au plan", "required": true, "from": "mixed" },
+        { "id": "anomalies", "title": "Anomalies ouvertes", "required": true, "from": "facts" },
+        { "id": "risques", "title": "Risques résiduels", "required": true, "from": "profile" },
+        { "id": "livrables", "title": "Livrables produits", "required": true, "from": "facts" },
+        { "id": "lecons", "title": "Leçons apprises", "required": true, "from": "profile" }
       ],
       "requires": ["facts.lastCampaign", "profile.seuilReussite", "profile.valideur"]
     },
@@ -102,9 +117,10 @@
       "audience": "Équipe de test, analystes métier",
       "sections": [
         { "id": "bases", "title": "Bases de test", "required": true, "from": "facts" },
+        { "id": "fonctionnalites", "title": "Ensembles de fonctionnalités", "required": true, "from": "facts" },
         { "id": "conditions", "title": "Conditions de test", "required": true, "from": "facts" },
+        { "id": "couverture", "title": "Éléments de couverture", "required": true, "from": "profile" },
         { "id": "cas", "title": "Cas de test", "required": true, "from": "facts" },
-        { "id": "techniques", "title": "Techniques appliquées", "required": false, "from": "profile" },
         { "id": "ecarts", "title": "Récits non couverts", "required": true, "from": "facts" }
       ],
       "requires": ["facts.stories"]
@@ -119,8 +135,9 @@
       "sections": [
         { "id": "outillage", "title": "Outillage", "required": true, "from": "facts" },
         { "id": "scripts", "title": "Scripts de test", "required": true, "from": "facts" },
-        { "id": "execution", "title": "Lancement et ordonnancement", "required": true, "from": "mixed" },
-        { "id": "prerequis", "title": "Prérequis", "required": false, "from": "mixed" },
+        { "id": "ordre", "title": "Ordre d'exécution", "required": true, "from": "mixed" },
+        { "id": "preconditions", "title": "Préconditions", "required": true, "from": "facts" },
+        { "id": "comptes", "title": "Jeu de comptes de test", "required": true, "from": "profile" },
         { "id": "performance", "title": "Tests de performance", "required": false, "from": "facts" }
       ],
       "requires": ["facts.automation.specs"]
@@ -129,12 +146,13 @@
       "id": "tracabilite",
       "title": "Matrice de traçabilité exigences ↔ tests",
       "phase": "Conception",
-      "ref": "ISTQB CTFL §1.4.4",
+      "ref": "ISTQB CTFL §1.4.4 / ISO 29119-3 §8.2–8.3",
       "purpose": "Relier chaque récit (exigence) à ses scénarios, scripts, tests Xray et dernier résultat d'exécution.",
       "audience": "Équipe projet, auditeurs, valideur",
       "sections": [
-        { "id": "synthese", "title": "Synthèse de couverture", "required": true, "from": "facts" },
+        { "id": "synthese", "title": "Synthèse de couverture", "required": true, "from": "mixed" },
         { "id": "matrice", "title": "Matrice", "required": true, "from": "facts" },
+        { "id": "inverse", "title": "Traçabilité inverse (scripts → exigences)", "required": true, "from": "facts" },
         { "id": "ecarts", "title": "Écarts de traçabilité", "required": true, "from": "facts" }
       ],
       "requires": ["facts.stories"]
@@ -144,15 +162,16 @@
       "title": "Disponibilité de l'environnement et des données de test",
       "phase": "Exécution",
       "ref": "ISO 29119-3 §8.5–8.6",
-      "purpose": "Décrire les environnements et jeux de données de test et confirmer leur disponibilité.",
+      "purpose": "Décrire les exigences d'environnement et de données de test, leur protection (RGPD) et confirmer leur disponibilité.",
       "audience": "Équipe de test, exploitation",
       "sections": [
-        { "id": "environnements", "title": "Environnements de test", "required": true, "from": "mixed" },
-        { "id": "donnees", "title": "Données de test", "required": true, "from": "mixed" },
-        { "id": "outillage", "title": "Outillage disponible", "required": true, "from": "facts" },
+        { "id": "exigences", "title": "Exigences d'environnement", "required": true, "from": "mixed" },
+        { "id": "outillage", "title": "Outillage", "required": true, "from": "facts" },
+        { "id": "donnees", "title": "Données de test", "required": true, "from": "profile" },
+        { "id": "confidentialite", "title": "Confidentialité et protection des données", "required": true, "from": "profile" },
         { "id": "disponibilite", "title": "État de disponibilité", "required": true, "from": "facts" }
       ],
-      "requires": ["profile.environnements"]
+      "requires": ["profile.environnements", "profile.donneesTest", "profile.protectionDonnees"]
     },
     {
       "id": "journal",
@@ -162,6 +181,7 @@
       "purpose": "Consigner chronologiquement les campagnes d'exécution et leurs résultats détaillés.",
       "audience": "Équipe de test, auditeurs",
       "sections": [
+        { "id": "objet", "title": "Objet", "required": true, "from": "profile" },
         { "id": "campagnes", "title": "Campagnes d'exécution", "required": true, "from": "facts" },
         { "id": "detail", "title": "Détail de la dernière campagne", "required": true, "from": "facts" },
         { "id": "xray", "title": "Publication dans Xray", "required": false, "from": "facts" }
@@ -177,8 +197,8 @@
       "audience": "Équipe de développement, équipe de test, chef de projet",
       "sections": [
         { "id": "synthese", "title": "Synthèse des anomalies", "required": true, "from": "facts" },
-        { "id": "rapports", "title": "Rapports détaillés", "required": true, "from": "facts" },
-        { "id": "processus", "title": "Processus de traitement", "required": false, "from": "profile" }
+        { "id": "rapports", "title": "Rapports détaillés", "required": true, "from": "mixed" },
+        { "id": "processus", "title": "Processus de traitement", "required": true, "from": "profile" }
       ],
       "requires": ["facts.defects"]
     }

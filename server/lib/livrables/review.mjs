@@ -11,7 +11,7 @@ const SEVERITIES = ['bloquant', 'majeur', 'mineur']
 const MAX_DOC_CHARS = 40000
 
 // Champs du profil utilisés par les règles de cohérence (cf. questionnaire.json).
-const P = { seuilReussite: 'seuilReussite', anomaliesBloquantesMax: 'anomaliesBloquantesMax' }
+const P = { seuilReussite: 'seuilReussite', maxAnomaliesBloquantes: 'maxAnomaliesBloquantes' }
 
 function norm(s) {
   return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
@@ -81,7 +81,7 @@ export function ruleFindings({ entry, version, markdown, facts, profile = {}, ha
   if (entry.id === 'cloture' && facts) {
     const rate = passRate(facts.lastCampaign)
     const seuil = Number(profile[P.seuilReussite])
-    const maxBloq = Number(profile[P.anomaliesBloquantesMax] ?? 0)
+    const maxBloq = Number(profile[P.maxAnomaliesBloquantes] ?? 0)
     const bloquantes = (facts.defects || []).filter((d) => d.status === 'ouverte' && d.severity === 'bloquante').length
     const atteint = (rate == null || !Number.isFinite(seuil) || rate >= seuil) && bloquantes <= maxBloq
     if (!atteint && !/non atteint/i.test(markdown)) {

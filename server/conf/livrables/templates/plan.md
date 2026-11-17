@@ -12,20 +12,20 @@
 | Auteur | {{doc.author}} |
 | Relu par | {{doc.reviewedBy|En attente de relecture}} |
 | Approuvé par | {{doc.approvedBy|En attente d'approbation}} |
+| Confidentialité | {{profile.confidentialite}} |
+| Diffusion | {{profile.diffusion|join}} |
 
 > Données au {{doc.dataDate|datetime}} — source : {{doc.dataSource}}.{{#if doc.demo}} **Données de démonstration.**{{/if}}
 
-## Contexte du test
+## Contexte
 
-Ce plan de test maître couvre la version **{{profile.versionProduit}}** du produit **{{profile.produit}}** (projet JIRA {{facts.project.key}}). Il applique la stratégie de test et la politique de test de {{profile.organisme}}.
+Ce plan de test maître couvre la version **{{profile.versionProduit}}** du produit **{{profile.produit}}** (projet JIRA {{facts.project.key}}). Il applique la politique et la stratégie de test de {{profile.organisme}}.
 
-{{profile.contexteReglementaire|}}
+{{profile.contexteReglementaire}}
 
-**Niveaux de test :** {{profile.niveauxTest|join}} — **Types de test :** {{profile.typesTest|join}}
+### Éléments de test
 
-## Éléments de test
-
-{{facts.coverage.stories}} récits répartis en {{facts.epics|count}} épopées constituent les bases de test ; le tri par risque détermine leur traitement :
+{{facts.coverage.stories}} récits répartis en {{facts.epics|count}} épopées :
 
 | Épopée | Intitulé | Récits |
 |---|---|---|
@@ -40,56 +40,128 @@ Ce plan de test maître couvre la version **{{profile.versionProduit}}** du prod
 | Non retenu | {{facts.triage.skip}} |
 | Non trié | {{facts.triage.untriaged}} |
 
-**Hors périmètre :** {{profile.horsPerimetre|join}}
+**Hors périmètre :**
+
+{{#each profile.horsPerimetre}}
+- {{this}}
+{{else}}
+- Aucune exclusion déclarée.
+{{/each}}
+
+## Hypothèses et contraintes
+
+**Hypothèses et dépendances :** {{profile.hypotheses}}
+
+**Contraintes :** {{profile.contraintesProjet}}
+
+## Parties prenantes
+
+| Rôle | Nom ou équipe | Responsabilité |
+|---|---|---|
+{{#each profile.partiesPrenantes}}
+| {{this.role}} | {{this.nom}} | {{this.responsabilite|—}} |
+{{else}}
+| {{profile.partiesPrenantes}} | — | — |
+{{/each}}
+
+## Communication
+
+Rapports d'avancement : fréquence {{profile.frequenceReporting|lower}}, adressés à : {{profile.diffusion|join}}. Les anomalies bloquantes sont signalées sans attendre le rapport suivant, selon le processus de la stratégie de test.
 
 ## Registre des risques
 
-Risques produit issus de l'analyse des récits (niveau élevé) :
+L'analyse automatique classe {{calc.storiesHighRisk|count}} récit(s) en risque élevé (détail dans la stratégie de test).
 
-| Récit | Intitulé | Priorité | Score | Traitement |
-|---|---|---|---|---|
-{{#each calc.storiesHighRisk}}
-| {{this.key}} | {{this.summary}} | {{this.priority}} | {{this.risk.score}} | {{this.triageLabel}} |
-{{else}}
-| — | Aucun récit à risque élevé | — | — | — |
-{{/each}}
+**Risques produit :**
 
-{{#if profile.risquesProduit}}
-Risques complémentaires (produit et projet) :
-
-| Risque | Probabilité | Impact | Mesure de réduction |
-|---|---|---|---|
+| Risque | Récit / épopée | Probabilité | Impact | Niveau | Mesure de test |
+|---|---|---|---|---|---|
 {{#each profile.risquesProduit}}
-| {{this.risque}} | {{this.probabilite|—}} | {{this.impact|—}} | {{this.mesure|—}} |
+| {{this.risque}} | {{this.source|—}} | {{this.probabilite|—}} | {{this.impact|—}} | {{this.niveau|—}} | {{this.attenuation|—}} |
+{{else}}
+| {{profile.risquesProduit}} | — | — | — | — | — |
 {{/each}}
-{{/if}}
 
-## Approche de test
+**Risques projet :**
 
-{{profile.approcheAutomatisation|Les récits à risque élevé et les récits triés « À automatiser » sont couverts par des scénarios Gherkin validés puis par des scripts Playwright exécutés en campagne. Les autres récits sont testés manuellement ou reportés.}}
+| Risque | Impact | Mesure |
+|---|---|---|
+{{#each profile.risquesProjet}}
+| {{this.risque}} | {{this.impact|—}} | {{this.attenuation|—}} |
+{{else}}
+| {{profile.risquesProjet}} | — | — |
+{{/each}}
 
-Techniques de conception : {{profile.techniquesTest|join}}.
+## Stratégie de test appliquée
 
-État de préparation au {{doc.dataDate|date}} : {{facts.gherkin.validated}} Gherkin validé(s) sur {{facts.gherkin.total}}, {{facts.automation.specs|count}} script(s) Playwright, {{facts.coverage.automated}} récit(s) automatisé(s) ({{facts.coverage.pctAutomated|pct}}).
+- **Niveaux :** {{profile.niveauxTest|join}}
+- **Types :** {{profile.typesTest|join}}
+- **Techniques :** {{profile.techniquesTest|join}}
+
+{{profile.strategieAutomatisation}}
 
 {{#if profile.nonFonctionnel}}
-Tests non fonctionnels : {{profile.nonFonctionnel}}
+**Non fonctionnel :** {{profile.nonFonctionnel}}
 {{/if}}
 
-## Critères d'achèvement
+État de préparation au {{doc.dataDate|date}} : {{facts.gherkin.validated}} fichier(s) Gherkin validé(s) sur {{facts.gherkin.total}}, {{facts.automation.specs|count}} script(s) Playwright, {{facts.coverage.automated}} récit(s) automatisé(s) ({{facts.coverage.pctAutomated|pct}}).
+
+## Critères d'entrée et de sortie
+
+**Critères d'entrée :**
+
+{{#each profile.criteresEntree}}
+- {{this}}
+{{else}}
+- {{profile.criteresEntree}}
+{{/each}}
+
+**Critères de sortie :**
 
 | Critère | Cible |
 |---|---|
 | Taux de réussite des tests exécutés | ≥ {{profile.seuilReussite}} % |
-| Anomalies bloquantes ouvertes | ≤ {{profile.anomaliesBloquantesMax|0}} |
-| Couverture des récits « À automatiser » | ≥ {{profile.seuilCouverture|100}} % |
-
-Critères d'entrée : {{profile.criteresEntree|join}}
+| Anomalies bloquantes ouvertes | ≤ {{profile.maxAnomaliesBloquantes}} |
+| Anomalies majeures ouvertes | ≤ {{profile.maxAnomaliesMajeures|sans plafond fixé}} |
+| Couverture des récits « À automatiser » | ≥ {{profile.couvertureMin}} % |
 
 ## Critères de suspension et de reprise
 
-- **Suspension :** {{profile.criteresSuspension|environnement indisponible, anomalie bloquante empêchant la poursuite des tests ou version non conforme aux critères d'entrée.}}
-- **Reprise :** {{profile.criteresReprise|correction livrée et vérifiée, environnement rétabli ; les tests interrompus sont rejoués intégralement.}}
+**Suspension :** {{profile.criteresSuspension}}
+
+**Reprise :** {{profile.criteresReprise}}
+
+## Environnement et données de test
+
+| Environnement | Adresse | Navigateur | Comptes | Usage |
+|---|---|---|---|---|
+{{#each profile.environnements}}
+| {{this.nom}} | {{this.url|—}} | {{this.navigateur|—}} | {{this.comptes|—}} | {{this.usage|—}} |
+{{else}}
+| {{profile.environnements}} | — | — | — | — |
+{{/each}}
+
+{{profile.donneesTest}}
+
+Outillage : {{profile.outils|join}}.
+
+## Livrables de test
+
+| Livrable | Référence | État | Version |
+|---|---|---|---|
+{{#each calc.docs}}
+| {{this.title}} | {{this.ref}} | {{this.status}} | {{this.version}} |
+{{/each}}
+
+## Calendrier
+
+| Jalon | Échéance | Livrable attendu |
+|---|---|---|
+{{#each profile.jalons}}
+| {{this.jalon}} | {{this.date|—}} | {{this.livrable|—}} |
+{{else}}
+| {{profile.jalons}} | — | — |
+{{/each}}
 
 ## Rôles et responsabilités
 
@@ -99,22 +171,18 @@ Critères d'entrée : {{profile.criteresEntree|join}}
 | Testeurs | {{profile.testeurs|join}} |
 | Valideur | {{profile.valideur}} |
 
-## Calendrier
+## Besoins en formation
 
-| Jalon | Date | Responsable |
-|---|---|---|
-{{#each profile.jalons}}
-| {{this.jalon}} | {{this.date|date}} | {{this.responsable|—}} |
-{{else}}
-| {{profile.jalons}} | — | — |
-{{/each}}
+{{profile.besoinsFormation}}
 
-## Livrables de test
+## Approbations
 
-| Livrable | Référence | État | Version |
+| Document | Rédacteur | Relecteur | Approbateur |
 |---|---|---|---|
-{{#each calc.docs}}
-| {{this.title}} | {{this.ref}} | {{this.status}} | {{this.version}} |
+{{#each profile.circuitValidation}}
+| {{this.document}} | {{this.redacteur|—}} | {{this.relecteur|—}} | {{this.approbateur|—}} |
+{{else}}
+| {{profile.circuitValidation}} | — | — | — |
 {{/each}}
 
 ## Historique des versions

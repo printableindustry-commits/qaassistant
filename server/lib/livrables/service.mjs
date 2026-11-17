@@ -143,12 +143,14 @@ export function computeCalc(facts, profile, docsState = []) {
   const withLabel = (s) => ({ ...s, triageLabel: TRIAGE_LABEL[s.triage] || 'Non trié' })
 
   const seuil = Number(profile.seuilReussite)
-  const maxBloq = Number(profile.anomaliesBloquantesMax ?? 0)
-  const seuilCouv = Number(profile.seuilCouverture)
+  const maxBloq = Number(profile.maxAnomaliesBloquantes ?? 0)
+  const maxMaj = profile.maxAnomaliesMajeures == null ? NaN : Number(profile.maxAnomaliesMajeures)
+  const seuilCouv = profile.couvertureMin == null ? NaN : Number(profile.couvertureMin)
   const cov = facts.coverage || {}
   const exit = []
   if (Number.isFinite(seuil)) exit.push({ critere: 'Taux de réussite des tests exécutés', cible: `≥ ${seuil} %`, mesure: rate == null ? 'non mesuré' : `${rate} %`, atteint: rate != null && rate >= seuil })
   exit.push({ critere: 'Anomalies bloquantes ouvertes', cible: `≤ ${Number.isFinite(maxBloq) ? maxBloq : 0}`, mesure: String(count('bloquante')), atteint: count('bloquante') <= (Number.isFinite(maxBloq) ? maxBloq : 0) })
+  if (Number.isFinite(maxMaj)) exit.push({ critere: 'Anomalies majeures ouvertes', cible: `≤ ${maxMaj}`, mesure: String(count('majeure')), atteint: count('majeure') <= maxMaj })
   if (Number.isFinite(seuilCouv)) exit.push({ critere: 'Récits « À automatiser » couverts par un test automatisé', cible: `≥ ${seuilCouv} %`, mesure: `${cov.pctAutomated ?? 0} %`, atteint: (cov.pctAutomated ?? 0) >= seuilCouv })
   exit.forEach((e) => { e.statut = e.atteint ? 'Atteint' : 'Non atteint' })
   const exitMet = exit.every((e) => e.atteint) && last != null

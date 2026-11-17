@@ -16,42 +16,56 @@
 
 ## Bases de test
 
-Les bases de test sont les récits utilisateur du projet JIRA **{{facts.project.key}}** ({{facts.project.jiraBaseUrl|—}}), importés le {{facts.project.scanAt|datetime}}, et leurs critères d'acceptation : {{facts.coverage.stories}} récits, dont {{facts.coverage.withCriteria}} avec critères d'acceptation.
+Récits utilisateur du projet JIRA **{{facts.project.key}}** ({{facts.project.jiraBaseUrl|—}}), importés le {{facts.project.scanAt|datetime}}, et leurs critères d'acceptation : {{facts.coverage.stories}} récit(s), dont {{facts.coverage.withCriteria}} avec critères d'acceptation. Toute évolution d'un récit dans JIRA impose la mise à jour des conditions et des cas de test qui en dérivent.
 
-| Récit | Intitulé | Épopée | Priorité | Critères | Risque | Tri |
-|---|---|---|---|---|---|---|
-{{#each calc.traceRows}}
-| {{this.key}} | {{this.summary}} | {{this.epic}} | {{this.priority|—}} | {{this.criteria}} | {{this.risk}} | {{this.triage}} |
+## Ensembles de fonctionnalités
+
+| Épopée | Intitulé | Récits |
+|---|---|---|
+{{#each facts.epics}}
+| {{this.key}} | {{this.summary}} | {{this.stories}} |
+{{else}}
+| — | Aucune épopée importée | — |
 {{/each}}
 
 ## Conditions de test
 
-Chaque critère d'acceptation d'un récit retenu constitue une condition de test. Les récits marqués « à clarifier » sont signalés : leurs conditions doivent être confirmées avec le métier avant conception.
+Chaque critère d'acceptation d'un récit constitue une condition de test ; sa priorité découle du niveau de risque du récit. Une condition « à clarifier » doit être confirmée par le Product Owner avant la conception des cas.
 
-| Récit | Conditions (critères d'acceptation) | À clarifier |
-|---|---|---|
+| Récit | Intitulé | Priorité | Risque | Conditions | À clarifier |
+|---|---|---|---|---|---|
 {{#each facts.stories}}
-| {{this.key}} | {{this.criteriaCount}} | {{this.toClarify|ouinon}} |
-{{/each}}
-
-## Cas de test
-
-Les cas de test sont formalisés en scénarios Gherkin (Étant donné / Quand / Alors), relus puis validés : {{facts.gherkin.total}} fichier(s), {{facts.gherkin.scenarios}} scénario(s), {{facts.gherkin.validated}} validé(s), {{facts.gherkin.draft}} brouillon(s), {{facts.gherkin.exported}} exporté(s) dans le projet de test.
-
-| Récit | Intitulé | État Gherkin | Scénarios | Fichier exporté |
-|---|---|---|---|---|
-{{#each calc.storiesWithGherkin}}
-| {{this.key}} | {{this.summary}} | {{this.gherkin.status}} | {{this.gherkin.scenarios}} | {{this.gherkin.exportedPath|—}} |
+| {{this.key}} | {{this.summary}} | {{this.priority|—}} | {{this.risk.level}} | {{this.criteriaCount}} | {{this.toClarify|ouinon}} |
 {{else}}
-| — | Aucun scénario Gherkin rédigé à ce jour | — | — | — |
+| — | Aucun récit importé | — | — | — | — |
 {{/each}}
 
-## Techniques appliquées
+## Éléments de couverture
+
+L'élément de couverture est le critère d'acceptation : chacun doit être vérifié par au moins un scénario Gherkin. Les techniques de conception ci-dessous servent à décliner un critère en plusieurs scénarios (classes valides et invalides, bornes, transitions).
 
 {{#each profile.techniquesTest}}
 - {{this}}
 {{else}}
-- Tests basés sur les critères d'acceptation (ATDD / BDD) ; partitions d'équivalence et valeurs limites pour les règles de gestion.
+- {{profile.techniquesTest}}
+{{/each}}
+
+## Cas de test
+
+Un cas de test est un scénario Gherkin, identifié par le récit et le titre du scénario :
+
+- **préconditions** : étapes « Étant donné » et bloc « Contexte » ;
+- **entrées et actions** : étapes « Quand » et, le cas échéant, tableau « Exemples » ;
+- **résultats attendus** : étapes « Alors ».
+
+Le fichier `.feature` référencé fait partie intégrante de la présente spécification. État : {{facts.gherkin.total}} fichier(s), {{facts.gherkin.scenarios}} scénario(s), {{facts.gherkin.validated}} validé(s), {{facts.gherkin.draft}} brouillon(s), {{facts.gherkin.exported}} exporté(s) dans le projet de test.
+
+| Récit | Intitulé | Critères | Scénarios | Fichier |
+|---|---|---|---|---|
+{{#each calc.storiesWithGherkin}}
+| {{this.key}} | {{this.summary}} | {{this.criteriaCount}} | {{this.gherkin.scenarios}} | {{this.gherkin.exportedPath|non exporté}} |
+{{else}}
+| — | Aucun scénario Gherkin rédigé à ce jour | — | — | — |
 {{/each}}
 
 ## Récits non couverts
@@ -59,7 +73,18 @@ Les cas de test sont formalisés en scénarios Gherkin (Étant donné / Quand / 
 {{#each calc.storiesUncovered}}
 - **{{this.key}}** — {{this.summary}} : Gherkin {{this.gherkin}}, scripts {{this.specs}}.
 {{else}}
+{{#if facts.triage.todo}}
 Tous les récits triés « À automatiser » disposent d'un scénario et d'un test automatisé.
+{{else}}
+Aucun récit n'est encore trié « À automatiser ».
+{{/if}}
+{{/each}}
+
+Récits sans critère d'acceptation (conditions non dérivables) :
+{{#each facts.stories}}
+{{#unless this.criteriaCount}}
+- **{{this.key}}** — {{this.summary}}
+{{/unless}}
 {{/each}}
 
 {{#if facts.triage.untriaged}}

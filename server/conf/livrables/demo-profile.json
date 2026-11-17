@@ -8,6 +8,10 @@
     "contexteReglementaire": "IRMA sert au pilotage des risques opérationnels d'un établissement financier. Le produit contribue au dispositif de contrôle interne (traçabilité des cotations, piste d'audit, séparation des rôles Analyste / Valideur), traite des données nominatives d'agents (RGPD : minimisation, durée de conservation, habilitations) et doit respecter le référentiel d'accessibilité RGAA 4.1 pour ses écrans. Les restitutions présentées au comité des risques doivent être exactes et reproductibles.",
     "normes": ["ISO/IEC/IEEE 29119", "ISTQB", "RGAA 4.1", "RGPD"],
     "objectifsQualite": "Garantir la non-régression des parcours critiques (connexion, cotation, validation, export comité) à chaque livraison ; détecter au plus tôt les écarts de données à l'import ; fournir au comité des risques des preuves d'exécution tracées jusqu'aux exigences.",
+    "formationTesteurs": "Testeurs certifiés ISTQB Foundation, responsable des tests certifié ISTQB Advanced Test Manager. Tout nouvel arrivant suit une formation à Playwright, à l'écriture Gherkin et au domaine des risques opérationnels.",
+    "ethiqueTest": "Les testeurs appliquent le code d'éthique ISTQB : résultats rapportés de façon objective et complète, confidentialité des données de recette, signalement de tout conflit d'intérêts. Aucun résultat n'est modifié sans trace.",
+    "archivageTest": "Livrables versionnés et approuvés dans Wizard QA, scripts Playwright dans le dépôt de code, tests et exécutions dans Xray. Conservation alignée sur la piste d'audit du contrôle interne ; les suites de non-régression sont réutilisées à chaque version.",
+    "ameliorationProcessus": "Les enseignements de chaque rapport de clôture sont revus avec le PO et l'équipe de développement ; les actions d'amélioration sont suivies dans JIRA. La politique est revue chaque année par le responsable des tests et approuvée par le valideur.",
     "partiesPrenantes": [
       { "role": "Product Owner", "nom": "PO IRMA", "responsabilite": "Priorise les récits, valide les critères d'acceptation" },
       { "role": "Responsable des tests", "nom": "QA Lead IRMA", "responsabilite": "Stratégie, plan, rapports, décision de sortie" },
@@ -32,6 +36,7 @@
     ],
     "niveauxTest": ["Tests système", "Tests d'acceptation"],
     "hypotheses": "L'environnement de recette est disponible du lundi au vendredi ; les comptes de test Analyste et Valideur sont fournis ; les jeux de données d'import sont anonymisés.",
+    "contraintesProjet": "Fenêtre de recette de deux semaines avant la décision de mise en production ; aucun accès aux données de production ; tests de performance limités à l'environnement de pré-production.",
     "risquesProduit": [
       { "risque": "Cotation validée par un profil non habilité", "source": "P0326-9302 — Profils d'habilitation", "probabilite": "Moyenne", "impact": "Élevé", "niveau": "élevé", "attenuation": "Tests automatisés par profil, test négatif de validation" },
       { "risque": "Connexion SSO indisponible ou contournable", "source": "P0326-9301 — Connexion SSO", "probabilite": "Faible", "impact": "Élevé", "niveau": "élevé", "attenuation": "Parcours de connexion automatisé à chaque campagne" },
@@ -42,17 +47,35 @@
       { "risque": "Indisponibilité de l'environnement de recette", "impact": "Retard de campagne", "attenuation": "Application de démonstration et campagne simulée pour préparer les tests" },
       { "risque": "Critères d'acceptation incomplets", "impact": "Tests non concluants", "attenuation": "Relecture QA des récits et questions au PO avant automatisation" }
     ],
+    "risquesResiduels": "Les parcours d'import planifié (SFTP) et la charge au-delà de 200 utilisateurs ne sont pas testés. L'export PDF du comité n'est couvert que manuellement. Ces risques sont portés par le Responsable de domaine Risques jusqu'à la release suivante.",
     "typesTest": ["Fonctionnel", "Non-régression", "Accessibilité", "Performance"],
-    "techniquesTest": ["Partitions d'équivalence", "Valeurs limites", "Transitions d'état", "BDD (Gherkin)", "Test exploratoire"],
+    "techniquesTest": [
+      "Partitions d'équivalence",
+      "Valeurs limites",
+      "Transitions d'état",
+      "BDD (Gherkin)",
+      "Test exploratoire"
+    ],
+    "independanceTest": "Les tests système sont conçus et exécutés par l'équipe QA IRMA, distincte de l'équipe de développement ; la recette d'acceptation est réalisée par la Direction des Risques. Les scripts générés par l'assistant sont relus par un testeur avant intégration.",
+    "retestRegression": "Chaque correction d'anomalie est confirmée en rejouant le test en échec. La suite automatisée des parcours critiques est rejouée à chaque livraison sur la recette ; la suite complète est rejouée avant la décision de mise en production.",
     "strategieAutomatisation": "Les récits triés « À automatiser » sont décrits en scénarios Gherkin validés, explorés par l'agent sur l'application puis transformés en tests Playwright relus par un testeur. Les tests automatisés sont rejoués à chaque campagne et leurs résultats sont publiés dans Xray.",
-    "outils": ["JIRA (récits, anomalies)", "Xray (gestion des tests)", "Playwright (automatisation web)", "k6 (performance)", "Wizard QA (tri, Gherkin, exploration, livrables)"],
+    "ordonnancement": "1. Test de fumée (connexion SSO et affichage du tableau de bord) : la campagne est interrompue s'il échoue. 2. Récits à risque élevé (habilitations, import CSV, export PDF comité). 3. Autres récits automatisés. Campagne complète à chaque livraison en recette, puis avant la mise en production ; une campagne partielle se limite aux étapes 1 et 2.",
+    "outils": [
+      "JIRA (récits, anomalies)",
+      "Xray (gestion des tests)",
+      "Playwright (automatisation web)",
+      "k6 (performance)",
+      "Wizard QA (tri, Gherkin, exploration, livrables)"
+    ],
     "nonFonctionnel": "Performance : profil de charge k6 sur le tableau de bord (p95 < 800 ms, taux d'erreur < 1 %). Accessibilité : contrôle RGAA de l'écran de connexion et des messages d'erreur.",
     "gestionAnomalies": "Les anomalies sont créées dans JIRA, liées au récit et au test en échec. Sévérités : bloquante (prise en charge sous 24 h), majeure (sous 3 jours), mineure (planifiée au sprint suivant). Une anomalie est close après réussite du test de non-régression associé.",
+    "prioriteAnomalies": "Fixée par le PO en comité d'anomalies (bloquante : P1, majeure : P2, mineure : P3)",
     "environnements": [
       { "nom": "Recette (démo)", "url": "Application de démo IRMA servie par Wizard QA", "navigateur": "msedge", "comptes": "Agent (Analyste), Gestionnaire (Valideur)", "usage": "Exploration, automatisation, campagnes" },
       { "nom": "Pré-production", "url": "À communiquer par l'exploitation", "navigateur": "msedge", "comptes": "Comptes de recette nominatifs", "usage": "Recette métier, performance" }
     ],
     "donneesTest": "Jeux de données fictifs ou anonymisés (portefeuilles, entités, cotations) ; un fichier d'import de référence et des fichiers volontairement invalides ; réinitialisation de la base de recette avant chaque campagne majeure.",
+    "protectionDonnees": "Aucune donnée de production nominative n'est utilisée en recette : les agents et entités des jeux de test sont fictifs, et les extraits de production éventuels sont anonymisés avant chargement (noms, identifiants et adresses e-mail remplacés). L'accès à l'environnement de recette est limité à l'équipe projet IRMA. Les données de test et les traces d'exécution sont purgées à la clôture de la campagne, au plus tard 3 mois après.",
     "responsableEnvironnement": "Équipe d'exploitation IRMA",
     "criteresEntree": [
       "Récits concernés au statut « En recette » avec critères d'acceptation",
@@ -72,12 +95,21 @@
       { "jalon": "Décision de mise en production", "date": "Semaine 5", "livrable": "Rapport de clôture" }
     ],
     "frequenceReporting": "Hebdomadaire",
+    "besoinsFormation": "Prise en main de Wizard QA (tri, Gherkin, exploration) pour les deux testeurs ; présentation du processus de cotation et de validation par le PO IRMA en semaine 1.",
+    "periodeRapport": "Semaine 47 (du 16/11/2026 au 20/11/2026)",
+    "obstaclesPeriode": "Le service de cotation de l'environnement de recette renvoie des erreurs 500 de façon intermittente, ce qui bloque le parcours de connexion. La majorité des récits n'est pas encore triée, ce qui retarde la conception des scénarios.",
     "circuitValidation": [
       { "document": "Politique et stratégie de test", "redacteur": "QA Lead IRMA", "relecteur": "Agent Wizard QA puis PO IRMA", "approbateur": "Responsable de domaine Risques" },
       { "document": "Plan et rapports de test", "redacteur": "QA Lead IRMA", "relecteur": "Agent Wizard QA", "approbateur": "Responsable de domaine Risques" },
       { "document": "Documents de conception et d'exécution", "redacteur": "Équipe QA IRMA", "relecteur": "Agent Wizard QA", "approbateur": "QA Lead IRMA" }
     ],
-    "diffusion": ["PO IRMA", "Équipe de développement IRMA", "Direction des Risques", "Comité des risques (rapport de clôture)"],
-    "confidentialite": "Interne"
+    "diffusion": [
+      "PO IRMA",
+      "Équipe de développement IRMA",
+      "Direction des Risques",
+      "Comité des risques (rapport de clôture)"
+    ],
+    "confidentialite": "Interne",
+    "leconsApprises": "Trier les récits dès l'affinage pour démarrer la conception plus tôt ; exiger des critères d'acceptation testables avant l'entrée en recette ; disposer d'un environnement de recette stable pour remplacer les campagnes simulées par des campagnes réelles."
   }
 }

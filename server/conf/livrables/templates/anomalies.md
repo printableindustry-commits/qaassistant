@@ -16,9 +16,15 @@
 
 ## Synthèse des anomalies
 
-Anomalies dérivées des échecs de test des campagnes d'exécution (regroupées par test). Seuils fixés par le plan de test : au plus {{profile.maxAnomaliesBloquantes|0}} anomalie(s) bloquante(s) et {{profile.maxAnomaliesMajeures|—}} majeure(s) à la clôture.
+Anomalies dérivées des échecs de test des campagnes d'exécution, une par test en échec. Seuils de clôture fixés par le plan de test : au plus {{profile.maxAnomaliesBloquantes}} anomalie(s) bloquante(s) et {{profile.maxAnomaliesMajeures|non fixé}} majeure(s) ouvertes.
 
-Nombre d'anomalies recensées : **{{facts.defects|count}}**.
+| Sévérité | Ouvertes |
+|---|---|
+| Bloquante | {{calc.defectsCount.bloquante}} |
+| Majeure | {{calc.defectsCount.majeure}} |
+| Mineure | {{calc.defectsCount.mineure}} |
+| **Total ouvertes** | **{{calc.defectsCount.ouvertes}}** |
+| Corrigées | {{calc.defectsClosed|count}} |
 
 ## Rapports détaillés
 
@@ -27,17 +33,26 @@ Nombre d'anomalies recensées : **{{facts.defects|count}}**.
 
 | Rubrique | Valeur |
 |---|---|
-| Récit concerné | {{this.storyKey|—}} |
-| Test en échec | {{this.testTitle}} ({{this.file|—}}) |
+| Identifiant | {{this.id}} |
+| Version testée | {{profile.versionProduit}} |
+| Récit concerné | {{this.storyKey|non rattaché}} |
+| Test en échec | {{this.testTitle}} |
+| Fichier de test | {{this.file|—}} |
+| Environnement (dernière campagne) | {{facts.lastCampaign.env.baseUrl|—}} ({{facts.lastCampaign.env.browser|—}}) |
+| Origine | {{#if this.simulated}}campagne simulée{{else}}campagne réelle{{/if}} |
 | Sévérité | {{this.severity}} |
+| Priorité | {{profile.prioriteAnomalies}} |
 | État | {{this.status}} |
-| Première détection | {{this.firstSeen|datetime}} |
-| Dernière détection | {{this.lastSeen|datetime}} |
+| Première / dernière détection | {{this.firstSeen|datetime}} / {{this.lastSeen|datetime}} |
 | Occurrences | {{this.occurrences}} |
 
-**Résultat observé :** {{this.error|—}}
+**Reproduction :** sur l'environnement indiqué, exécuter le test « {{this.testTitle}} » du fichier {{this.file|—}}.
 
-**Résultat attendu :** comportement décrit par les critères d'acceptation du récit {{this.storyKey|—}}.
+**Résultat attendu :** comportement décrit par les critères d'acceptation du récit {{this.storyKey|concerné}} et par son scénario Gherkin.
+
+**Résultat obtenu :** {{this.error|aucun message d'erreur enregistré}}
+
+**Impact :** fonctionnalité du récit {{this.storyKey|concerné}} non conforme ; sévérité « {{this.severity}} » au sens du processus ci-dessous.
 
 {{else}}
 Aucune anomalie détectée par les campagnes d'exécution.

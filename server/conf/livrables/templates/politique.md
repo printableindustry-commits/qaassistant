@@ -12,86 +12,87 @@
 | Auteur | {{doc.author}} |
 | Relu par | {{doc.reviewedBy|En attente de relecture}} |
 | Approuvé par | {{doc.approvedBy|En attente d'approbation}} |
+| Confidentialité | {{profile.confidentialite}} |
+| Diffusion | {{profile.diffusion|join}} |
 
 > Données au {{doc.dataDate|datetime}} — source : {{doc.dataSource}}.{{#if doc.demo}} **Données de démonstration.**{{/if}}
 
 ## Objet et domaine d'application
 
-La présente politique définit les principes et objectifs de test retenus par **{{profile.organisme}}** pour le produit **{{profile.produit}}**. Elle s'impose à tous les projets et évolutions de ce produit et sert de référence à la stratégie de test et aux plans de test.
-
-Elle couvre les activités de test fonctionnel, de non-régression et, lorsque c'est pertinent, de performance, qu'elles soient manuelles ou automatisées.
+La présente politique fixe les principes de test de **{{profile.organisme}}** pour le produit **{{profile.produit}}**. Elle s'applique à toutes ses versions et évolutions ; la stratégie de test et les plans de test la déclinent.
 
 ## Objectifs du test
 
-{{#if profile.objectifsTest}}
-{{profile.objectifsTest}}
-{{else}}
-Les tests visent à :
-
-- vérifier que chaque exigence (récit utilisateur) est satisfaite au regard de ses critères d'acceptation ;
-- réduire le niveau de risque produit à un niveau acceptable avant chaque mise en production ;
-- fournir aux décideurs une information objective, fondée sur des résultats d'exécution réels ;
-- détecter les anomalies au plus tôt et prévenir leur réapparition par la non-régression automatisée.
-{{/if}}
-
-Indicateurs suivis en continu (état au {{doc.dataDate|date}}) :
-
-| Indicateur | Valeur |
-|---|---|
-| Récits du périmètre | {{facts.coverage.stories}} |
-| Récits avec critères d'acceptation | {{facts.coverage.withCriteria}} |
-| Récits couverts par un scénario Gherkin | {{facts.coverage.withGherkin}} |
-| Récits automatisés | {{facts.coverage.automated}} ({{facts.coverage.pctAutomated|pct}}) |
-| Récits réussis lors de la dernière exécution | {{facts.coverage.passed}} ({{facts.coverage.pctPassed|pct}}) |
+{{profile.objectifsQualite}}
 
 ## Processus de test
 
-Le processus de test suit le modèle ISTQB / ISO/IEC/IEEE 29119-2 :
+Le test suit les processus ISO/IEC/IEEE 29119-2 :
 
-1. **Planification et pilotage** : plan de test maître, suivi par rapports d'avancement.
-2. **Analyse** : récits JIRA importés, triés selon le risque (À automatiser / Plus tard / Non retenu).
-3. **Conception** : conditions et cas de test formalisés en scénarios Gherkin, relus et validés.
-4. **Implémentation** : scripts automatisés Playwright (et k6 pour la performance), rattachés aux récits.
-5. **Exécution** : campagnes d'exécution tracées dans le journal d'exécution, résultats publiés dans Xray.
-6. **Clôture** : évaluation des critères de sortie, rapport de clôture, capitalisation.
+1. **Planification, suivi et contrôle** : plan de test maître, rapports d'avancement, rapport de clôture.
+2. **Analyse et conception** : récits JIRA triés selon le risque, conditions de test formalisées en scénarios Gherkin relus.
+3. **Implémentation et exécution** : scripts automatisés rattachés aux récits, campagnes tracées et publiées dans Xray.
+4. **Gestion des anomalies** : voir ci-dessous.
+5. **Clôture** : évaluation des critères de sortie et capitalisation.
 
-Outillage de référence : {{calc.tools|join}}.
+{{profile.gestionAnomalies}}
 
 ## Organisation et rôles
 
-| Rôle | Titulaire |
-|---|---|
-| Responsable des tests | {{profile.responsableTest}} |
-| Testeurs | {{profile.testeurs|join}} |
-| Valideur (approbation des livrables) | {{profile.valideur}} |
-
-{{#if profile.partiesPrenantes}}
-Parties prenantes :
-
-| Rôle | Nom | Responsabilités |
+| Rôle | Nom ou équipe | Responsabilité |
 |---|---|---|
 {{#each profile.partiesPrenantes}}
-| {{this.role}} | {{this.nom}} | {{this.responsabilites|—}} |
+| {{this.role}} | {{this.nom}} | {{this.responsabilite|—}} |
+{{else}}
+| {{profile.partiesPrenantes}} | — | — |
 {{/each}}
-{{/if}}
+
+## Formation des testeurs
+
+{{profile.formationTesteurs}}
+
+## Éthique
+
+{{profile.ethiqueTest}}
 
 ## Normes et exigences réglementaires
 
 {{profile.contexteReglementaire}}
 
-{{#if profile.normes}}
-Normes et référentiels appliqués :
+Normes et référentiels appliqués : {{profile.normes|join}}.
 
-{{#each profile.normes}}
-- {{this}}
+Les livrables de test sont structurés selon ISO/IEC/IEEE 29119-3 et le glossaire ISTQB.
+
+## Mesure de la valeur du test
+
+Mesures collectées automatiquement (état au {{doc.dataDate|date}}) :
+
+| Indicateur | Valeur |
+|---|---|
+| Récits du périmètre | {{facts.coverage.stories}} |
+| Récits automatisés | {{facts.coverage.automated}} ({{facts.coverage.pctAutomated|pct}}) |
+| Récits réussis lors de la dernière exécution | {{facts.coverage.passed}} sur {{facts.coverage.executed}} exécutés ({{facts.coverage.pctPassed|pct}}) |
+| Campagnes d'exécution enregistrées | {{facts.campaigns|count}} |
+| Anomalies détectées / ouvertes | {{calc.defectsCount.total}} / {{calc.defectsCount.ouvertes}} |
+| Écarts de traçabilité | {{facts.gaps|count}} |
+
+## Archivage et réutilisation des actifs de test
+
+{{profile.archivageTest}}
+
+## Amélioration du processus
+
+{{profile.ameliorationProcessus}}
+
+## Circuit d'approbation
+
+| Document | Rédacteur | Relecteur | Approbateur |
+|---|---|---|---|
+{{#each profile.circuitValidation}}
+| {{this.document}} | {{this.redacteur|—}} | {{this.relecteur|—}} | {{this.approbateur|—}} |
+{{else}}
+| {{profile.circuitValidation}} | — | — | — |
 {{/each}}
-{{/if}}
-
-Les livrables de test sont structurés selon ISO/IEC/IEEE 29119-3 et le glossaire ISTQB ; ils sont régénérés à partir des données réelles de test et approuvés selon le circuit de validation défini dans la stratégie.
-
-## Mesure et amélioration du processus
-
-Les mesures suivantes sont collectées automatiquement et revues à chaque clôture : couverture des récits par des tests automatisés, taux de réussite des campagnes ({{facts.campaigns|count}} campagne(s) enregistrée(s)), anomalies détectées ({{calc.defectsCount.total}}) et écarts de traçabilité ({{facts.gaps|count}}). Les enseignements de chaque rapport de clôture alimentent la révision annuelle de cette politique.
 
 ## Historique des versions
 

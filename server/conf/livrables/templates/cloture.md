@@ -17,13 +17,17 @@
 
 ## Synthèse et recommandation
 
-Critères de sortie : **{{calc.exitLabel}}**.
+Ce rapport clôt les tests de la version **{{profile.versionProduit}}** de **{{profile.produit}}**. Critères de sortie : **{{calc.exitLabel}}**. Anomalies ouvertes : **{{calc.defectsCount.ouvertes}}** (dont {{calc.defectsCount.bloquante}} bloquante(s)).
+
+{{#if facts.lastCampaign.simulated}}
+La campagne de référence est **simulée** : ses résultats ne constituent pas une preuve d'exécution et doivent être confirmés par une campagne réelle avant toute décision.
+{{/if}}
 
 {{calc.recommendation}}
 
 Décision du valideur ({{profile.valideur}}) : ☐ Mise en production acceptée ☐ Acceptée avec réserves ☐ Refusée
 
-## Tests réalisés
+## Tests réalisés et métriques finales
 
 {{#if facts.lastCampaign}}
 Campagne de référence : **{{facts.lastCampaign.id}}** du {{facts.lastCampaign.at|datetime}}{{#if facts.lastCampaign.simulated}} (simulée){{/if}}, environnement {{facts.lastCampaign.env.baseUrl|—}} ({{facts.lastCampaign.env.browser|—}}), durée {{facts.lastCampaign.durationMs|duree}}.
@@ -35,10 +39,16 @@ Campagne de référence : **{{facts.lastCampaign.id}}** du {{facts.lastCampaign.
 Aucune campagne d'exécution enregistrée.
 {{/if}}
 
-Campagnes sur la période : {{facts.campaigns|count}} (dont {{calc.campaignsReal}} réelle(s)). Couverture : {{facts.coverage.automated}} récit(s) automatisé(s) sur {{facts.coverage.stories}} ({{facts.coverage.pctAutomated|pct}}), {{facts.coverage.passed}} récit(s) réussi(s) ({{facts.coverage.pctPassed|pct}}).
+| Indicateur | Valeur |
+|---|---|
+| Campagnes exécutées | {{facts.campaigns|count}} (dont {{calc.campaignsReal}} réelle(s)) |
+| Récits dans le périmètre | {{facts.coverage.stories}} |
+| Récits avec scénario Gherkin | {{facts.coverage.withGherkin}} |
+| Récits automatisés | {{facts.coverage.automated}} ({{facts.coverage.pctAutomated|pct}}) |
+| Récits exécutés / réussis | {{facts.coverage.executed}} / {{facts.coverage.passed}} ({{facts.coverage.pctPassed|pct}}) |
+| Anomalies détectées / ouvertes | {{calc.defectsCount.total}} / {{calc.defectsCount.ouvertes}} |
 {{#if facts.perf.last}}
-
-Performance : dernier tir k6 « {{facts.perf.last.profile}} » du {{facts.perf.last.at|date}} — verdict {{facts.perf.last.verdict}}, p95 {{facts.perf.last.p95}} ms, taux d'erreur {{facts.perf.last.errorRate}}.
+| Performance (dernier tir k6) | {{facts.perf.last.profile}} du {{facts.perf.last.at|date}} : verdict k6 « {{facts.perf.last.verdict}} », p95 {{facts.perf.last.p95}} ms, taux d'erreur {{facts.perf.last.errorRate}} |
 {{/if}}
 
 ## Évaluation des critères de sortie
@@ -47,21 +57,11 @@ Performance : dernier tir k6 « {{facts.perf.last.profile}} » du {{facts.perf.l
 |---|---|---|---|
 {{#each calc.exit}}
 | {{this.critere}} | {{this.cible}} | {{this.mesure}} | **{{this.statut}}** |
-{{/each}}
-
-{{#unless calc.exitMet}}
-Les critères de sortie sont **non atteints** : toute mise en production nécessite une dérogation formelle du valideur, motivée et tracée.
-{{/unless}}
-
-## Anomalies résiduelles
-
-| Anomalie | Sévérité | Récit | Test | Occurrences | Statut |
-|---|---|---|---|---|---|
-{{#each facts.defects}}
-| {{this.id}} — {{this.title}} | {{this.severity}} | {{this.storyKey|—}} | {{this.testTitle}} | {{this.occurrences}} | {{this.status}} |
 {{else}}
-| Aucune anomalie | — | — | — | — | — |
+| Aucun critère évaluable | — | — | — |
 {{/each}}
+
+Seuils fixés par le plan de test : taux de réussite ≥ {{profile.seuilReussite}} %, anomalies bloquantes ouvertes ≤ {{profile.maxAnomaliesBloquantes}}, anomalies majeures ouvertes ≤ {{profile.maxAnomaliesMajeures|non fixé}}, couverture des récits « À automatiser » ≥ {{profile.couvertureMin}} %.
 
 ## Écarts par rapport au plan
 
@@ -73,12 +73,53 @@ Les critères de sortie sont **non atteints** : toute mise en production nécess
 {{else}}
 - Aucun écart de traçabilité détecté.
 {{/each}}
+{{#if facts.triage.untriaged}}
+- {{facts.triage.untriaged}} récit(s) non trié(s) en fin de campagne.
+{{/if}}
 
-## Enseignements
+Éléments exclus du périmètre (non testés) :
 
-- Récits non triés en fin de période : {{facts.triage.untriaged}} — à intégrer au tri dès l'analyse.
-- Récits sans critères d'acceptation : à compléter avant conception ({{facts.coverage.withCriteria}} sur {{facts.coverage.stories}} en disposent).
-- Taux d'automatisation atteint : {{facts.coverage.pctAutomated|pct}}.
+{{#each profile.horsPerimetre}}
+- {{this}}
+{{else}}
+- Aucun.
+{{/each}}
+
+## Anomalies ouvertes
+
+| Anomalie | Sévérité | Récit | Occurrences | Dernière détection |
+|---|---|---|---|---|
+{{#each calc.defectsOpen}}
+| {{this.id}} — {{this.title}} | {{this.severity}} | {{this.storyKey|—}} | {{this.occurrences}} | {{this.lastSeen|date}} |
+{{else}}
+| Aucune anomalie ouverte | — | — | — | — |
+{{/each}}
+
+Anomalies corrigées pendant la campagne : {{calc.defectsClosed|count}}. Détail : document « Rapports d'anomalies ».
+
+## Risques résiduels
+
+| Risque | Niveau | Mesure de test |
+|---|---|---|
+{{#each profile.risquesProduit}}
+| {{this.risque}} | {{this.niveau}} | {{this.attenuation}} |
+{{else}}
+| {{profile.risquesProduit}} | — | — |
+{{/each}}
+
+{{profile.risquesResiduels}}
+
+## Livrables produits
+
+| Document | Référence | Version | Statut |
+|---|---|---|---|
+{{#each calc.docs}}
+| {{this.title}} | {{this.ref}} | {{this.version}} | {{this.status}} |
+{{/each}}
+
+## Leçons apprises
+
+{{profile.leconsApprises}}
 
 ## Historique des versions
 
