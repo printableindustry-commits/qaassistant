@@ -160,7 +160,7 @@
           h('a', { class: 'p-btn', href: '/installation.html?run=1' }, P.icon('download'), 'Installer toute la stack de test'),
           h('a', { class: 'p-btn', href: '/perf.html' }, P.icon('play'), 'Lancer un test de charge k6'),
           h('a', { class: 'p-btn', href: '/hook-git.html' }, P.icon('gitBranch'), 'Relier Git à JIRA / Xray'),
-          h('a', { class: 'p-btn', href: '/doc-qa.html' }, P.icon('fileText'), 'Produire les livrables QA'),
+          h('a', { class: 'p-btn', href: '/livrables.html' }, P.icon('fileText'), 'Produire les livrables QA'),
           h('button', { class: 'p-btn', type: 'button', onclick: () => P.shell.openPalette() }, P.icon('search'), 'Tout chercher', h('span', { class: 'p-kbd' }, 'Ctrl K'))),
       })))
   }

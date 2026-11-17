@@ -166,8 +166,23 @@
       },
       "section": "Livrer"
     },
+    "livrables": {
+      "label": "Livrables",
+      "path": "/livrables.html",
+      "section": "Livrer",
+      "tracked": false,
+      "guide": {
+        "goal": "Produire et maintenir les livrables de test ISTQB (stratégie, plan, rapports…) à partir des données réelles : récits, scénarios Gherkin, tests automatisés et campagnes d'exécution.",
+        "youDo": [
+          "Complétez une fois les « Informations projet » (contexte, périmètre, critères) : le reste est déduit des tests.",
+          "Lancez une campagne d'exécution pour alimenter le journal, les anomalies et les rapports.",
+          "Générez les documents, faites-les relire par l'agent puis approuvez-les."
+        ],
+        "after": "Exportez chaque document (Word, PDF, Markdown) ou le pack complet ; actualisez-les dès que les tests évoluent."
+      }
+    },
     "doc-qa": {
-      "label": "Générer les livrables QA",
+      "label": "Assistant Copilot (ancien)",
       "path": "/doc-qa.html",
       "status": "docs",
       "tracked": true,
@@ -476,8 +491,9 @@
       "id": "docs",
       "label": "Livrables",
       "icon": "fileText",
-      "path": "/doc-qa.html",
+      "path": "/livrables.html",
       "match": [
+        "livrables",
         "doc-qa"
       ]
     },

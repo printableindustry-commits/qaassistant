@@ -1,0 +1,102 @@
+/* Livrables ISTQB — compléments de mise en page (jetons --p-* uniquement). */
+
+.page-livrables .p-page { display: flex; flex-direction: column; gap: 14px; }
+.lv-top { display: flex; flex-direction: column; gap: 10px; }
+
+.lv-grid { display: grid; gap: 14px; grid-template-columns: minmax(270px, 330px) minmax(0, 1fr); align-items: start; }
+.lv-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lv-doczone { min-width: 0; }
+@media (max-width: 1100px) { .lv-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Liste des documents */
+.lv-doclist { display: flex; flex-direction: column; padding-bottom: 6px; }
+.lv-phase { padding: 12px 14px 4px; }
+.lv-docitem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 14px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--p-text);
+  cursor: pointer;
+}
+.lv-docitem:hover { background: var(--p-surface-hover); }
+.lv-docitem.active { background: var(--p-mint-2); border-left-color: var(--p-green); }
+.lv-docitem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.lv-docitem-title { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+.lv-docitem-meta { font-size: 11px; color: var(--p-text-3); }
+
+/* En-tête du document */
+.lv-docbody { display: flex; flex-direction: column; gap: 12px; }
+.lv-dochead { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.lv-dochead-main { flex: 1; min-width: 260px; }
+.lv-dochead-ref { display: flex; align-items: center; gap: 8px; color: var(--p-text-2); font-size: 12px; }
+.lv-dochead-title { margin: 4px 0 6px; font-family: var(--p-font-display); font-size: 19px; font-weight: 700; line-height: 1.3; }
+.lv-dochead-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--p-text-3); }
+.lv-purpose { margin-top: 6px; }
+.lv-dochead-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lv-export button:disabled { opacity: 0.5; cursor: not-allowed; }
+.lv-inline-btn { margin-left: 8px; vertical-align: middle; }
+
+.lv-tabbody { min-height: 220px; }
+.lv-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.lv-foot--top { margin: 0 0 12px; }
+.lv-editor { min-height: 460px; font-size: 12.5px; }
+.lv-table-wrap { overflow-x: auto; border: 1px solid var(--p-line-soft); border-radius: var(--p-radius-sm); }
+.lv-review-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.lv-score { font-family: var(--p-font-display); font-size: 18px; font-weight: 700; }
+.lv-version-md { max-height: 60vh; overflow: auto; white-space: pre-wrap; }
+
+/* Aperçu du document rendu (HTML échappé par le serveur) */
+.lv-preview {
+  max-width: 920px;
+  padding: 18px 22px;
+  border: 1px solid var(--p-line-soft);
+  border-radius: var(--p-radius-sm);
+  background: var(--p-surface);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--p-text);
+  overflow-x: auto;
+}
+.lv-preview h1 { font-family: var(--p-font-display); font-size: 22px; margin: 0 0 12px; }
+.lv-preview h2 { font-family: var(--p-font-display); font-size: 17px; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--p-line-soft); }
+.lv-preview h3 { font-size: 14.5px; margin: 16px 0 6px; }
+.lv-preview p { margin: 0 0 10px; }
+.lv-preview ul, .lv-preview ol { margin: 0 0 10px; padding-left: 22px; }
+.lv-preview table { border-collapse: collapse; margin: 6px 0 14px; font-size: 12.5px; width: 100%; }
+.lv-preview th, .lv-preview td { border: 1px solid var(--p-line); padding: 5px 8px; text-align: left; vertical-align: top; }
+.lv-preview th { background: var(--p-surface-soft); font-weight: 700; }
+.lv-preview code { font-family: var(--p-font-mono); font-size: 12px; background: var(--p-grey-soft); padding: 1px 4px; border-radius: 4px; }
+.lv-preview pre { background: var(--p-grey-soft); padding: 10px; border-radius: var(--p-radius-xs); overflow-x: auto; }
+.lv-preview blockquote { margin: 0 0 10px; padding: 6px 12px; border-left: 3px solid var(--p-line-strong); color: var(--p-text-2); }
+.lv-preview strong { font-weight: 700; }
+
+/* Campagne d'exécution */
+.lv-camp-actions, .lv-camp-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.lv-camp-sum { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--p-line-soft); border-radius: var(--p-radius-sm); background: var(--p-surface-soft); }
+.lv-camp-nums { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; font-weight: 600; color: var(--p-text-2); }
+.lv-camp-nums .ok { color: var(--p-green); }
+.lv-camp-nums .ko { color: var(--p-red-text); }
+.lv-test-error { margin-top: 4px; font-family: var(--p-font-mono); font-size: 11.5px; color: var(--p-red-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Assistant « Informations projet » */
+.lv-wizard-modal { width: min(980px, calc(100vw - 32px)); max-width: none; }
+.lv-wizard { display: flex; flex-direction: column; gap: 14px; }
+.lv-wizard .p-stepper { overflow-x: auto; }
+.lv-wizard button.p-step { border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.lv-wizard button.p-step:hover { background: var(--p-surface-hover); }
+.lv-wiz-step .p-h3 { margin: 0 0 4px; }
+.lv-wiz-step > .p-hint { margin: 0 0 12px; }
+.lv-wiz-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--p-line-soft); }
+.lv-wizard .p-field > label { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lv-req { color: var(--p-red-text); }
+.lv-link { align-self: flex-start; padding: 0; border: 0; background: none; font: inherit; font-size: 11.5px; color: var(--p-green); text-decoration: underline; cursor: pointer; }
+.lv-edit-table td { padding: 4px 6px; }
+.lv-edit-table .p-input { height: 30px; min-width: 120px; }
+.lv-add-row { margin: 6px; }
