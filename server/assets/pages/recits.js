@@ -1,6 +1,7 @@
 /*
- * Récits et Gherkin : liste des récits scannés (maître) et, pour le récit choisi (détail),
- * critères d'acceptation, génération des scénarios (IA ou modèle intégré), relecture, validation, export.
+ * Récits et Gherkin : source JIRA (URL du projet), tri des récits (à automatiser, plus tard, ignorés),
+ * liste des récits (maître) et, pour le récit choisi (détail), décision de test, critères d'acceptation,
+ * génération des scénarios (IA ou modèle intégré), relecture, validation, export, automatisation Playwright.
  * Lien profond : /recits.html?key=PROJ-12
  */
 ;(function () {
@@ -9,10 +10,30 @@
   const { h } = P
 
   const TABS = [
+    { id: 'triage', label: 'À trier', icon: 'filter' },
+    { id: 'todo', label: 'À automatiser', icon: 'zap' },
+    { id: 'later', label: 'Plus tard', icon: 'clock' },
+    { id: 'skip', label: 'Ignorés', icon: 'eyeOff' },
     { id: 'all', label: 'Tous' },
+  ]
+  const GHERKIN_FILTERS = [
+    { id: '', label: 'Gherkin : tous' },
     { id: 'none', label: 'Sans scénario' },
     { id: 'draft', label: 'Brouillons' },
     { id: 'validated', label: 'Validés' },
+  ]
+  const DECISION = {
+    todo: { label: 'À automatiser', tone: 'mint', icon: 'zap', verb: 'À automatiser' },
+    later: { label: 'Plus tard', tone: 'amber', icon: 'clock', verb: 'Plus tard' },
+    skip: { label: 'Ignoré', tone: 'outline', icon: 'eyeOff', verb: 'Ignorer' },
+  }
+  const URL_EXAMPLES = [
+    { label: 'Cloud · tableau', url: 'https://monentreprise.atlassian.net/jira/software/projects/CLE/boards/12' },
+    { label: 'Cloud · backlog', url: 'https://monentreprise.atlassian.net/jira/software/c/projects/CLE/boards/12/backlog' },
+    { label: 'Server · ticket', url: 'https://jira.monentreprise.fr/browse/CLE-123' },
+    { label: 'Server · tableau (contexte /jira)', url: 'https://intranet.monentreprise.fr/jira/secure/RapidBoard.jspa?rapidView=42&projectKey=CLE' },
+    { label: 'Filtre JQL', url: 'https://jira.monentreprise.fr/issues/?jql=project%20%3D%20CLE%20AND%20status%20%3D%20%22En%20recette%22' },
+    { label: 'Démo IRMA', url: 'https://jira.demo.irma.local/browse/P0326-9301' },
   ]
   const GENERATOR_LABEL = { llm: 'Assistant IA', template: 'Modèle intégré', manual: 'IA (copier-coller)', edit: 'Saisie manuelle' }
   const SEVERITY = { error: { icon: 'xCircle', label: 'Erreur' }, warning: { icon: 'alert', label: 'Avertissement' }, info: { icon: 'info', label: 'Conseil' } }
@@ -26,8 +47,14 @@
     scan: null,
     featuresDir: 'tests/features',
     llm: null,                   // GET /api/llm/status
-    filters: { q: '', epic: '', status: '' },
-    tab: 'all',
+    jira: null,                  // GET /api/jira/settings
+    triage: {},                  // { clé: { decision, reason, updatedAt, by } }
+    suggestions: {},             // { clé: { score, suggestion, reasons, factors } }
+    ai: {},                      // { clé: { suggestion, score, reason, provider, at } }
+    counts: null,
+    filters: { q: '', epic: '', status: '', gherkin: '' },
+    tab: 'triage',
+    selected: new Set(),
     key: null,
     detail: null,                // GET /api/gherkin/:key
     text: '',
@@ -36,11 +63,21 @@
     busy: null,                  // 'llm' | 'template' | 'save' | 'validate' | 'export'
     view: readView(),
     batch: null,                 // { jobId, total, items: Map, summary, error, es }
+    source: {
+      open: false,               // carte « Source des récits » dépliée
+      url: '',
+      parsed: null,              // réponse de /api/jira/parse-url
+      parseError: '',
+      creds: null,               // { baseUrl, projectKey, deployment, canEdit } quand des identifiants sont requis
+      job: null,                 // { status, lines, percent, message, error, es }
+    },
   }
   const ui = {}
   const app = document.getElementById('app')
   let lintTimer = null
   let lintSeq = 0
+  let parseTimer = null
+  let parseSeq = 0
 
   P.whenShell().then(init)
 
@@ -49,20 +86,28 @@
   async function init(ready) {
     state.user = ready?.user || null
     try {
-      await Promise.all([loadStories(), loadIndex(), loadLlm()])
+      await Promise.all([loadStories(), loadIndex(), loadLlm(), loadJiraSettings(), loadTriage()])
     } catch (e) {
       P.clear(app)
       app.appendChild(errorBanner(e, 'Impossible de charger les récits.'))
       app.appendChild(h('div', null, h('button', { class: 'p-btn', type: 'button', onclick: () => location.reload() }, P.icon('refresh'), 'Réessayer')))
       return
     }
+    state.source.url = defaultSourceUrl()
+    state.source.open = !state.stories.length
+    state.tab = defaultTab()
     buildLayout()
     const wanted = new URLSearchParams(location.search).get('key')
     const first = wanted && state.stories.find((s) => s.key.toUpperCase() === wanted.toUpperCase())
-    if (first) select(first.key, { force: true })
-    else if (wanted) P.toast(`Récit ${wanted} introuvable dans le dernier scan.`, 'warn')
+    if (first) {
+      if (!inTab(first, state.tab)) switchTab('all')
+      select(first.key, { force: true })
+    } else if (wanted) {
+      P.toast(`Récit ${wanted} introuvable dans le dernier scan.`, 'warn')
+    }
     if (!first && state.stories.length) select(visibleStories()[0]?.key || state.stories[0].key, { force: true, silentUrl: true })
     if (state.batchInfo) attachBatch(state.batchInfo.jobId, state.batchInfo.total)
+    if (state.source.url && state.source.open) parseNow()
     window.addEventListener('beforeunload', (e) => {
       if (!state.dirty) return
       e.preventDefault()
@@ -73,6 +118,7 @@
   async function loadStories() {
     const r = await P.api('/api/jira/stories')
     state.stories = r.stories || []
+    state.scan = r.scan || state.scan
   }
 
   async function loadIndex() {
@@ -90,6 +136,32 @@
     } catch {
       state.llm = null
     }
+  }
+
+  async function loadJiraSettings() {
+    try {
+      state.jira = await P.api('/api/jira/settings')
+    } catch {
+      state.jira = null
+    }
+  }
+
+  async function loadTriage() {
+    try {
+      applyTriagePayload(await P.api('/api/jira/triage'))
+    } catch {
+      // Le tri est un complément : la page reste utilisable sans lui.
+      state.triage = {}
+      state.suggestions = {}
+    }
+  }
+
+  function applyTriagePayload(r) {
+    if (!r) return
+    if (r.triage) state.triage = r.triage
+    if (r.suggestions) state.suggestions = r.suggestions
+    if (r.ai) state.ai = r.ai
+    if (r.counts) state.counts = r.counts
   }
 
   async function refreshIndex() {
@@ -112,9 +184,26 @@
     }
   }
 
+  function defaultTab() {
+    const untriaged = state.stories.filter((s) => !decisionOf(s.key)).length
+    if (untriaged) return 'triage'
+    if (state.stories.some((s) => decisionOf(s.key) === 'todo')) return 'todo'
+    return 'all'
+  }
+
+  function defaultSourceUrl() {
+    const scan = state.scan
+    if (scan?.url) return scan.url
+    const s = state.jira?.settings
+    if (scan?.source === 'jira' && scan.baseUrl && scan.projectKey) return `${scan.baseUrl}/browse/${scan.projectKey}`
+    if (s?.baseUrl && s.projectKey) return `${s.baseUrl}/browse/${s.projectKey}`
+    return ''
+  }
+
   // ------------------------------------------------------------ filtres
 
   const fold = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const decisionOf = (key) => state.triage[key]?.decision || null
 
   function matchesFilters(s) {
     const f = state.filters
@@ -127,16 +216,23 @@
     return true
   }
 
-  function inTab(s, tab) {
+  function matchesGherkin(s, filter) {
     const e = state.index[s.key]
-    if (tab === 'none') return !e
-    if (tab === 'draft') return e?.status === 'draft'
-    if (tab === 'validated') return e?.status === 'validated'
+    if (filter === 'none') return !e
+    if (filter === 'draft') return e?.status === 'draft'
+    if (filter === 'validated') return e?.status === 'validated'
+    return true
+  }
+
+  function inTab(s, tab) {
+    const d = decisionOf(s.key)
+    if (tab === 'triage') return !d
+    if (tab === 'todo' || tab === 'later' || tab === 'skip') return d === tab
     return true
   }
 
   const filtered = () => state.stories.filter(matchesFilters)
-  const visibleStories = () => filtered().filter((s) => inTab(s, state.tab))
+  const visibleStories = () => filtered().filter((s) => matchesGherkin(s, state.filters.gherkin) && inTab(s, state.tab))
 
   // ------------------------------------------------------------ mise en page
 
@@ -144,68 +240,470 @@
     P.clear(app)
     renderActions()
     app.appendChild(h('p', { class: 'p-page-intro' },
-      'Transformez chaque récit JIRA en scénarios de test Gherkin : générez-les avec l’assistant IA (Copilot ou autre) ou le modèle intégré, relisez-les, validez-les puis exportez les fichiers .feature dans le projet de test.'))
+      'Scannez les récits de votre projet JIRA, choisissez ceux qui méritent un test automatisé, puis transformez-les en scénarios Gherkin et en tests Playwright, validés par vous avant l’envoi dans JIRA / Xray.'))
+    ui.srcHost = h('div', { class: 'rc-src-host' })
+    app.appendChild(ui.srcHost)
+    renderSource()
     if (!state.stories.length) {
-      app.appendChild(noStories())
+      app.appendChild(howItWorks())
+      ui.list = null
+      ui.detail = null
       return
     }
     ui.batch = h('div')
     ui.summary = h('div', { class: 'p-kpis' })
     ui.toolbar = toolbar()
-    ui.tabs = h('div')
-    ui.list = h('div', { class: 'p-list rc-list', role: 'listbox', 'aria-label': 'Récits' })
+    ui.tabs = h('div', { class: 'rc-tabs' })
+    ui.bulk = h('div', { class: 'rc-bulk', role: 'toolbar', 'aria-label': 'Actions de tri' })
+    ui.list = h('div', { class: 'p-list rc-list', role: 'listbox', 'aria-label': 'Récits', 'aria-multiselectable': 'false', onkeydown: onListKey })
     ui.detail = h('div', { class: 'rc-detail' })
-    app.append(ui.batch, ui.summary, ui.toolbar, ui.tabs,
+    app.append(ui.batch, ui.summary, ui.toolbar, ui.tabs, ui.bulk,
       h('div', { class: 'p-grid p-grid-aside rc-layout' },
         P.card({ className: 'rc-list-card', flush: true, body: ui.list }),
         ui.detail))
     ui.tabsCtl = P.tabs(ui.tabs, tabItems(), state.tab, (id) => {
       state.tab = id
       renderList()
+      renderBulk()
     })
     renderSummary()
+    renderBulk()
     renderList()
     renderDetail()
+  }
+
+  function switchTab(id) {
+    state.tab = id
+    if (ui.tabsCtl) ui.tabsCtl.set(id)
+    renderList()
+    renderBulk()
   }
 
   function renderActions() {
     if (!P.shell) return
     if (!state.stories.length) {
-      P.shell.setActions(h('a', { class: 'p-btn p-btn--primary', href: '/connaissance.html' }, P.icon('compass'), 'Prise de connaissance'))
+      P.shell.setActions(h('button', { class: 'p-btn', type: 'button', onclick: (e) => runDemoScan(e.currentTarget) }, P.icon('flask'), 'Essayer avec la démo'))
       return
     }
     P.shell.setActions(
       h('button', { class: 'p-btn', type: 'button', onclick: exportValidated }, P.icon('download'), 'Exporter les validés'),
-      h('button', { class: 'p-btn p-btn--primary', type: 'button', onclick: openBatchDialog }, P.icon('wand'), 'Générer pour tous les récits sans scénario'))
+      h('button', { class: 'p-btn p-btn--primary', type: 'button', onclick: openBatchDialog, title: 'Génère les scénarios des récits « À automatiser » qui n’en ont pas encore' }, P.icon('wand'), 'Générer les scénarios'))
   }
 
-  function noStories() {
-    const btn = h('button', { class: 'p-btn p-btn--primary', type: 'button', onclick: (e) => runDemoScan(e.currentTarget) }, P.icon('play'), 'Lancer le scan de démonstration')
+  function howItWorks() {
+    const step = (n, title, text) => h('div', { class: 'rc-how-step' }, h('span', { class: 'rc-how-num' }, String(n)), h('div', null, h('b', null, title), h('div', { class: 'p-muted' }, text)))
     return P.card({
-      body: P.empty('Aucun récit scanné',
-        'Les récits et leurs critères d’acceptation viennent du scan JIRA. Lancez-le depuis la prise de connaissance, ou essayez tout de suite avec le projet de démonstration IRMA.',
-        'listChecks',
-        h('div', { class: 'p-row', style: { justifyContent: 'center', marginTop: '10px' } },
-          btn, h('a', { class: 'p-btn', href: '/connaissance.html#connexion' }, P.icon('link'), 'Connecter JIRA'))),
+      title: 'Du récit au test automatisé',
+      sub: 'Le parcours en quatre étapes',
+      icon: 'compass',
+      tone: 'grey',
+      body: h('div', { class: 'rc-how' },
+        step(1, 'Collez l’URL du projet', 'Tableau, backlog, ticket ou filtre : Wizard QA en déduit l’instance et le projet.'),
+        step(2, 'Triez les récits', 'Une suggestion explique pour chaque récit s’il vaut la peine d’être automatisé ; vous décidez.'),
+        step(3, 'Automatisez', 'Scénarios Gherkin puis exploration Playwright de l’application, avec prise de main si l’IA bloque.'),
+        step(4, 'Validez et envoyez', 'Le test validé part dans JIRA / Xray, relié au récit et, si besoin, à un plan de test.')),
     })
+  }
+
+  // ------------------------------------------------------------ source des récits (URL JIRA)
+
+  function renderSource() {
+    if (!ui.srcHost) return
+    P.clear(ui.srcHost)
+    const src = state.source
+    const scan = state.scan
+    if (scan && !src.open) {
+      ui.srcHost.appendChild(sourceSummary(scan))
+      return
+    }
+    ui.srcHost.appendChild(sourceForm())
+  }
+
+  function hostOf(url) {
+    try { return new URL(url).host } catch { return url || '' }
+  }
+
+  function sourceSummary(scan) {
+    const job = state.source.job
+    const running = job?.status === 'running'
+    const demo = scan.source === 'demo'
+    const instance = demo ? 'jira.demo.irma.local' : hostOf(scan.baseUrl)
+    const card = P.card({
+      className: 'rc-src-card rc-src-card--compact',
+      body: h('div', null,
+        h('div', { class: 'rc-src-summary' },
+          h('span', { class: 'p-tile' }, P.icon('link')),
+          h('div', { class: 'rc-src-summary-text' },
+            h('div', { class: 'rc-src-summary-title' },
+              h('b', null, scan.projectKey ? `Projet ${scan.projectKey}` : 'Requête personnalisée'),
+              demo ? P.badge('Démonstration', 'purple') : P.badge(scan.deployment === 'cloud' ? 'JIRA Cloud' : 'JIRA', 'blue')),
+            h('div', { class: 'p-muted rc-src-summary-meta' },
+              `${instance} · ${scan.count} récit${scan.count > 1 ? 's' : ''} · scanné ${P.fmtAgo(scan.scannedAt)}`,
+              scan.url ? h('span', { class: 'p-ellipsis rc-src-url', title: scan.url }, ` · ${scan.url}`) : null)),
+          h('div', { class: 'rc-src-summary-actions' },
+            h('button', { class: 'p-btn p-btn--sm', type: 'button', disabled: running, onclick: rescan }, P.icon('refresh'), running ? 'Scan en cours…' : 'Rescanner'),
+            h('button', { class: 'p-btn p-btn--sm p-btn--ghost', type: 'button', disabled: running, onclick: () => { state.source.open = true; renderSource(); focusUrl() } }, P.icon('edit'), 'Changer de projet'))),
+        jobView()),
+    })
+    return card
+  }
+
+  function sourceForm() {
+    const src = state.source
+    const running = src.job?.status === 'running'
+    ui.urlInput = h('input', {
+      class: 'p-input rc-url-input',
+      type: 'url',
+      inputmode: 'url',
+      autocomplete: 'off',
+      spellcheck: 'false',
+      placeholder: 'https://monentreprise.atlassian.net/jira/software/projects/CLE/boards/12',
+      'aria-label': 'URL du projet JIRA',
+      'aria-describedby': 'rc-url-detect',
+      disabled: running,
+      oninput: (e) => {
+        src.url = e.target.value
+        src.creds = null
+        scheduleParse()
+      },
+      onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); scanFromUrl(ui.scanBtn) } },
+    })
+    ui.urlInput.value = src.url
+    ui.detect = h('div', { class: 'rc-detect', id: 'rc-url-detect', 'aria-live': 'polite' })
+    renderDetect()
+    ui.scanBtn = h('button', { class: 'p-btn p-btn--primary', type: 'button', disabled: running, onclick: (e) => scanFromUrl(e.currentTarget) },
+      P.icon('search'), running ? 'Scan en cours…' : 'Scanner les récits')
+    const examples = h('div', { class: 'rc-examples' },
+      h('span', { class: 'p-hint' }, 'Exemples :'),
+      URL_EXAMPLES.map((ex) => h('button', {
+        class: 'p-chip', type: 'button', title: ex.url, disabled: running,
+        onclick: () => { src.url = ex.url; src.creds = null; ui.urlInput.value = ex.url; parseNow(); ui.urlInput.focus() },
+      }, ex.label)))
+    const cancel = state.scan
+      ? h('button', { class: 'p-btn p-btn--ghost', type: 'button', disabled: running, onclick: () => { src.open = false; src.creds = null; renderSource() } }, 'Annuler')
+      : null
+    return P.card({
+      className: 'rc-src-card',
+      title: 'Source des récits',
+      sub: 'Collez l’URL de votre projet JIRA (tableau, backlog ou ticket)',
+      icon: 'link',
+      body: h('div', { class: 'rc-src-body' },
+        h('label', { class: 'rc-url-label', for: 'rc-url' }, 'URL du projet JIRA'),
+        h('div', { class: 'rc-url-row' }, Object.assign(ui.urlInput, { id: 'rc-url' }), ui.scanBtn),
+        ui.detect,
+        examples,
+        h('div', { class: 'rc-src-foot' },
+          h('span', { class: 'p-hint' }, 'Ouvrez votre projet dans JIRA et copiez l’adresse de la barre du navigateur : Cloud (…atlassian.net) ou Server / Data Center, avec ou sans /jira.'),
+          h('span', { class: 'p-spacer' }),
+          h('a', { href: '#', class: 'rc-demo-link', onclick: (e) => { e.preventDefault(); if (!running) runDemoScan(e.currentTarget) } }, P.icon('flask'), 'Essayer avec les données de démo'),
+          cancel),
+        src.creds ? credentialsForm(src.creds) : null,
+        jobView()),
+    })
+  }
+
+  function focusUrl() {
+    setTimeout(() => { ui.urlInput?.focus(); ui.urlInput?.select() }, 30)
+    if (state.source.url) parseNow()
+  }
+
+  function scheduleParse() {
+    clearTimeout(parseTimer)
+    parseTimer = setTimeout(parseNow, 300)
+  }
+
+  async function parseNow() {
+    clearTimeout(parseTimer)
+    const src = state.source
+    const seq = ++parseSeq
+    const url = src.url.trim()
+    if (!url) {
+      src.parsed = null
+      src.parseError = ''
+      renderDetect()
+      return
+    }
+    try {
+      const r = await P.api('/api/jira/parse-url', { body: { url } })
+      if (seq !== parseSeq) return
+      src.parsed = r
+      src.parseError = ''
+    } catch (e) {
+      if (seq !== parseSeq) return
+      src.parsed = null
+      src.parseError = e.status === 401 ? '' : e.message
+    }
+    renderDetect()
+  }
+
+  function renderDetect() {
+    if (!ui.detect) return
+    P.clear(ui.detect)
+    const src = state.source
+    if (src.parseError) {
+      ui.detect.className = 'rc-detect is-error'
+      ui.detect.append(P.icon('alert'), h('span', null, src.parseError))
+      return
+    }
+    const r = src.parsed
+    if (!r) {
+      ui.detect.className = 'rc-detect is-idle'
+      ui.detect.append(P.icon('info'), h('span', null, 'Le projet, l’instance et le type d’écran sont reconnus pendant la saisie.'))
+      return
+    }
+    const p = r.parsed
+    ui.detect.className = 'rc-detect is-ok'
+    ui.detect.append(
+      P.icon('checkCircle'),
+      h('span', null, h('b', null, p.projectKey ? `Projet reconnu : ${p.projectKey}` : 'Adresse reconnue'), r.label ? ` · ${r.label}` : ''),
+      P.badge(`${p.host} · ${r.demo ? 'démonstration' : p.deployment === 'cloud' ? 'Cloud' : 'Server / Data Center'}`, r.demo ? 'purple' : 'blue', 'Instance JIRA'),
+      r.ready
+        ? P.badge(r.demo ? 'Aucun identifiant requis' : 'Connexion enregistrée', 'mint')
+        : P.badge(r.sameInstance ? 'Jeton à saisir' : 'Identifiants à saisir', 'amber', 'Un e-mail et un jeton d’API seront demandés au lancement du scan'))
+    for (const w of p.warnings || []) ui.detect.append(h('span', { class: 'p-hint' }, w))
+  }
+
+  function credentialsForm(creds) {
+    const cloud = creds.deployment === 'cloud'
+    const tokenHelp = cloud
+      ? 'https://id.atlassian.com/manage-profile/security/api-tokens'
+      : /^https?:\/\//i.test(creds.baseUrl) ? `${creds.baseUrl}/secure/ViewProfile.jspa?selectedTab=com.atlassian.pats.pats-plugin:jira-user-personal-access-tokens` : null
+    if (creds.canEdit === false) {
+      return h('div', { class: 'rc-creds' }, P.banner('warn', h('div', null,
+        h('b', null, `Identifiants requis pour ${hostOf(creds.baseUrl)}.`),
+        h('div', null, 'Seul un administrateur de Wizard QA peut enregistrer une connexion JIRA. Demandez-lui de la configurer (Réglages → JIRA), ou essayez avec les données de démonstration.'))))
+    }
+    const email = h('input', { class: 'p-input', type: 'email', name: 'jira-email', autocomplete: 'username', 'aria-label': cloud ? 'E-mail du compte Atlassian' : 'E-mail du compte JIRA (facultatif)', placeholder: 'prenom.nom@entreprise.fr', value: state.jira?.settings && sameBase(state.jira.settings.baseUrl, creds.baseUrl) ? state.jira.settings.email || '' : '' })
+    const token = h('input', { class: 'p-input', type: 'password', name: 'jira-token', autocomplete: 'new-password', placeholder: cloud ? 'Jeton d’API Atlassian' : 'Jeton d’accès personnel', 'aria-label': 'Jeton JIRA' })
+    const eye = h('button', {
+      class: 'p-icon-btn', type: 'button', 'aria-label': 'Afficher le jeton',
+      onclick: () => {
+        const show = token.type === 'password'
+        token.type = show ? 'text' : 'password'
+        eye.setAttribute('aria-label', show ? 'Masquer le jeton' : 'Afficher le jeton')
+        P.clear(eye).appendChild(P.icon(show ? 'eyeOff' : 'eye'))
+      },
+    }, P.icon('eye'))
+    const errorBox = h('div')
+    const save = h('button', { class: 'p-btn p-btn--primary', type: 'submit' }, P.icon('lock'), 'Enregistrer et scanner')
+    const form = h('form', {
+      class: 'rc-creds',
+      autocomplete: 'off',
+      onsubmit: async (e) => {
+        e.preventDefault()
+        P.clear(errorBox)
+        if (cloud && !email.value.trim()) {
+          errorBox.appendChild(P.banner('warn', 'Sur JIRA Cloud, l’e-mail du compte Atlassian est obligatoire avec le jeton d’API.'))
+          email.focus()
+          return
+        }
+        if (!token.value.trim()) {
+          errorBox.appendChild(P.banner('warn', 'Saisissez le jeton.'))
+          token.focus()
+          return
+        }
+        await P.busy(save, async () => {
+          try {
+            const changing = !sameBase(state.jira?.settings?.baseUrl, creds.baseUrl)
+            const body = { baseUrl: creds.baseUrl, email: email.value.trim(), token: token.value.trim() }
+            if (creds.projectKey) body.projectKey = creds.projectKey
+            // Nouvelle instance : on repart de la détection automatique et sans JQL propre à l'ancienne.
+            if (changing) Object.assign(body, { deployment: 'auto', authType: 'auto', jql: '' })
+            state.jira = await P.api('/api/jira/settings', { method: 'PUT', body })
+            token.value = ''
+            state.source.creds = null
+            P.toast('Connexion JIRA enregistrée (jeton conservé sur ce poste, jamais réaffiché)')
+            await parseNow()
+            await scanFromUrl(null)
+          } catch (err) {
+            errorBox.appendChild(errorBanner(err, 'Enregistrement impossible.'))
+          }
+        })
+      },
+    },
+    P.banner('blue', h('div', null,
+      h('b', null, `Accès en lecture à ${hostOf(creds.baseUrl)}`),
+      h('div', null, cloud
+        ? 'JIRA Cloud : e-mail de votre compte Atlassian et jeton d’API. Le jeton est enregistré sur ce poste (fichier protégé) et n’est jamais réaffiché.'
+        : 'JIRA Server / Data Center : jeton d’accès personnel (l’e-mail est facultatif). Le jeton est enregistré sur ce poste (fichier protégé) et n’est jamais réaffiché.'))),
+    h('div', { class: 'p-form-grid' },
+      h('div', { class: 'p-field' }, h('label', null, cloud ? 'E-mail du compte' : 'E-mail (facultatif)'), email),
+      h('div', { class: 'p-field' }, h('label', null, cloud ? 'Jeton d’API' : 'Jeton d’accès personnel'), h('div', { class: 'p-pwd' }, token, eye),
+        tokenHelp ? h('a', { class: 'p-hint', href: tokenHelp, target: '_blank', rel: 'noopener noreferrer' }, 'Créer un jeton', P.icon('external', 12)) : null)),
+    errorBox,
+    h('div', { class: 'p-row' }, save,
+      h('button', { class: 'p-btn p-btn--ghost', type: 'button', onclick: () => { state.source.creds = null; renderSource() } }, 'Annuler'),
+      h('span', { class: 'p-spacer' }),
+      h('a', { href: '#', class: 'rc-demo-link', onclick: (e) => { e.preventDefault(); runDemoScan(e.currentTarget) } }, P.icon('flask'), 'Utiliser plutôt les données de démo')))
+    setTimeout(() => (email.value ? token : email).focus(), 30)
+    return form
+  }
+
+  const sameBase = (a, b) => String(a || '').replace(/\/+$/, '').toLowerCase() === String(b || '').replace(/\/+$/, '').toLowerCase()
+
+  function jobView() {
+    const job = state.source.job
+    if (!job) return null
+    const failed = job.status === 'error'
+    const head = h('div', { class: 'rc-job-head' },
+      job.status === 'running' ? h('span', { class: 'p-spinner' }) : P.icon(job.status === 'done' ? 'checkCircle' : 'xCircle'),
+      h('span', { class: 'p-strong' }, job.status === 'running' ? (job.message || 'Scan en cours…') : job.status === 'done' ? 'Scan terminé' : 'Le scan a échoué'),
+      job.percent != null && job.status === 'running' ? h('span', { class: 'p-faint' }, `${job.percent} %`) : null)
+    const width = job.status === 'done' ? 100 : job.percent ?? (job.status === 'running' ? 8 : 100)
+    const lines = job.lines.slice(-40)
+    return h('div', { class: 'rc-job' },
+      head,
+      h('div', { class: 'p-meter' }, h('div', { class: `p-meter-fill ${failed ? 'red' : ''}`, style: { width: `${width}%` } })),
+      lines.length ? h('pre', { class: 'p-log rc-job-log' }, lines.map((l) => h('div', { class: l.kind || '' }, `${l.at ? `${new Date(l.at).toLocaleTimeString('fr-FR')}  ` : ''}${l.text}`))) : null,
+      failed && job.error ? h('div', { class: 'p-stack' },
+        errorBanner({ message: job.error.message, data: { details: { hint: job.error.hint } } }, 'Le scan a échoué.'),
+        h('div', { class: 'p-row' },
+          h('button', { class: 'p-btn', type: 'button', onclick: () => { state.source.job = null; state.source.open = true; renderSource(); focusUrl() } }, P.icon('edit'), 'Corriger l’URL'),
+          job.retry ? h('button', { class: 'p-btn', type: 'button', onclick: job.retry }, P.icon('refresh'), 'Réessayer') : null,
+          h('a', { href: '#', class: 'rc-demo-link', onclick: (e) => { e.preventDefault(); runDemoScan(e.currentTarget) } }, P.icon('flask'), 'Essayer avec les données de démo'))) : null)
+  }
+
+  async function scanFromUrl(button) {
+    const src = state.source
+    const url = (ui.urlInput?.value ?? src.url).trim()
+    src.url = url
+    if (!url) {
+      src.parseError = 'Collez d’abord l’URL d’un écran de votre projet JIRA (tableau, backlog ou ticket).'
+      renderDetect()
+      ui.urlInput?.focus()
+      return
+    }
+    if (src.parsed?.demo && state.scan?.source === 'jira' && !(await confirmReplaceJira())) return
+    await P.busy(button, async () => {
+      try {
+        const r = await P.api('/api/jira/scan', { body: { url } })
+        if (r.alreadyRunning) P.toast('Un scan est déjà en cours : affichage de sa progression', 'warn')
+        followScan(r.jobId, r.label ? `Scan de ${r.label}` : 'Scan des récits', () => scanFromUrl(null))
+      } catch (e) {
+        if (e.data?.needsCredentials) {
+          src.creds = { baseUrl: e.data.baseUrl, projectKey: e.data.projectKey, deployment: e.data.deployment, canEdit: e.data.canEdit }
+          src.open = true
+          renderSource()
+          return
+        }
+        src.parseError = e.message
+        renderDetect()
+        P.toast(messageOf(e), 'error', 7000)
+      }
+    })
+  }
+
+  function confirmReplaceJira() {
+    return P.confirm(`Les ${state.scan.count} récits scannés depuis JIRA seront remplacés par les données de démonstration (les décisions de tri sont conservées). Continuer ?`,
+      { title: 'Remplacer le scan JIRA', okLabel: 'Remplacer par la démonstration' })
   }
 
   async function runDemoScan(button) {
-    await P.busy(button, async () => {
+    if (state.source.job?.status === 'running') return
+    if (state.scan?.source === 'jira' && !(await confirmReplaceJira())) return
+    await P.busy(button?.tagName === 'BUTTON' ? button : null, async () => {
       try {
         const r = await P.api('/api/jira/scan', { body: { mode: 'demo' } })
-        await new Promise((resolve, reject) => {
-          const es = P.stream(`/api/jira/scan/${r.jobId}/events`, {
-            done: () => { es.close(); resolve() },
-            error: (d) => { es.close(); reject(new Error(d?.message || 'Échec du scan.')) },
-          }, () => { es.close(); reject(new Error('Connexion au suivi du scan perdue.')) })
-        })
-        P.toast('Scan de démonstration terminé')
-        location.reload()
+        state.source.creds = null
+        followScan(r.jobId, 'Scan des données de démonstration', () => runDemoScan(null))
       } catch (e) {
-        P.toast(e.message, 'error', 7000)
+        P.toast(messageOf(e), 'error', 7000)
       }
     })
+  }
+
+  function rescan() {
+    const scan = state.scan
+    if (!scan) return
+    if (scan.url) {
+      state.source.url = scan.url
+      scanFromUrl(null)
+      return
+    }
+    if (scan.source === 'demo') {
+      runDemoScan(null)
+      return
+    }
+    const body = { mode: 'jira' }
+    if (scan.projectKey) body.projectKey = scan.projectKey
+    else if (scan.jql) body.jql = scan.jql
+    P.api('/api/jira/scan', { body })
+      .then((r) => followScan(r.jobId, 'Nouveau scan', rescan))
+      .catch((e) => P.toast(messageOf(e), 'error', 7000))
+  }
+
+  function followScan(jobId, title, retry) {
+    const src = state.source
+    if (src.job?.es) src.job.es.close()
+    const job = { status: 'running', lines: [], percent: null, message: `${title}…`, error: null, retry }
+    src.job = job
+    renderSource()
+    let finished = false
+    job.es = P.stream(`/api/jira/scan/${encodeURIComponent(jobId)}/events`, {
+      progress: (d) => {
+        job.message = d.message
+        job.percent = d.percent
+        job.lines.push({ text: d.message, at: d.at })
+        renderSource()
+      },
+      done: async (d) => {
+        finished = true
+        job.es.close()
+        job.status = 'done'
+        job.lines.push({ text: `Scan terminé : ${d.summary.stories} récits, ${d.summary.withCriteria} avec critères, ${d.summary.epics} épopées.`, kind: 'ok' })
+        P.toast(`Scan terminé : ${d.summary.stories} récits analysés`)
+        await reloadAfterScan()
+      },
+      error: (d, e) => {
+        if (!e?.data) return // erreur de transport : gérée plus bas
+        finished = true
+        job.es.close()
+        job.status = 'error'
+        job.error = d
+        job.lines.push({ text: d.message, kind: 'err' })
+        renderSource()
+      },
+    }, () => {
+      if (finished) return
+      if (job.es.readyState === EventSource.CLOSED) {
+        job.status = 'error'
+        job.error = { message: 'Le suivi du scan a été interrompu.', hint: 'Rechargez la page : les récits apparaîtront si le scan a abouti.' }
+        renderSource()
+      }
+    })
+    // En cas de reconnexion, le serveur rejoue tout l'historique : on repart d'un journal vide.
+    job.es.addEventListener('open', () => { if (!finished) job.lines = [] })
+  }
+
+  async function reloadAfterScan() {
+    if (state.dirty && !(await P.confirm('Le scan est terminé. Recharger la liste des récits ? Les modifications non enregistrées du Gherkin seront perdues.', { title: 'Recharger les récits', okLabel: 'Recharger', danger: true }))) {
+      renderSource()
+      return
+    }
+    try {
+      await Promise.all([loadStories(), loadIndex(), loadJiraSettings(), loadTriage()])
+    } catch (e) {
+      P.toast(messageOf(e), 'error', 7000)
+      return
+    }
+    state.dirty = false
+    state.source.open = false
+    state.source.url = defaultSourceUrl() || state.source.url
+    state.selected.clear()
+    state.tab = defaultTab()
+    state.filters = { q: '', epic: '', status: '', gherkin: '' }
+    const keep = state.key && state.stories.find((s) => s.key === state.key)
+    state.key = null
+    buildLayout()
+    P.shell?.refreshStrip?.()
+    const target = keep ? keep.key : visibleStories()[0]?.key || state.stories[0]?.key
+    if (target) select(target, { force: true, silentUrl: !keep })
+    setTimeout(() => {
+      if (state.source.job?.status === 'done') {
+        state.source.job = null
+        renderSource()
+      }
+    }, 6000)
   }
 
   // ------------------------------------------------------------ indicateurs, barre de filtres, onglets
@@ -214,13 +712,24 @@
     if (!ui.summary) return
     const s = state.summary || {}
     const pct = s.total ? Math.round((s.covered / s.total) * 100) : 0
+    const c = triageCounts()
     P.clear(ui.summary)
     ui.summary.append(
-      P.kpi({ label: 'Récits', value: s.total ?? 0, detail: s.withoutCriteria ? `${s.withoutCriteria} sans critère d’acceptation` : 'Tous ont des critères', tone: '' }),
+      P.kpi({ label: 'Récits', value: s.total ?? state.stories.length, detail: s.withoutCriteria ? `${s.withoutCriteria} sans critère d’acceptation` : 'Tous ont des critères', tone: '' }),
+      P.kpi({ label: 'À automatiser', value: c.todo, detail: c.untriaged ? `${c.untriaged} récit${c.untriaged > 1 ? 's' : ''} à trier` : 'Tous les récits sont triés', tone: c.untriaged ? 'amber' : 'mint' }),
       P.kpi({ label: 'Couverture Gherkin', value: pct, unit: '%', detail: `${s.covered ?? 0} récit(s) avec scénarios` }),
       P.kpi({ label: 'Brouillons à relire', value: s.drafts ?? 0, detail: s.withErrors ? `${s.withErrors} avec erreurs` : 'Aucune erreur bloquante', tone: s.drafts ? 'amber' : '' }),
-      P.kpi({ label: 'Validés', value: s.validated ?? 0, detail: s.total ? `sur ${s.total} récits` : '', tone: s.validated && s.validated === s.total ? 'mint' : '' }),
-      P.kpi({ label: 'Exportés', value: s.exported ?? 0, detail: `${state.featuresDir}/` }))
+      P.kpi({ label: 'Validés', value: s.validated ?? 0, detail: s.exported ? `${s.exported} exporté(s) dans ${state.featuresDir}/` : s.total ? `sur ${s.total} récits` : '', tone: s.validated && s.validated === s.total ? 'mint' : '' }))
+  }
+
+  function triageCounts() {
+    const c = { untriaged: 0, todo: 0, later: 0, skip: 0 }
+    for (const s of state.stories) {
+      const d = decisionOf(s.key)
+      if (d) c[d] += 1
+      else c.untriaged += 1
+    }
+    return c
   }
 
   function toolbar() {
@@ -238,29 +747,271 @@
     const statusSel = h('select', { class: 'p-select', 'aria-label': 'Statut JIRA', onchange: (e) => { state.filters.status = e.target.value; refreshFilters() } },
       h('option', { value: '' }, 'Tous les statuts JIRA'),
       statuses.map((s) => h('option', { value: s }, s)))
+    ui.gherkinSel = h('select', { class: 'p-select', 'aria-label': 'Scénarios Gherkin', onchange: (e) => { state.filters.gherkin = e.target.value; refreshFilters() } })
+    renderGherkinOptions()
     ui.count = h('span', { class: 'p-toolbar-count' })
-    const scan = state.scan
-    return h('div', { class: 'p-toolbar' }, P.icon('filter'), search, epicSel, statusSel, ui.count, h('span', { class: 'p-spacer' }),
-      scan ? h('span', { class: 'p-muted', style: { fontSize: '12px' } },
-        `Scan ${scan.source === 'demo' ? 'de démonstration' : 'JIRA'} · ${P.fmtAgo(scan.scannedAt)}`) : null)
+    return h('div', { class: 'p-toolbar' }, P.icon('filter'), search, epicSel, statusSel, ui.gherkinSel, ui.count)
+  }
+
+  /** Filtre Gherkin avec compteurs (dans l'onglet de tri courant). */
+  function renderGherkinOptions() {
+    if (!ui.gherkinSel) return
+    const base = filtered().filter((s) => inTab(s, state.tab))
+    P.clear(ui.gherkinSel)
+    for (const f of GHERKIN_FILTERS) {
+      const n = base.filter((s) => matchesGherkin(s, f.id)).length
+      ui.gherkinSel.appendChild(h('option', { value: f.id, selected: f.id === state.filters.gherkin }, `${f.label} (${n})`))
+    }
   }
 
   function refreshFilters() {
     renderTabs()
     renderList()
+    renderBulk()
   }
 
   function tabItems() {
-    const base = filtered()
+    const base = filtered().filter((s) => matchesGherkin(s, state.filters.gherkin))
     return TABS.map((t) => ({
       ...t,
       count: base.filter((s) => inTab(s, t.id)).length,
-      tone: t.id === 'draft' ? 'amber' : t.id === 'validated' ? 'mint' : '',
+      tone: t.id === 'triage' ? 'amber' : t.id === 'todo' ? 'mint' : '',
     }))
   }
 
   function renderTabs() {
     if (ui.tabsCtl) ui.tabsCtl.update(tabItems())
+  }
+
+  // ------------------------------------------------------------ actions groupées de tri
+
+  function renderBulk() {
+    if (!ui.bulk) return
+    renderGherkinOptions()
+    P.clear(ui.bulk)
+    const visible = visibleStories()
+    // La sélection ne garde que des récits existants.
+    for (const k of [...state.selected]) if (!state.stories.some((s) => s.key === k)) state.selected.delete(k)
+    const n = state.selected.size
+    const allVisible = visible.length > 0 && visible.every((s) => state.selected.has(s.key))
+    const someVisible = visible.some((s) => state.selected.has(s.key))
+    const all = h('input', {
+      type: 'checkbox', 'aria-label': 'Sélectionner tous les récits affichés', checked: allVisible,
+      onchange: (e) => {
+        visible.forEach((s) => (e.target.checked ? state.selected.add(s.key) : state.selected.delete(s.key)))
+        renderBulk()
+        renderList()
+      },
+    })
+    all.indeterminate = someVisible && !allVisible
+    const act = (decision, label, iconName, kind = '') => h('button', {
+      class: `p-btn p-btn--sm ${kind}`, type: 'button', disabled: !n, onclick: (e) => bulkDecide(decision, e.currentTarget),
+    }, P.icon(iconName), label)
+    // P.append ignore les null (Element.append les afficherait en texte).
+    P.append(ui.bulk, [
+      h('label', { class: 'p-check rc-bulk-all' }, all, h('span', null, n ? `${n} sélectionné${n > 1 ? 's' : ''}` : 'Tout sélectionner')),
+      act('todo', 'À automatiser', 'zap', 'rc-act-todo'),
+      act('later', 'Plus tard', 'clock'),
+      act('skip', 'Ignorer', 'eyeOff'),
+      act(null, 'Réinitialiser', 'refresh', 'p-btn--ghost'),
+      n ? h('button', { class: 'p-btn p-btn--sm p-btn--ghost', type: 'button', onclick: () => { state.selected.clear(); renderBulk(); renderList() } }, P.icon('x'), 'Désélectionner') : null,
+      h('span', { class: 'p-spacer' }),
+      h('button', { class: 'p-btn p-btn--sm', type: 'button', onclick: (e) => openApplySuggestions(e.currentTarget), title: 'Applique la suggestion des règles aux récits sans décision (ou à la sélection)' }, P.icon('listChecks'), 'Appliquer les suggestions'),
+      h('button', { class: 'p-btn p-btn--sm', type: 'button', onclick: (e) => classifyWithAi(e.currentTarget), title: 'Demande à l’assistant IA de classer les récits sans décision (ou la sélection)' }, P.icon('sparkles'), 'Classer avec l’IA')])
+  }
+
+  async function bulkDecide(decision, button) {
+    const keys = [...state.selected]
+    if (!keys.length) return
+    await P.busy(button, async () => {
+      try {
+        const r = await P.api('/api/jira/triage/bulk', { body: { keys, decision } })
+        applyTriagePayload(r)
+        state.selected.clear()
+        afterTriageChange()
+        P.toast(decision ? `${keys.length} récit${keys.length > 1 ? 's' : ''} classé${keys.length > 1 ? 's' : ''} « ${DECISION[decision].label} »` : `Décision réinitialisée pour ${keys.length} récit${keys.length > 1 ? 's' : ''}`)
+      } catch (e) {
+        P.toast(messageOf(e), 'error', 7000)
+      }
+    })
+  }
+
+  function afterTriageChange() {
+    renderSummary()
+    renderTabs()
+    renderBulk()
+    renderList()
+    renderDecision()
+  }
+
+  function openApplySuggestions() {
+    const selection = [...state.selected]
+    const targets = selection.length
+      ? state.stories.filter((s) => state.selected.has(s.key))
+      : state.stories.filter((s) => !decisionOf(s.key))
+    if (!targets.length) {
+      P.toast('Tous les récits ont déjà une décision : sélectionnez ceux à reclasser.', 'ok')
+      return
+    }
+    const by = { todo: [], later: [], skip: [] }
+    targets.forEach((s) => { const sug = state.suggestions[s.key]; if (sug) by[sug.suggestion].push(s) })
+    const recap = h('div', { class: 'rc-recap' }, ['todo', 'later', 'skip'].map((d) => h('div', { class: `rc-recap-item rc-recap--${d}` },
+      h('div', { class: 'rc-recap-num' }, String(by[d].length)), h('div', null, DECISION[d].label))))
+    const rows = targets.map((s) => {
+      const sug = state.suggestions[s.key]
+      return h('tr', null,
+        h('td', { class: 'p-mono' }, s.key),
+        h('td', null, h('div', { class: 'p-ellipsis rc-recap-title', title: s.summary }, s.summary)),
+        h('td', null, sug ? suggestionChip(sug) : '—'),
+        h('td', null, decisionOf(s.key) ? decisionBadge(decisionOf(s.key)) : h('span', { class: 'p-faint' }, 'aucune')))
+    })
+    P.modal({
+      title: 'Appliquer les suggestions',
+      wide: true,
+      body: h('div', null,
+        h('p', { style: { marginTop: 0 } }, selection.length
+          ? `La suggestion des règles remplacera la décision des ${targets.length} récit(s) sélectionné(s).`
+          : `La suggestion des règles sera appliquée aux ${targets.length} récit(s) sans décision. Les décisions déjà prises ne changent pas.`),
+        recap,
+        h('div', { class: 'rc-recap-table' }, h('table', { class: 'p-table' },
+          h('thead', null, h('tr', null, h('th', null, 'Récit'), h('th', null, 'Titre'), h('th', null, 'Suggestion'), h('th', null, 'Décision actuelle'))),
+          h('tbody', null, rows))),
+        h('p', { class: 'p-hint' }, 'Vous pourrez corriger chaque décision ensuite, une par une ou par sélection.')),
+      actions: [
+        { label: 'Annuler', kind: 'ghost' },
+        {
+          label: `Appliquer à ${targets.length} récit${targets.length > 1 ? 's' : ''}`,
+          kind: 'primary',
+          icon: 'check',
+          onClick: async (close, ev) => {
+            try {
+              const body = selection.length ? { applySuggestions: true, keys: selection, overwrite: true } : { applySuggestions: true }
+              const r = await P.busy(ev.currentTarget, () => P.api('/api/jira/triage/bulk', { body }))
+              applyTriagePayload(r)
+              state.selected.clear()
+              afterTriageChange()
+              P.toast(`${r.applied} suggestion${r.applied > 1 ? 's' : ''} appliquée${r.applied > 1 ? 's' : ''}`)
+              return true
+            } catch (e) {
+              P.toast(messageOf(e), 'error', 7000)
+              return false
+            }
+          },
+        },
+      ],
+    })
+  }
+
+  async function classifyWithAi(button) {
+    const keys = [...state.selected]
+    if (!keys.length && !state.stories.some((s) => !decisionOf(s.key))) {
+      P.toast('Tous les récits ont déjà une décision : sélectionnez ceux à faire reclasser par l’IA.', 'ok')
+      return
+    }
+    const slow = setTimeout(() => P.toast('L’assistant IA analyse les récits : cela peut prendre une minute.', 'ok', 6000), 2500)
+    try {
+      const r = await P.busy(button, () => P.api('/api/jira/triage/ai', { body: keys.length ? { keys } : {} }))
+      if (r.manual) openAiManual(r)
+      else showAiResults(r)
+    } catch (e) {
+      P.toast(messageOf(e), 'error', 8000)
+    } finally {
+      clearTimeout(slow)
+    }
+  }
+
+  function openAiManual(r) {
+    const promptArea = h('textarea', { class: 'p-textarea', rows: '8', readonly: true, 'aria-label': 'Prompt à copier' })
+    promptArea.value = r.prompt || ''
+    const answer = h('textarea', { class: 'p-textarea', rows: '8', placeholder: '{"items":[{"key":"CLE-1","decision":"todo","score":80,"reason":"…"}]}', 'aria-label': 'Réponse JSON de l’assistant' })
+    const errorBox = h('div', { class: 'rc-manual-error' })
+    P.modal({
+      title: 'Classement par l’IA — copier-coller',
+      wide: true,
+      body: h('div', null,
+        P.banner(r.invalid ? 'warn' : 'blue', h('div', null,
+          h('b', null, r.invalid ? 'La réponse de l’IA n’a pas pu être exploitée.' : 'Aucun assistant IA n’a pu répondre automatiquement.'),
+          h('div', null, `${r.reason || ''} Copiez le prompt dans Copilot Chat (ou un autre assistant), puis collez sa réponse JSON ci-dessous.`))),
+        r.truncated ? h('p', { class: 'p-hint' }, `${r.keys.length} récits envoyés ; ${r.truncated} autre(s) seront à classer dans un second temps.`) : null,
+        h('div', { class: 'rc-manual-step' },
+          h('div', { class: 'p-row p-row--between' }, h('label', { class: 'p-label' }, '1. Prompt à copier'),
+            h('button', { class: 'p-btn p-btn--sm', type: 'button', onclick: () => P.copy(r.prompt || '') }, P.icon('copy'), 'Copier le prompt')),
+          promptArea),
+        h('div', { class: 'rc-manual-step' }, h('label', { class: 'p-label' }, '2. Réponse JSON de l’assistant'), answer),
+        errorBox),
+      actions: [
+        { label: 'Annuler', kind: 'ghost' },
+        {
+          label: 'Analyser la réponse',
+          kind: 'primary',
+          icon: 'check',
+          onClick: async (close, ev) => {
+            P.clear(errorBox)
+            if (!answer.value.trim()) {
+              errorBox.appendChild(P.banner('warn', 'Collez d’abord la réponse de l’assistant.'))
+              return false
+            }
+            try {
+              const res = await P.busy(ev.currentTarget, () => P.api('/api/jira/triage/ai', { body: { keys: r.keys, answer: answer.value } }))
+              setTimeout(() => showAiResults(res), 0)
+              return true
+            } catch (err) {
+              errorBox.appendChild(errorBanner(err, 'Réponse refusée.'))
+              return false
+            }
+          },
+        },
+      ],
+    })
+  }
+
+  function showAiResults(r) {
+    if (r.ai) state.ai = r.ai
+    renderList()
+    renderDecision()
+    const chosen = new Set(r.items.filter((it) => !decisionOf(it.key) || state.selected.has(it.key)).map((it) => it.key))
+    const story = (k) => state.stories.find((s) => s.key === k)
+    const rows = r.items.map((it) => h('tr', null,
+      h('td', null, h('input', { type: 'checkbox', checked: chosen.has(it.key), 'aria-label': `Appliquer à ${it.key}`, onchange: (e) => (e.target.checked ? chosen.add(it.key) : chosen.delete(it.key)) })),
+      h('td', { class: 'p-mono' }, it.key),
+      h('td', null, h('div', { class: 'p-ellipsis rc-recap-title', title: story(it.key)?.summary || '' }, story(it.key)?.summary || '')),
+      h('td', null, decisionBadge(it.suggestion), it.score != null ? h('span', { class: 'p-faint' }, ` ${it.score}`) : null),
+      h('td', { class: 'rc-ai-reason' }, it.reason || '—'),
+      h('td', null, decisionOf(it.key) ? decisionBadge(decisionOf(it.key)) : h('span', { class: 'p-faint' }, 'aucune'))))
+    P.modal({
+      title: `Proposition de l’IA${r.provider && r.provider !== 'manual' ? ` (${providerLabel(r.provider)}${r.model ? ` · ${r.model}` : ''})` : ''}`,
+      wide: true,
+      body: h('div', null,
+        h('p', { style: { marginTop: 0 } }, `${r.items.length} récit${r.items.length > 1 ? 's' : ''} classé${r.items.length > 1 ? 's' : ''}. Cochez les propositions à appliquer : elles deviennent vos décisions, modifiables ensuite.`),
+        r.missing?.length ? P.banner('warn', `Sans réponse de l’IA : ${r.missing.join(', ')}.`) : null,
+        r.truncated ? P.banner('info', `${r.truncated} récit(s) supplémentaire(s) n’ont pas été envoyés (40 au plus par demande) : relancez le classement pour la suite.`) : null,
+        h('div', { class: 'rc-recap-table' }, h('table', { class: 'p-table' },
+          h('thead', null, h('tr', null, h('th', null, ''), h('th', null, 'Récit'), h('th', null, 'Titre'), h('th', null, 'IA'), h('th', null, 'Raison'), h('th', null, 'Décision actuelle'))),
+          h('tbody', null, rows)))),
+      actions: [
+        { label: 'Fermer', kind: 'ghost' },
+        {
+          label: 'Appliquer la sélection',
+          kind: 'primary',
+          icon: 'check',
+          onClick: async (close, ev) => {
+            const items = r.items.filter((it) => chosen.has(it.key)).map((it) => ({ key: it.key, decision: it.suggestion, reason: `IA : ${it.reason || DECISION[it.suggestion].label}` }))
+            if (!items.length) return true
+            try {
+              const res = await P.busy(ev.currentTarget, () => P.api('/api/jira/triage/bulk', { body: { items } }))
+              applyTriagePayload(res)
+              state.selected.clear()
+              afterTriageChange()
+              P.toast(`${items.length} décision${items.length > 1 ? 's' : ''} appliquée${items.length > 1 ? 's' : ''}`)
+              return true
+            } catch (e) {
+              P.toast(messageOf(e), 'error', 7000)
+              return false
+            }
+          },
+        },
+      ],
+    })
   }
 
   // ------------------------------------------------------------ liste maître
@@ -273,13 +1024,35 @@
     return P.badge('Brouillon', 'amber')
   }
 
+  function decisionBadge(decision) {
+    const d = DECISION[decision]
+    return d ? h('span', { class: `p-badge ${d.tone} rc-decision-badge` }, P.icon(d.icon, 12), d.label) : null
+  }
+
+  /** Suggestion (règles) : pastille en pointillés, raisons au survol. */
+  function suggestionChip(sug, { compact = false } = {}) {
+    if (!sug) return null
+    const d = DECISION[sug.suggestion]
+    return h('span', {
+      class: `rc-sug rc-sug--${sug.suggestion}`,
+      title: `Suggestion : ${d.label} (score ${sug.score}/100)\n${(sug.reasons || []).join('\n')}`,
+    }, compact ? '' : 'Suggéré : ', d.label, h('b', null, String(sug.score)))
+  }
+
   function renderList() {
     if (!ui.list) return
     const list = visibleStories()
     ui.count.textContent = `${list.length} récit${list.length > 1 ? 's' : ''}`
+    renderGherkinOptions()
     P.clear(ui.list)
     if (!list.length) {
-      ui.list.appendChild(P.empty('Aucun récit', state.tab === 'none' ? 'Tous les récits filtrés ont déjà des scénarios.' : 'Aucun récit ne correspond aux filtres.', 'search'))
+      const msg = {
+        triage: 'Tous les récits filtrés sont triés. Retrouvez-les dans « À automatiser », « Plus tard » ou « Ignorés ».',
+        todo: 'Aucun récit « À automatiser » : triez les récits depuis l’onglet « À trier ».',
+        later: 'Aucun récit gardé pour plus tard.',
+        skip: 'Aucun récit ignoré.',
+      }[state.tab] || 'Aucun récit ne correspond aux filtres.'
+      ui.list.appendChild(P.empty('Aucun récit', msg, state.tab === 'triage' ? 'checkCircle' : 'search'))
       return
     }
     let group = null
@@ -290,18 +1063,65 @@
         ui.list.appendChild(h('div', { class: 'p-list-group p-ellipsis', title: g }, g))
       }
       const n = s.acceptanceCriteria?.length || 0
-      ui.list.appendChild(h('button', {
-        class: `p-list-item ${s.key === state.key ? 'active' : ''}`,
-        type: 'button',
+      const d = decisionOf(s.key)
+      const checked = state.selected.has(s.key)
+      const check = h('input', {
+        type: 'checkbox', checked, 'aria-label': `Sélectionner ${s.key}`,
+        onclick: (e) => e.stopPropagation(),
+        onkeydown: (e) => e.stopPropagation(),
+        onchange: (e) => {
+          if (e.target.checked) state.selected.add(s.key)
+          else state.selected.delete(s.key)
+          e.target.closest('.rc-item')?.classList.toggle('is-checked', e.target.checked)
+          renderBulk()
+        },
+      })
+      ui.list.appendChild(h('div', {
+        class: `p-list-item rc-item ${s.key === state.key ? 'active' : ''} ${checked ? 'is-checked' : ''}`,
         role: 'option',
+        tabindex: s.key === state.key ? '0' : '-1',
         'aria-selected': s.key === state.key ? 'true' : 'false',
         dataset: { key: s.key },
         onclick: () => select(s.key),
       },
-      h('div', { class: 'rc-item-top' }, h('span', { class: 'rc-item-key' }, s.key), gherkinBadge(s.key)),
-      h('div', { class: 'p-list-item-title rc-item-title' }, s.summary),
-      h('div', { class: 'p-list-item-meta' }, `${s.status || '—'} · ${n ? `${n} critère${n > 1 ? 's' : ''}` : 'aucun critère'}`)))
+      h('label', { class: 'rc-item-check', onclick: (e) => e.stopPropagation() }, check),
+      h('div', { class: 'rc-item-main' },
+        h('div', { class: 'rc-item-top' },
+          h('span', { class: 'rc-item-key' }, s.key),
+          h('span', { class: 'rc-item-badges' }, d ? decisionBadge(d) : suggestionChip(state.suggestions[s.key], { compact: true }), gherkinBadge(s.key))),
+        h('div', { class: 'p-list-item-title rc-item-title' }, s.summary),
+        h('div', { class: 'p-list-item-meta' }, `${s.issueType && !/^(story|r[ée]cit)$/i.test(s.issueType) ? `${s.issueType} · ` : ''}${s.status || '—'} · ${n ? `${n} critère${n > 1 ? 's' : ''}` : 'aucun critère'}`))))
     }
+    // Au moins un élément atteignable au clavier.
+    if (!ui.list.querySelector('.rc-item[tabindex="0"]')) ui.list.querySelector('.rc-item')?.setAttribute('tabindex', '0')
+  }
+
+  /** Clavier dans la liste : flèches (récit précédent / suivant), Début / Fin, Entrée ou Espace (ouvrir), X (cocher). */
+  function onListKey(e) {
+    const item = e.target.closest?.('.rc-item')
+    if (!item) return
+    const items = [...ui.list.querySelectorAll('.rc-item')]
+    const i = items.indexOf(item)
+    let next = null
+    if (e.key === 'ArrowDown') next = items[i + 1]
+    else if (e.key === 'ArrowUp') next = items[i - 1]
+    else if (e.key === 'Home') next = items[0]
+    else if (e.key === 'End') next = items[items.length - 1]
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      select(item.dataset.key)
+      return
+    } else if (e.key.toLowerCase() === 'x') {
+      e.preventDefault()
+      item.querySelector('input[type="checkbox"]')?.click()
+      return
+    }
+    if (!next) return
+    e.preventDefault()
+    items.forEach((el) => el.setAttribute('tabindex', '-1'))
+    next.setAttribute('tabindex', '0')
+    next.focus()
+    select(next.dataset.key)
   }
 
   function markActive() {
@@ -309,6 +1129,7 @@
       const on = el.dataset.key === state.key
       el.classList.toggle('active', on)
       el.setAttribute('aria-selected', on ? 'true' : 'false')
+      el.setAttribute('tabindex', on ? '0' : '-1')
     })
   }
 
@@ -316,7 +1137,10 @@
 
   async function select(key, { force = false, silentUrl = false } = {}) {
     if (!force && key === state.key) return
-    if (state.dirty && !(await P.confirm('Les modifications du Gherkin ne sont pas enregistrées. Les abandonner ?', { title: 'Modifications non enregistrées', okLabel: 'Abandonner', danger: true }))) return
+    if (state.dirty && !(await P.confirm('Les modifications du Gherkin ne sont pas enregistrées. Les abandonner ?', { title: 'Modifications non enregistrées', okLabel: 'Abandonner', danger: true }))) {
+      markActive()
+      return
+    }
     // Une analyse en direct encore en attente concerne l'ancien récit : on l'abandonne.
     clearTimeout(lintTimer)
     lintSeq += 1
@@ -348,8 +1172,9 @@
   function renderDetail() {
     if (!ui.detail) return
     P.clear(ui.detail)
+    ui.decision = null
     if (!state.key) {
-      ui.detail.appendChild(P.card({ body: P.empty('Choisissez un récit', 'Sélectionnez un récit dans la liste pour voir ses critères et ses scénarios.', 'listChecks') }))
+      ui.detail.appendChild(P.card({ body: P.empty('Choisissez un récit', 'Sélectionnez un récit dans la liste pour voir sa suggestion de tri, ses critères et ses scénarios.', 'listChecks') }))
       return
     }
     if (state.detail?.error) {
@@ -359,7 +1184,9 @@
     }
     const s = story()
     if (!s) return
-    ui.detail.append(headCard(s), P.card({ className: 'rc-stepper', body: P.stepper(stepItems(s)) }))
+    ui.decision = h('div')
+    ui.detail.append(headCard(s), ui.decision, P.card({ className: 'rc-stepper', body: P.stepper(stepItems(s)) }))
+    renderDecision()
     if (!state.detail) {
       ui.detail.appendChild(P.card({ body: h('div', { class: 'p-empty' }, h('span', { class: 'p-spinner' }), h('div', null, 'Chargement des scénarios…')) }))
       return
@@ -388,6 +1215,87 @@
     })
   }
 
+  /** Bloc « Décision de test » : suggestion expliquée, trois boutons, raison, puis la suite (Playwright, Xray). */
+  function renderDecision() {
+    if (!ui.decision || !ui.decision.isConnected) return
+    const s = story()
+    if (!s) return
+    P.clear(ui.decision)
+    const key = s.key
+    const current = state.triage[key] || null
+    const sug = state.suggestions[key]
+    const ai = state.ai[key]
+    const reason = h('input', { class: 'p-input', type: 'text', maxlength: '500', placeholder: 'Raison (facultatif) : par exemple « parcours critique du comité »', 'aria-label': 'Raison de la décision', value: current?.reason || '' })
+    const choose = (decision) => async (ev) => {
+      await P.busy(ev.currentTarget, async () => {
+        try {
+          const wasTriage = state.tab === 'triage' && !current
+          const before = visibleStories().map((x) => x.key)
+          const r = await P.api(`/api/jira/triage/${encodeURIComponent(key)}`, { method: 'PUT', body: { decision, reason: reason.value } })
+          if (r.entry) state.triage[key] = r.entry
+          else delete state.triage[key]
+          afterTriageChange()
+          P.toast(decision ? `${key} : ${DECISION[decision].label}` : `${key} : décision réinitialisée`)
+          // Tri à la chaîne : dans « À trier », on passe au récit suivant.
+          if (wasTriage && decision && state.key === key && !state.dirty) {
+            const i = before.indexOf(key)
+            const nextKey = before.slice(i + 1).find((k) => !decisionOf(k)) || before.slice(0, i).find((k) => !decisionOf(k))
+            if (nextKey) select(nextKey)
+          }
+        } catch (e) {
+          P.toast(messageOf(e), 'error', 7000)
+        }
+      })
+    }
+    const seg = h('div', { class: 'rc-decide', role: 'group', 'aria-label': 'Décision de test' },
+      ['todo', 'later', 'skip'].map((d) => h('button', {
+        type: 'button',
+        class: `p-btn rc-decide-btn rc-decide--${d} ${current?.decision === d ? 'active' : ''} ${!current && sug?.suggestion === d ? 'is-suggested' : ''}`,
+        'aria-pressed': current?.decision === d ? 'true' : 'false',
+        title: !current && sug?.suggestion === d ? 'Suggestion des règles' : '',
+        onclick: choose(d),
+      }, P.icon(DECISION[d].icon), DECISION[d].verb)),
+      current ? h('button', { type: 'button', class: 'p-btn p-btn--ghost p-btn--sm', onclick: choose(null), title: 'Revenir dans « À trier »' }, P.icon('refresh'), 'Réinitialiser') : null)
+
+    const factors = (sug?.factors || []).map((f) => h('li', { class: f.points > 0 ? 'plus' : 'minus' },
+      h('span', { class: 'rc-factor-pts' }, `${f.points > 0 ? '+' : '−'}${Math.abs(f.points)}`), h('span', null, f.label)))
+    const explain = sug ? h('details', { class: 'rc-explain' },
+      h('summary', null,
+        h('span', null, 'Suggestion des règles : '), h('b', null, DECISION[sug.suggestion].label),
+        h('span', { class: 'rc-score' }, h('span', { class: `rc-score-fill rc-score--${sug.suggestion}`, style: { width: `${sug.score}%` } })),
+        h('span', { class: 'p-faint' }, `${sug.score}/100 · pourquoi ?`)),
+      h('ul', { class: 'rc-factors' }, factors),
+      h('div', { class: 'p-hint' }, 'Score de départ 50 ; « À automatiser » à partir de 60, « Plus tard » de 35 à 59, « Ignorer » en dessous.')) : null
+    const aiLine = ai ? h('div', { class: 'rc-ai-line' }, P.icon('sparkles'),
+      h('span', null, 'Proposition de l’IA : '), decisionBadge(ai.suggestion), ai.reason ? h('span', { class: 'p-muted' }, ` ${ai.reason}`) : null) : null
+
+    const g = state.index[key]
+    const validated = g?.status === 'validated'
+    const xray = window.XrayPush
+    const next = h('div', { class: 'rc-next' },
+      current?.decision === 'todo'
+        ? h('a', { class: 'p-btn p-btn--primary', href: `/automatisation.html?key=${encodeURIComponent(key)}` }, P.icon('play'), 'Automatiser avec Playwright')
+        : h('span', { class: 'p-hint' }, current?.decision ? `Récit classé « ${DECISION[current.decision].label} ».` : 'Classez ce récit « À automatiser » pour lancer l’exploration Playwright de l’application.'),
+      validated
+        ? h('button', {
+          class: 'p-btn', type: 'button', disabled: !xray,
+          title: xray ? 'Crée (ou met à jour) le ticket Test Cucumber dans JIRA / Xray, relié au récit' : 'Module d’envoi JIRA / Xray indisponible sur ce poste',
+          onclick: () => window.XrayPush?.open({ storyKey: key, source: { kind: 'gherkin' }, onDone: () => refreshIndex() }),
+        }, P.icon('upload'), 'Envoyer dans JIRA / Xray')
+        : null)
+
+    ui.decision.appendChild(P.card({
+      className: 'rc-decision-card',
+      title: 'Décision de test',
+      sub: current
+        ? `${DECISION[current.decision].label}${current.by ? ` · par ${current.by}` : ''} · ${P.fmtAgo(current.updatedAt)}${current.reason ? ` · ${current.reason}` : ''}`
+        : 'À trier : ce récit mérite-t-il un test automatisé ?',
+      icon: current ? DECISION[current.decision].icon : 'filter',
+      tone: current?.decision === 'todo' ? '' : current ? 'grey' : 'amber',
+      body: h('div', { class: 'p-stack rc-decision' }, seg, reason, explain, aiLine, next),
+    }))
+  }
+
   function stepItems(s) {
     const e = entry()
     const errors = state.analysis?.counts?.error || 0
@@ -395,8 +1303,9 @@
     const generating = state.busy === 'llm' || state.busy === 'template'
     const validated = e?.status === 'validated' && !state.dirty
     const exported = validated && e.exported
+    const d = decisionOf(s.key)
     return [
-      { label: 'Récit', sub: s.status || '', state: 'done' },
+      { label: 'Tri', sub: d ? DECISION[d].label : 'À décider', state: d === 'todo' ? 'done' : d ? 'skipped' : 'current' },
       { label: 'Critères', sub: n ? `${n} critère${n > 1 ? 's' : ''}` : 'Aucun : à clarifier', state: n ? 'done' : 'failed' },
       { label: 'Génération', sub: generating ? 'En cours…' : e ? GENERATOR_LABEL[e.generatedBy] || e.generatedBy : 'À lancer', state: generating ? 'running' : e ? 'done' : 'current' },
       { label: 'Relecture', sub: !e ? '' : errors ? `${errors} erreur${errors > 1 ? 's' : ''}` : 'Sans erreur', state: !e ? 'todo' : validated ? 'done' : errors ? 'failed' : 'current' },
@@ -867,11 +1776,15 @@
       P.toast('Une génération par lot est déjà en cours.', 'warn')
       return
     }
-    const keys = state.stories.filter((s) => !state.index[s.key]).map((s) => s.key)
-    if (!keys.length) {
+    const without = state.stories.filter((s) => !state.index[s.key])
+    if (!without.length) {
       P.toast('Tous les récits ont déjà des scénarios.', 'ok')
       return
     }
+    // Par défaut : uniquement les récits triés « À automatiser » ; option pour inclure les autres (sauf ignorés).
+    const todoKeys = without.filter((s) => decisionOf(s.key) === 'todo').map((s) => s.key)
+    const allKeys = without.filter((s) => decisionOf(s.key) !== 'skip').map((s) => s.key)
+    let includeAll = !todoKeys.length && !state.stories.some((s) => decisionOf(s.key))
     const hasAi = Boolean(state.llm?.active)
     let mode = hasAi ? 'auto' : 'template'
     const choices = [
@@ -882,17 +1795,43 @@
     const radios = h('div', { class: 'p-stack' }, choices.map((c) => h('label', { class: 'p-check', style: { alignItems: 'flex-start', opacity: c.disabled ? 0.55 : 1 } },
       h('input', { type: 'radio', name: 'rc-batch-mode', value: c.id, checked: c.id === mode, disabled: c.disabled, onchange: () => { mode = c.id } }),
       h('span', null, h('b', null, c.title), h('br'), h('span', { class: 'p-muted' }, c.text)))))
-    P.modal({
-      title: 'Générer les scénarios manquants',
+    const scope = h('p', { style: { marginTop: 0 } })
+    const keys = () => (includeAll ? allKeys : todoKeys)
+    let launchBtn = null
+    const renderScope = () => {
+      const k = keys()
+      P.clear(scope).append(k.length
+        ? `${k.length} récit${k.length > 1 ? 's' : ''} ${includeAll ? 'sans scénario (hors « Ignorés »)' : '« À automatiser » sans scénario'} : ${k.slice(0, 6).join(', ')}${k.length > 6 ? '…' : ''}`
+        : h('span', null, 'Aucun récit « À automatiser » sans scénario. ', h('b', null, 'Triez les récits'), ' (onglet « À trier ») ou incluez tous les récits ci-dessous.'))
+      if (launchBtn) launchBtn.disabled = !k.length
+    }
+    const include = h('label', { class: 'p-check' },
+      h('input', { type: 'checkbox', checked: includeAll, onchange: (e) => { includeAll = e.target.checked; renderScope() } }),
+      h('span', null, `Inclure aussi les récits non triés et « Plus tard » (${allKeys.length})`))
+    renderScope()
+    const m = P.modal({
+      title: 'Générer les scénarios Gherkin',
       body: h('div', null,
-        h('p', { style: { marginTop: 0 } }, `${keys.length} récit${keys.length > 1 ? 's' : ''} sans scénario : ${keys.slice(0, 6).join(', ')}${keys.length > 6 ? '…' : ''}`),
+        scope,
+        include,
+        h('div', { style: { height: '12px' } }),
         radios,
         h('p', { class: 'p-hint' }, 'Les scénarios produits sont des brouillons à relire. Les récits déjà couverts ne sont pas modifiés.')),
       actions: [
         { label: 'Annuler', kind: 'ghost' },
-        { label: 'Lancer la génération', kind: 'primary', icon: 'play', onClick: () => { startBatch(keys, mode) } },
+        {
+          label: 'Lancer la génération',
+          kind: 'primary',
+          icon: 'play',
+          onClick: () => {
+            if (!keys().length) return false
+            startBatch(keys(), mode)
+          },
+        },
       ],
     })
+    launchBtn = m.root.querySelector('.p-modal-foot .p-btn--primary')
+    renderScope()
   }
 
   async function startBatch(keys, mode) {

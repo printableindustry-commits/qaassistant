@@ -70,3 +70,7 @@
 .kn-jql { min-height: 70px; }
 .kn-scan-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .kn-scan-meta .p-mono { color: var(--p-text-2); }
+
+/* URL du projet JIRA dans le formulaire de scan */
+.kn-url-info { overflow-wrap: anywhere; }
+.kn-url-info.is-error { color: var(--p-red-text); }

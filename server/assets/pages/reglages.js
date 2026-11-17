@@ -5,6 +5,8 @@
  *   Utilisateurs   : admin — liste, création, suppression (/api/auth/users)
  *   Configuration  : admin — emplacements (/api/wizard/paths), fichiers (/api/wizard/config-files),
  *                    export (GET /api/wizard/export) et import (POST /api/wizard/import)
+ *   JIRA / Xray    : connexion JIRA (rappel), réglages Xray (/api/xray/settings), test de connexion,
+ *                    historique des envois de tickets Test (/api/xray/pushed)
  *   À propos       : version (/api/health, /api/wizard/meta) et emplacement des données
  */
 ;(function () {
@@ -12,7 +14,7 @@
   const P = window.Prisme
   const { h } = P
 
-  const TAB_IDS = ['compte', 'utilisateurs', 'configuration', 'a-propos']
+  const TAB_IDS = ['compte', 'utilisateurs', 'configuration', 'jira-xray', 'a-propos']
   const ROLE_LABEL = { admin: 'Administrateur', user: 'Utilisateur' }
   const isLocalHost = ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)
 
@@ -25,6 +27,7 @@
     files: null,
     meta: null,
     health: null,
+    xray: null,
   }
 
   let app = null
@@ -158,6 +161,7 @@
       })
       items.push({ id: 'configuration', label: 'Configuration', icon: 'settings', count: state.files ? state.files.length : null })
     }
+    items.push({ id: 'jira-xray', label: 'JIRA / Xray', icon: 'link', tone: state.xray && !state.xray.settings.configured ? 'amber' : '', count: state.xray ? state.xray.pushed.length : null })
     items.push({ id: 'a-propos', label: 'À propos', icon: 'info' })
     return items
   }
@@ -181,6 +185,7 @@
       compte: renderAccount,
       utilisateurs: renderUsers,
       configuration: renderConfiguration,
+      'jira-xray': renderXray,
       'a-propos': renderAbout,
     }[state.tab]
     panelHost.appendChild(render())
@@ -810,6 +815,230 @@
       flush: true,
       body,
     })
+  }
+
+  // ---------------------------------------------------------------- JIRA / Xray
+
+  const XRAY_MODES = [
+    { id: 'auto', label: 'Automatique (selon le JIRA détecté)' },
+    { id: 'cloud', label: 'Xray Cloud (clé d’API)' },
+    { id: 'server', label: 'Xray Server / Data Center (identifiants JIRA)' },
+  ]
+  const MODE_SHORT = { cloud: 'Xray Cloud', server: 'Xray Server / DC', 'jira-only': 'JIRA seul', simulation: 'Simulation' }
+
+  async function loadXray() {
+    const [settings, jira, pushed] = await Promise.all([
+      P.api('/api/xray/settings'),
+      P.api('/api/jira/settings').catch(() => null),
+      P.api('/api/xray/pushed?limit=20').catch(() => ({ entries: [] })),
+    ])
+    state.xray = { settings, jira, pushed: pushed.entries || [], test: null }
+    refreshTabs()
+  }
+
+  function renderXray() {
+    const root = h('div', { class: 'rg-panel' })
+    if (!state.xray) {
+      root.appendChild(loadingCard('Lecture des réglages JIRA / Xray…'))
+      loadXray().then(renderPanel, (err) => {
+        P.clear(root)
+        root.appendChild(errorBanner(err, () => renderPanel()))
+      })
+      return root
+    }
+    const x = state.xray
+    root.appendChild(h('div', { class: 'p-grid rg-xray-grid' }, jiraCard(x), historyCard(x)))
+    root.appendChild(xrayCard(x))
+    return root
+  }
+
+  function jiraCard(x) {
+    const j = x.settings.jira
+    const scan = x.settings.scan
+    const dep = { cloud: 'JIRA Cloud', server: 'JIRA Server / Data Center', auto: 'Détection automatique' }[j.deployment] || j.deployment
+    return P.card({
+      title: 'Connexion JIRA',
+      sub: 'Utilisée pour créer les tickets Test et les liens',
+      icon: 'server',
+      actions: h('a', { class: 'p-btn p-btn--sm', href: '/connaissance.html' }, P.icon('edit'), 'Modifier'),
+      body: [
+        j.configured ? null : P.banner('warn', [
+          h('strong', null, 'JIRA n’est pas connecté. '),
+          'L’adresse et le jeton se règlent dans ',
+          h('a', { href: '/connaissance.html' }, 'Prise de connaissance'),
+          ' (étape « Connexion JIRA »).',
+        ]),
+        h('dl', { class: 'p-dl' },
+          h('dt', null, 'Adresse'), h('dd', null, j.baseUrl ? h('span', { class: 'p-mono' }, j.baseUrl) : h('span', { class: 'p-faint' }, 'non renseignée')),
+          h('dt', null, 'Déploiement'), h('dd', null, dep),
+          h('dt', null, 'Projet'), h('dd', null, j.projectKey || '—'),
+          h('dt', null, 'Jeton'), h('dd', null, x.jira?.settings?.hasToken ? P.status('enregistré (masqué)', 'mint') : P.status('absent', 'amber')),
+          h('dt', null, 'Récits'), h('dd', null, scan
+            ? [`${scan.count} récits (${scan.projectKey || '—'}) `, scan.source === 'demo' ? P.badge('démonstration', 'amber') : P.badge('JIRA', 'mint')]
+            : h('span', { class: 'p-faint' }, 'aucun scan'))),
+        scan?.source === 'demo'
+          ? h('div', { class: 'p-hint' }, 'Les récits de démonstration sont envoyés en simulation : aucune écriture dans JIRA, clés fictives.')
+          : null,
+      ],
+    })
+  }
+
+  function historyCard(x) {
+    const rows = x.pushed
+    const body = rows.length
+      ? h('div', { class: 'rg-xray-table-wrap' }, h('table', { class: 'p-table' },
+        h('thead', null, h('tr', null, h('th', null, 'Récit'), h('th', null, 'Ticket Test'), h('th', null, 'Source'), h('th', null, 'Plan'), h('th', null, 'Envoyé'))),
+        h('tbody', null, rows.map((e) => h('tr', null,
+          h('td', null, h('span', { class: 'p-mono' }, e.storyKey)),
+          h('td', null,
+            /^https?:\/\//i.test(e.testUrl || '') ? h('a', { href: e.testUrl, target: '_blank', rel: 'noopener noreferrer', class: 'p-mono' }, e.testKey) : h('span', { class: 'p-mono' }, e.testKey),
+            ' ',
+            e.simulated ? P.badge('simulé', 'amber') : P.badge(MODE_SHORT[e.mode] || e.mode),
+            e.linked === false ? P.badge('sans lien', 'red') : null),
+          h('td', null, e.sourceKind === 'playwright' ? 'Playwright' : 'Gherkin'),
+          h('td', null, e.planKey ? h('span', { class: 'p-mono' }, e.planKey) : '—'),
+          h('td', { class: 'p-nowrap', title: P.fmtDate(e.updatedAt || e.pushedAt) },
+            P.fmtAgo(e.updatedAt || e.pushedAt),
+            e.pushCount > 1 ? h('span', { class: 'p-faint' }, ` · ${e.pushCount} envois`) : null,
+            e.by ? h('div', { class: 'p-faint' }, e.by) : null))))))
+      : P.empty('Aucun envoi pour l’instant', 'Les tickets Test envoyés depuis Récits ou Automatisation apparaîtront ici.', 'upload')
+    return P.card({
+      title: 'Envois récents',
+      sub: 'Tickets Test créés ou mis à jour',
+      icon: 'clock',
+      flush: rows.length > 0,
+      actions: h('button', { class: 'p-icon-btn', type: 'button', title: 'Actualiser', 'aria-label': 'Actualiser', onclick: () => { state.xray = null; renderPanel() } }, P.icon('refresh')),
+      body,
+    })
+  }
+
+  function xrayCard(x) {
+    const s = x.settings.settings
+    const canEdit = x.settings.canEdit
+    const regions = x.settings.regions || []
+
+    const mode = h('select', { class: 'p-select', disabled: !canEdit }, XRAY_MODES.map((m) => h('option', { value: m.id, selected: m.id === s.mode }, m.label)))
+    const region = h('select', { class: 'p-select', disabled: !canEdit },
+      regions.map((r) => h('option', { value: r.id, selected: r.id === s.region }, `${r.label} — ${r.url.replace(/^https:\/\//, '')}`)),
+      h('option', { value: 'custom', selected: s.region === 'custom' }, 'Adresse personnalisée'))
+    const cloudUrl = input({ value: s.cloudBaseUrl, disabled: !canEdit, placeholder: 'https://xray.cloud.getxray.app' })
+    const clientId = input({ value: s.clientId, disabled: !canEdit, placeholder: 'Client ID de la clé d’API Xray' })
+    const secret = passwordInput({ value: '', disabled: !canEdit, autocomplete: 'new-password', placeholder: s.hasClientSecret ? `${s.clientSecret} — laisser vide pour conserver` : 'Client Secret de la clé d’API Xray' })
+    const testType = input({ value: s.testIssueType, disabled: !canEdit })
+    const planType = input({ value: s.testPlanIssueType, disabled: !canEdit })
+    const linkType = input({ value: s.linkType, disabled: !canEdit })
+    const defaultPlan = input({ value: s.defaultTestPlanKey, disabled: !canEdit, placeholder: 'Aucun (ex. IRMA-120)' })
+    const pwType = input({ value: s.playwrightTestType, disabled: !canEdit })
+    const ghType = input({ value: s.gherkinTestType, disabled: !canEdit })
+    const labels = input({ value: (s.labels || []).join(', '), disabled: !canEdit })
+
+    const regionField = field('Région Xray Cloud', region, 'Celle de votre instance Xray (Paramètres globaux › API Keys).')
+    const urlField = field('Adresse Xray Cloud', cloudUrl)
+    const cloudBlock = h('div', { class: 'p-form-grid span-2 rg-xray-cloud' },
+      regionField, urlField,
+      field('Client ID', clientId),
+      field('Client Secret', secret.wrap, s.hasClientSecret ? 'Enregistré et masqué. Saisissez une nouvelle valeur pour le remplacer.' : 'Jamais affiché en clair ni écrit dans les journaux.'))
+
+    function syncVisibility() {
+      cloudBlock.hidden = mode.value === 'server'
+      urlField.hidden = region.value !== 'custom'
+    }
+    mode.addEventListener('change', syncVisibility)
+    region.addEventListener('change', () => {
+      const r = regions.find((it) => it.id === region.value)
+      if (r) cloudUrl.value = r.url
+      syncVisibility()
+    })
+    syncVisibility()
+
+    function payload() {
+      const out = {
+        mode: mode.value,
+        region: region.value,
+        cloudBaseUrl: cloudUrl.value,
+        clientId: clientId.value,
+        testIssueType: testType.value,
+        testPlanIssueType: planType.value,
+        linkType: linkType.value,
+        defaultTestPlanKey: defaultPlan.value,
+        playwrightTestType: pwType.value,
+        gherkinTestType: ghType.value,
+        labels: labels.value,
+      }
+      if (secret.el.value.trim()) out.clientSecret = secret.el.value.trim()
+      return out
+    }
+
+    const feedback = h('div', { class: 'rg-xray-feedback' })
+    const saveBtn = h('button', { class: 'p-btn p-btn--primary', type: 'button', disabled: !canEdit }, P.icon('save'), 'Enregistrer')
+    const testBtn = h('button', { class: 'p-btn', type: 'button', disabled: !x.settings.jira.configured, title: x.settings.jira.configured ? '' : 'Connectez d’abord JIRA' }, P.icon('zap'), 'Tester la connexion')
+
+    saveBtn.addEventListener('click', () => P.busy(saveBtn, async () => {
+      try {
+        const r = await P.api('/api/xray/settings', { method: 'PUT', body: payload() })
+        state.xray.settings = r
+        P.toast('Réglages Xray enregistrés')
+        renderPanel()
+        refreshTabs()
+      } catch (err) {
+        P.clear(feedback)
+        feedback.appendChild(P.banner('error', err.message))
+      }
+    }))
+
+    testBtn.addEventListener('click', () => P.busy(testBtn, async () => {
+      P.clear(feedback)
+      feedback.appendChild(h('div', { class: 'rg-xray-testing' }, h('span', { class: 'p-spinner' }), 'Test de JIRA et d’Xray en cours…'))
+      try {
+        const r = await P.api('/api/xray/test-connection', { body: canEdit ? payload() : {} })
+        state.xray.test = r
+        P.clear(feedback)
+        feedback.appendChild(testResult(r))
+      } catch (err) {
+        P.clear(feedback)
+        const hint = err?.data?.details?.hint
+        feedback.appendChild(P.banner('error', [h('strong', null, err.message), hint ? h('div', null, hint) : null]))
+      }
+    }))
+    if (x.test) feedback.appendChild(testResult(x.test))
+
+    const inherited = (x.settings.inheritedFrom || []).length && !x.settings.saved
+    return P.card({
+      title: 'Xray',
+      sub: `Mode retenu : ${x.settings.effectiveModeLabel || '—'}${x.settings.configured ? '' : ' — à configurer'}`,
+      icon: 'flask',
+      actions: x.settings.configured ? P.badge('Configuré', 'mint') : P.badge('À configurer', 'amber'),
+      body: [
+        canEdit ? null : P.banner('info', 'Seul un administrateur peut modifier ces réglages. Vous pouvez tester la connexion et consulter l’historique.'),
+        inherited ? P.banner('blue', 'Identifiants Xray repris du Hook Git (.env) ou du profil projet : enregistrez pour les conserver ici.') : null,
+        h('p', { class: 'p-muted rg-xray-intro' },
+          'Chaque test validé devient un ticket ', h('strong', null, s.testIssueType || 'Test'),
+          ' relié au récit (le test « tests » le récit), avec sa définition Xray : code Playwright (type Generic) ou scénarios Gherkin (type Cucumber), et peut être ajouté à un plan de test.'),
+        h('div', { class: 'p-form-grid' },
+          field('Mode', mode, 'Automatique : Xray Cloud si JIRA est sur atlassian.net, sinon Xray Server / Data Center (API /rest/raven avec le jeton JIRA).'),
+          field('Plan de test par défaut', defaultPlan, 'Proposé à chaque envoi ; modifiable au moment de l’envoi.'),
+          cloudBlock,
+          field('Type d’issue Test', testType),
+          field('Type d’issue Plan de test', planType),
+          field('Type de lien vers le récit', linkType, 'Type Xray « Test » : le test « tests » le récit.'),
+          field('Étiquettes ajoutées', labels, 'Séparées par des virgules ; « playwright » devient « gherkin » pour un envoi Gherkin.'),
+          field('Type Xray des tests Playwright', pwType),
+          field('Type Xray des tests Gherkin', ghType)),
+        h('div', { class: 'p-row rg-xray-actions' }, saveBtn, testBtn),
+        feedback,
+      ],
+    })
+  }
+
+  function testResult(r) {
+    return h('div', { class: 'rg-xray-result' },
+      P.banner(r.success ? 'info' : 'warn', [
+        h('strong', null, r.success ? 'Connexion réussie. ' : 'Certaines vérifications ont échoué. '),
+        `Mode : ${r.modeLabel || r.mode} — ${P.fmtDuration(r.durationMs)}.`,
+      ], r.success ? 'checkCircle' : 'alert'),
+      h('ul', { class: 'rg-xray-checks' }, (r.checks || []).map((c) => h('li', { class: c.ok ? 'ok' : 'ko' },
+        P.icon(c.ok ? 'checkCircle' : 'xCircle', 15),
+        h('div', null, h('strong', null, c.label), c.message ? h('span', null, ` — ${c.message}`) : null, c.hint ? h('div', { class: 'p-hint' }, c.hint) : null)))))
   }
 
   // ---------------------------------------------------------------- À propos

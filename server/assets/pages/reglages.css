@@ -63,3 +63,21 @@
 .rg-about-head { display: flex; align-items: center; gap: 14px; }
 .rg-about-head img { width: 48px; height: 48px; }
 .rg-list { margin: 0; padding-left: 18px; color: var(--p-text-2); display: flex; flex-direction: column; gap: 4px; }
+
+/* JIRA / Xray */
+.rg-xray-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; }
+@media (max-width: 960px) { .rg-xray-grid { grid-template-columns: 1fr; } }
+.rg-xray-intro { margin: 0 0 12px; }
+.rg-xray-cloud[hidden], .rg-xray-cloud .p-field[hidden] { display: none; }
+.rg-xray-actions { margin-top: 14px; gap: 8px; }
+.rg-xray-feedback { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.rg-xray-feedback:empty { display: none; }
+.rg-xray-testing { display: flex; align-items: center; gap: 8px; color: var(--p-text-3); font-size: 12.5px; }
+.rg-xray-checks { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.rg-xray-checks li { display: flex; gap: 8px; align-items: flex-start; }
+.rg-xray-checks li svg { flex: none; margin-top: 1px; }
+.rg-xray-checks li.ok svg { color: var(--p-green-2); }
+.rg-xray-checks li.ko svg { color: var(--p-red); }
+/* Tableau des envois : défilement horizontal sur petit écran plutôt que débordement de la page. */
+.rg-xray-table-wrap { overflow-x: auto; max-width: 100%; }
+.rg-xray-table-wrap .p-table td:first-child, .rg-xray-table-wrap .p-table td:nth-child(4) { white-space: nowrap; }

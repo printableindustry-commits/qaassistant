@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion — IRMA</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main>
+    <div class="connexion">
+      <h1>IRMA</h1>
+      <p class="sous-titre" style="text-align:center">Analyse des Risques Métier — application de démonstration</p>
+      <div id="message-deconnexion" class="message message-succes" role="status" hidden>Vous êtes déconnecté.</div>
+      <div id="erreur-connexion" class="message message-erreur" role="alert" hidden></div>
+      <form id="form-connexion" novalidate>
+        <div class="champ">
+          <label for="identifiant">Identifiant</label>
+          <input id="identifiant" name="identifiant" type="text" autocomplete="username" aria-describedby="erreur-connexion">
+        </div>
+        <div class="champ">
+          <label for="mot-de-passe">Mot de passe</label>
+          <div class="mdp">
+            <input id="mot-de-passe" name="motDePasse" type="password" autocomplete="current-password" aria-describedby="erreur-connexion">
+            <button class="btn-icone" type="button" id="voir-mdp" aria-label="Afficher le mot de passe" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-principal" type="submit" data-testid="btn-connexion" style="width:100%;justify-content:center">Se connecter</button>
+      </form>
+      <p class="pied">Comptes de démonstration fournis par votre équipe QA.</p>
+    </div>
+  </main>
+  <script src="app.js"></script>
+  <script>
+    ;(function () {
+      'use strict'
+      const I = window.IRMA
+      const params = new URLSearchParams(location.search)
+      if (params.get('deconnexion')) document.getElementById('message-deconnexion').hidden = false
+      if (I.session()) { location.replace('tableau-de-bord.html'); return }
+      const champMdp = document.getElementById('mot-de-passe')
+      document.getElementById('voir-mdp').addEventListener('click', (e) => {
+        const visible = champMdp.type === 'password'
+        champMdp.type = visible ? 'text' : 'password'
+        e.currentTarget.setAttribute('aria-pressed', String(visible))
+        e.currentTarget.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe')
+      })
+      document.getElementById('form-connexion').addEventListener('submit', (e) => {
+        e.preventDefault()
+        const id = document.getElementById('identifiant').value.trim()
+        const mdp = champMdp.value
+        const erreur = document.getElementById('erreur-connexion')
+        const compte = I.COMPTES[id]
+        if (!id || !mdp) {
+          erreur.textContent = 'Renseignez votre identifiant et votre mot de passe.'
+          erreur.hidden = false
+          return
+        }
+        if (!compte || compte.motDePasse !== mdp) {
+          erreur.textContent = 'Identifiant ou mot de passe incorrect.'
+          erreur.hidden = false
+          champMdp.value = ''
+          champMdp.focus()
+          return
+        }
+        I.ouvrirSession(id)
+        const retour = params.get('retour')
+        location.href = retour && /^[\w-]+\.html(\?[\w=&%-]*)?$/.test(retour) ? retour : 'tableau-de-bord.html'
+      })
+    })()
+  </script>
+</body>
+</html>

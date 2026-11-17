@@ -182,10 +182,12 @@ import * as jiraRoutes from './lib/jira/routes.mjs'
 import * as gherkinRoutes from './lib/gherkin/routes.mjs'
 import * as llmRoutes from './lib/llm/routes.mjs'
 import * as perfRoutes from './lib/perf/routes.mjs'
+import * as exploreRoutes from './lib/explore/routes.mjs'
+import * as xrayRoutes from './lib/xray/routes.mjs'
 
 // Modules V3 (Prisme) : chacun déclare ses routes dans son routes.mjs.
 const router = createRouter()
-for (const mod of [authRoutes, dashboardRoutes, installRoutes, jiraRoutes, gherkinRoutes, llmRoutes, perfRoutes]) {
+for (const mod of [authRoutes, dashboardRoutes, installRoutes, jiraRoutes, gherkinRoutes, llmRoutes, perfRoutes, exploreRoutes, xrayRoutes]) {
   mod.register(router)
 }
 
@@ -237,6 +239,45 @@ function sendFile(res, filePath, contentType, noCache = false) {
   }
   res.writeHead(200, headers)
   res.end(fs.readFileSync(filePath))
+}
+
+const DEMO_APP_DIR = path.join(SERVER_DIR, 'demo-app')
+const DEMO_APP_TYPES = {
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'application/javascript; charset=utf-8',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json; charset=utf-8', '.ico': 'image/x-icon',
+}
+
+/** Fichiers statiques de l'application de démonstration IRMA (lecture seule). */
+function serveDemoApp(req, res, url) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    sendJson(res, 405, { ok: false, error: 'Application de démonstration : lecture seule.' })
+    return
+  }
+  if (url.pathname === '/demo-app') {
+    res.writeHead(301, { Location: '/demo-app/' + url.search })
+    res.end()
+    return
+  }
+  let rel = ''
+  try {
+    rel = decodeURIComponent(url.pathname.slice('/demo-app/'.length))
+  } catch {
+    sendJson(res, 400, { ok: false, error: 'Adresse invalide' })
+    return
+  }
+  if (!rel || rel.endsWith('/')) rel += 'index.html'
+  const filePath = path.resolve(DEMO_APP_DIR, rel)
+  if (!filePath.startsWith(DEMO_APP_DIR + path.sep)) {
+    sendJson(res, 403, { error: 'Forbidden' })
+    return
+  }
+  const type = DEMO_APP_TYPES[path.extname(filePath).toLowerCase()]
+  if (!type || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    sendJson(res, 404, { ok: false, error: 'Page introuvable' })
+    return
+  }
+  res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-cache' })
+  res.end(req.method === 'HEAD' ? undefined : fs.readFileSync(filePath))
 }
 
 function sendHtml(res, filePath, reqUrl = '') {
@@ -434,6 +475,12 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === '/api/health') {
     sendJson(res, 200, { ok: true, version: getWizardMeta().version })
+    return
+  }
+
+  // Application de démonstration IRMA (statique, publique, sans shell Prisme) : cible de l'exploration Playwright
+  if (pathname === '/demo-app' || pathname.startsWith('/demo-app/')) {
+    serveDemoApp(req, res, url)
     return
   }
 

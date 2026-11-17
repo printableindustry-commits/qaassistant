@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tableau de bord — IRMA</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <script src="app.js"></script>
+  <script>
+    ;(function () {
+      'use strict'
+      const I = window.IRMA
+      const s = I.exigerSession()
+      const { el } = I
+      document.body.prepend(I.entete('tdb'))
+      const liste = I.risques().filter((r) => r.entite === s.entite)
+      const compte = (n) => liste.filter((r) => r.niveau === n).length
+      const couleurs = { Faible: 'var(--irma-faible)', Modéré: 'var(--irma-modere)', Élevé: 'var(--irma-eleve)', Critique: 'var(--irma-critique)' }
+      const kpis = el('section', { class: 'kpis', 'aria-label': 'Nombre de risques par niveau' },
+        I.NIVEAUX.map((n) => el('div', { class: 'kpi', style: `--c:${couleurs[n]}`, 'data-testid': n === 'Critique' ? 'kpi-critique' : null },
+          el('div', { class: 'valeur' }, String(compte(n))),
+          el('div', { class: 'libelle' }, `Risques ${n.toLowerCase()}s`))))
+      const ordre = { Critique: 4, Élevé: 3, Modéré: 2, Faible: 1 }
+      const top = [...liste].sort((a, b) => ordre[b.niveau] - ordre[a.niveau] || b.montant - a.montant).slice(0, 10)
+      const contenu = liste.length
+        ? [kpis, el('section', { class: 'carte' },
+            el('h2', { style: 'margin-top:0;font-size:17px' }, '10 risques les plus élevés'),
+            el('table', {},
+              el('caption', { style: 'text-align:left;color:var(--irma-gris);padding-bottom:6px' }, `Entité ${s.entite}`),
+              el('thead', {}, el('tr', {}, ['Référence', 'Libellé', 'Niveau', 'Porteur'].map((t) => el('th', { scope: 'col' }, t)))),
+              el('tbody', {}, top.map((r) => el('tr', {},
+                el('td', {}, el('a', { href: 'risque.html?ref=' + r.ref }, r.ref)),
+                el('td', {}, r.libelle),
+                el('td', {}, I.badgeNiveau(r.niveau)),
+                el('td', {}, r.porteur))))))]
+        : [el('div', { class: 'message message-succes', role: 'status' }, 'Aucun risque enregistré pour cette entité')]
+      const actions = s.profil === 'Valideur'
+        ? el('button', { class: 'btn', type: 'button', onclick: () => I.toast('Export PDF généré (simulation) : synthese-risques.pdf') }, 'Exporter en PDF')
+        : null
+      document.body.append(el('main', {},
+        el('div', { style: 'display:flex;justify-content:space-between;align-items:start' },
+          el('div', {},
+            el('h1', {}, 'Tableau de bord des risques'),
+            el('p', { class: 'sous-titre' }, `Bienvenue ${s.nom} — entité ${s.entite}`)),
+          actions),
+        contenu,
+        el('p', { class: 'pied' }, 'Documentation IRMA : ', el('a', { href: 'https://example.org/irma/aide' }, 'aide en ligne (site externe)'))))
+    })()
+  </script>
+</body>
+</html>

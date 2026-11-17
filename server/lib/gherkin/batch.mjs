@@ -6,9 +6,27 @@
  *              done { summary }, error { message }.
  */
 import crypto from 'crypto'
-import { getStory } from '../jira/stories.mjs'
+import { getStory, listStories } from '../jira/stories.mjs'
+import { getTriage } from '../jira/triage.mjs'
 import { generateForStory, withGenerationLock } from './service.mjs'
-import { readEntry } from './store.mjs'
+import { readEntry, getGherkinIndex } from './store.mjs'
+
+/**
+ * Récits traités par défaut par un lot : ceux sans scénario ET décidés « À automatiser » dans le tri
+ * (docs/V3-ARCHITECTURE.md §5.1). includeAll : tous les récits sans scénario, triés ou non (sauf « Ignorés »
+ * si skipIgnored).
+ * → { keys, total: récits sans scénario, todo: récits « À automatiser » sans scénario }
+ */
+export function defaultBatchKeys({ includeAll = false, skipIgnored = true } = {}) {
+  const index = getGherkinIndex()
+  const triage = getTriage()
+  const without = listStories().filter((s) => !index[s.key])
+  const todo = without.filter((s) => triage[s.key]?.decision === 'todo')
+  const keys = includeAll
+    ? without.filter((s) => !(skipIgnored && triage[s.key]?.decision === 'skip')).map((s) => s.key)
+    : todo.map((s) => s.key)
+  return { keys, total: without.length, todo: todo.length }
+}
 
 const JOB_TTL_MS = 30 * 60 * 1000
 const jobs = new Map()

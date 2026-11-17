@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Détail du risque — IRMA</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <script src="app.js"></script>
+  <script>
+    ;(function () {
+      'use strict'
+      const I = window.IRMA
+      const s = I.exigerSession()
+      const { el } = I
+      document.body.prepend(I.entete('risques'))
+      const ref = new URLSearchParams(location.search).get('ref') || ''
+      const liste = I.risques()
+      const r = liste.find((x) => x.ref === ref && x.entite === s.entite)
+      const main = el('main')
+      document.body.append(main)
+      if (!r) {
+        main.append(el('h1', {}, 'Détail du risque'),
+          el('div', { class: 'message message-erreur', role: 'alert' }, 'Accès refusé ou risque introuvable.'),
+          el('a', { href: 'risques.html' }, 'Retour à la liste'))
+        return
+      }
+      const succes = el('div', { class: 'message message-succes', role: 'status', hidden: true })
+      const historique = () => el('table', {},
+        el('caption', { style: 'text-align:left;font-weight:600;padding-bottom:6px' }, 'Historique des cotations'),
+        el('thead', {}, el('tr', {}, ['Date', 'Niveau', 'Auteur', 'Commentaire'].map((t) => el('th', { scope: 'col' }, t)))),
+        el('tbody', {}, [...r.cotations].sort((a, b) => b.date.localeCompare(a.date)).map((c) => el('tr', {},
+          el('td', {}, I.dateFr(c.date)), el('td', {}, I.badgeNiveau(c.niveau)), el('td', {}, c.auteur), el('td', {}, c.commentaire)))))
+      const zone = el('section', { class: 'carte' }, historique())
+      let action = null
+      if (s.profil === 'Valideur') {
+        action = el('button', {
+          class: 'btn btn-principal', type: 'button',
+          onclick: async () => {
+            const ok = await I.confirmer('Valider la cotation', `Confirmez-vous la cotation « ${r.niveau} » du risque ${r.ref} ?`, 'Valider')
+            if (!ok) return
+            r.cotations.push({ date: I.aujourdHui(), niveau: r.niveau, auteur: s.nom, commentaire: 'Cotation validée' })
+            I.enregistrerRisques(liste)
+            zone.replaceChildren(historique())
+            succes.textContent = 'Cotation validée.'
+            succes.hidden = false
+          },
+        }, 'Valider la cotation')
+      }
+      main.append(
+        el('p', {}, el('a', { href: 'risques.html' }, '← Retour à la liste')),
+        el('div', { style: 'display:flex;justify-content:space-between;align-items:start' },
+          el('div', {},
+            el('h1', {}, `${r.ref} — ${r.libelle}`),
+            el('p', { class: 'sous-titre' }, 'Niveau actuel : ', I.badgeNiveau(r.niveau), ` · porteur ${r.porteur} · identifié le ${I.dateFr(r.date)}`)),
+          action),
+        succes,
+        zone)
+    })()
+  </script>
+</body>
+</html>

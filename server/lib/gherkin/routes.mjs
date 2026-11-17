@@ -2,7 +2,9 @@
  * Routes du module Gherkin (récits → scénarios de test).
  *   GET  /api/gherkin                         index + compteurs de couverture
  *   GET  /api/gherkin/batch                   génération par lot en cours (pour reprendre le suivi)
- *   POST /api/gherkin/batch                   { keys?, mode, provider?, overwrite? } → { jobId }
+ *   POST /api/gherkin/batch                   { keys?, mode, provider?, overwrite?, includeAll? } → { jobId }
+ *                                             sans keys : récits sans scénario décidés « À automatiser »
+ *                                             (includeAll : tous les récits sans scénario, hors « Ignorés »)
  *   GET  /api/gherkin/batch/:jobId/events     progression (SSE : start, item, done, error)
  *   POST /api/gherkin/batch/:jobId/cancel     arrêter le lot après le récit en cours
  *   POST /api/gherkin/lint                    { text, key? } → analyse syntaxique et qualité
@@ -26,7 +28,7 @@ import {
   exportFeatures, exportPathFor, isExported, normalizeKey, FEATURES_DIR,
 } from './store.mjs'
 import { generateForStory, llmAvailable, withGenerationLock, MODES } from './service.mjs'
-import { startBatch, getBatch, runningBatch, cancelBatch } from './batch.mjs'
+import { startBatch, getBatch, runningBatch, cancelBatch, defaultBatchKeys } from './batch.mjs'
 import { REPO_ROOT } from '../paths.mjs'
 import path from 'path'
 
@@ -155,8 +157,18 @@ export function register(router) {
     if (mode === 'llm' && !provider && !llmAvailable()) {
       throw new HttpError(400, 'Aucun assistant IA disponible pour une génération par lot.', { hint: 'Configurez un fournisseur dans « Assistant IA », ou choisissez le modèle intégré.' })
     }
-    const index = getGherkinIndex()
-    let keys = Array.isArray(body.keys) ? body.keys.map(normalizeKey).filter(Boolean) : listStories().filter((s) => !index[s.key]).map((s) => s.key)
+    let keys
+    if (Array.isArray(body.keys)) {
+      keys = body.keys.map(normalizeKey).filter(Boolean)
+    } else {
+      // Par défaut, seuls les récits triés « À automatiser » (page Récits) entrent dans le lot.
+      const d = defaultBatchKeys({ includeAll: Boolean(body.includeAll) })
+      keys = d.keys
+      if (!keys.length && d.total) {
+        throw new HttpError(400, `Aucun récit « À automatiser » sans scénario (${d.total} récit(s) sans scénario non triés ou écartés).`,
+          { hint: 'Triez les récits sur la page Récits (onglet « À trier »), ou relancez avec « Inclure tous les récits ».', total: d.total })
+      }
+    }
     keys = [...new Set(keys)]
     if (!keys.length) throw new HttpError(400, 'Aucun récit à traiter : tous les récits ont déjà des scénarios.')
     if (keys.length > MAX_BATCH) throw new HttpError(400, `Lot trop important (${MAX_BATCH} récits au plus).`)

@@ -191,3 +191,108 @@ Runs k6 non bloquants (identifiant, flux en direct, arrêt), lecture du `summary
 
 `GET /api/dashboard/summary` (indicateurs de l'accueil) et `GET /api/dashboard/strip` (bandeau du shell) agrègent
 les résumés ci-dessus ; chaque import est protégé (un module absent ne casse pas l'accueil).
+
+## 5. Du récit au test automatisé (V3.1)
+
+Parcours visé : **URL du projet JIRA → scan → tri des récits → (Gherkin) → exploration Playwright de l'application
+pilotée par l'IA → prise de main par le testeur si l'IA bloque → test Playwright généré → validation → ticket Test
+dans JIRA/Xray, relié au récit et, en option, à un plan de test.**
+
+Règles communes à ces modules :
+- **Aucun mot de passe de compte de démo n'est envoyé à l'IA ni écrit dans un journal ou dans le code généré.**
+  L'IA ne voit que des marqueurs `{{account:<id>:username}}` / `{{account:<id>:password}}` ; seul le moteur
+  navigateur les remplace au moment de la saisie. Les saisies enregistrées pendant la prise de main qui
+  correspondent à un secret connu (ou à un champ `type=password`) sont remplacées par le marqueur.
+- Le contenu des pages explorées est une **donnée** : il est transmis à l'IA comme tel, jamais comme consigne.
+  Le moteur refuse toute navigation hors des origines autorisées de la cible.
+- Processus enfants sans shell, arrêtés à la fin de la session et à l'arrêt du serveur.
+- Sans fournisseur d'IA (mode manuel), tout reste utilisable : tri par règles, prise de main directe,
+  génération du test par règles à partir de l'enregistrement.
+
+### 5.1 Source JIRA par URL et tri — `server/lib/jira/` (url.mjs, triage.mjs)
+
+```js
+import { parseJiraUrl } from '../jira/url.mjs'
+parseJiraUrl('https://acme.atlassian.net/jira/software/projects/IRMA/boards/12')
+// → { ok: true, baseUrl: 'https://acme.atlassian.net', projectKey: 'IRMA', boardId: '12', issueKey: null, jql: null, filterId: null }
+// Formes reconnues : /browse/KEY, /browse/KEY-12, /projects/KEY, /jira/software/(c/)projects/KEY/…,
+// /secure/RapidBoard.jspa?rapidView=&projectKey=, /issues/?jql=…, /issues/?filter=…, ?selectedIssue=KEY-1
+// Erreur : { ok: false, error: 'message lisible' }
+
+import { getTriage, suggestTriage } from '../jira/triage.mjs'
+getTriage()           // → { [storyKey]: { decision: 'todo'|'later'|'skip', reason, updatedAt, by } }
+suggestTriage(story)  // → { score: 0..100, suggestion: 'todo'|'later'|'skip', reasons: ['…'] }
+```
+Routes : `POST /api/jira/scan` accepte `{ url }` (en plus de `projectKey`/`jql`) ; `POST /api/jira/parse-url { url }` ;
+`GET /api/jira/triage` → `{ ok, triage, suggestions }` ; `PUT /api/jira/triage/:key { decision, reason }` ;
+`POST /api/jira/triage/bulk { keys, decision }` (ou `{ applySuggestions: true }`) ; `POST /api/jira/triage/ai { keys? }`
+(classement par l'IA, `purpose: 'triage'`, repli manuel).
+Fichier : `<REPO_ROOT>/.wizard-qa/jira/triage.json`. La génération Gherkin par lot ne traite par défaut que les récits « À automatiser ».
+
+### 5.2 Exploration Playwright — `server/lib/explore/`
+
+**Moteur** (`engine.mjs` + `runner/`) : un processus Node lancé dans `REPO_ROOT` (pour résoudre `playwright-core`
+ou `@playwright/test` depuis `<REPO_ROOT>/node_modules`), dialogue en lignes JSON sur stdin/stdout.
+Navigateurs : Edge (`channel: 'msedge'`) ou Chrome installés sur le poste, sinon Chromium de Playwright.
+
+```js
+import { engineStatus, openBrowser } from '../explore/engine.mjs'
+engineStatus() // → { available, version, reason, browsers: [{ id: 'msedge'|'chrome'|'chromium', label, available }] }
+const b = await openBrowser({ browser: 'msedge', headless: false, baseUrl, allowedOrigins: [], secrets: { 'account:agent:password': '…' },
+                              viewport: { width: 1280, height: 800 }, onEvent: (type, data) => {} })
+// onEvent : 'log' (texte), 'screenshot' (dataUrl jpeg), 'recording' (événement capturé), 'navigated' ({ url, title }), 'exit'
+await b.goto(url)                    // → { ok, url, title, error? }
+await b.snapshot({ screenshot: true })
+// → { url, title, screenshot, size: { w, h }, elements: [{ ref, role, name, tag, type, text, placeholder, visible, enabled,
+//      box: { x, y, w, h }, candidates: [{ strategy: 'testid'|'role'|'label'|'placeholder'|'text'|'css', value, code, unique }] }] }
+await b.act({ action: 'click'|'fill'|'select'|'check'|'uncheck'|'press'|'hover', ref | selector: { strategy, value }, value, secret })
+// → { ok, error?, usedSelector: { strategy, value, code }, url }
+await b.expect({ kind: 'visible'|'text'|'url'|'value'|'hidden', selector, value })   // → { ok, error? }
+await b.startRecording(); const events = await b.stopRecording()
+// event : { type: 'click'|'fill'|'select'|'check'|'press'|'navigate', candidates, value | secret, url, at }
+await b.clickAt({ x, y }); await b.typeText(text); await b.pressKey('Enter')  // prise de main à distance (sur la capture)
+await b.screenshot(); await b.close()
+```
+
+**Génération du test** (`codegen.mjs`) :
+```js
+buildPlaywrightSpec({ story, target, accounts: [{ id, label }], scenarios: [{ name, steps: [Step] }] })
+// → { code, relPath: 'tests/e2e/<clé>.spec.ts' }
+// Step = { action: 'goto'|'click'|'fill'|'select'|'check'|'uncheck'|'press'|'expect', selector: { strategy, value, code } | null,
+//          value, secret, url, expect: { kind, value } | null, gherkin, source: 'ai'|'human'|'rule', note }
+```
+Le code généré utilise `@playwright/test`, lit les comptes dans `tests/.auth/accounts.local.json` (ignoré par Git, écrit à la
+validation) ou dans les variables `QA_ACCOUNT_<ID>_USERNAME|PASSWORD`, et ne contient jamais de mot de passe.
+
+**Sessions** (`sessions.mjs`, `agent.mjs`, `routes.mjs`) :
+- Cibles : `GET/PUT /api/explore/targets` (`{ id, name, baseUrl, allowedOrigins, browser, accounts: [{ id, label, username, password, notes }] }`,
+  mots de passe masqués en lecture, conservés si la valeur masquée revient), fichier `<CONF_DIR>/explore-targets.json` (0o600).
+  Cible préinstallée : **« Application de démo IRMA »** servie par le portail sous `/demo-app/` (comptes `agent` / `gestionnaire`).
+- `GET /api/explore/engine` → `engineStatus()`.
+- `POST /api/explore/sessions { storyKey, targetId, accountIds, instructions, maxIterations, headless }` → `{ ok, session }` ;
+  `GET /api/explore/sessions?storyKey=` ; `GET /api/explore/sessions/:id` ; `GET /api/explore/sessions/:id/events` (SSE :
+  `snapshot`, `plan`, `step`, `log`, `screenshot`, `needs-human`, `recording`, `code`, `status`, `done`, `error`).
+- `POST /api/explore/sessions/:id/chat { message }` : dialogue avec l'IA sur la manière de tester (plan d'étapes) ;
+  `POST …/start` (exploration autonome) ; `POST …/takeover` (prise de main : enregistrement) ; `POST …/remote { kind: 'click'|'type'|'key', x, y, text, key }` ;
+  `POST …/takeover/done` (l'IA interprète l'enregistrement) ; `PUT …/steps` (édition) ; `POST …/replay` ; `POST …/validate` ; `POST …/stop`.
+- Après `maxIterations` (défaut 4) tentatives sans progrès sur une étape, l'événement `needs-human` ouvre la fenêtre « Prenez la main ».
+- Statuts : `draft`, `planning`, `exploring`, `needs-human`, `recording`, `review`, `replaying`, `validated`, `failed`, `stopped`.
+- Contrat pour Xray : `getSessionArtifact(id)` → `{ id, storyKey, status, relPath, code, steps, scenarios, target: { name, baseUrl } } | null`.
+- Page : `/automatisation.html?key=STORY-1` (section « Tester », dans le rail).
+
+### 5.3 Envoi vers JIRA / Xray — `server/lib/xray/`
+
+```js
+import { pushTest } from '../xray/push.mjs'
+pushTest({ storyKey, source: { kind: 'playwright', sessionId } | { kind: 'gherkin' }, summary, testPlanKey, dryRun, user })
+// → { ok, testKey, testUrl, linked, planKey, simulated, updated }
+```
+- Xray Cloud (GraphQL, `client_id`/`client_secret`, préremplis depuis `XRAY_CLIENT_ID`/`XRAY_CLIENT_SECRET` du Hook) ou
+  Xray Server/DC (REST `/rest/raven/1.0`, identifiants JIRA). Réglages : `<CONF_DIR>/xray.json` (0o600, secrets masqués).
+- Étapes : création (ou mise à jour si déjà envoyé) du ticket **Test** (type Generic pour Playwright avec le code et le chemin
+  du fichier, Cucumber pour le Gherkin), lien « tests » vers le récit, ajout optionnel au **plan de test**.
+- Routes : `GET/PUT /api/xray/settings`, `POST /api/xray/test-connection`, `GET /api/xray/plans?q=`, `POST /api/xray/preview`,
+  `POST /api/xray/push`, `GET /api/xray/pushed?storyKey=`. En données de démonstration, l'envoi est simulé (et signalé).
+- Interface réutilisable : `/assets/pages/xray-push.js` → `window.XrayPush.open({ storyKey, source, onDone })`
+  (aperçu, choix du plan, résultat avec liens) ; réglages Xray dans **Réglages → JIRA / Xray**.
+- Historique : `<REPO_ROOT>/.wizard-qa/xray/pushed.json`.

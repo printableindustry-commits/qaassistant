@@ -233,6 +233,23 @@
         "after": "Les scénarios validés alimentent Playwright et les plans Xray."
       }
     },
+    "automatisation": {
+      "label": "Automatisation",
+      "path": "/automatisation.html",
+      "section": "Tester",
+      "status": "automation",
+      "tracked": false,
+      "guide": {
+        "goal": "Transformer un récit en test Playwright : l’IA explore l’application, vous prenez la main si elle bloque, puis vous validez le test.",
+        "youDo": [
+          "Choisissez l’application à tester et les comptes de démonstration à utiliser.",
+          "Expliquez à l’assistant comment tester le récit, relisez le plan proposé.",
+          "Lancez l’exploration ; si l’IA ne trouve pas un élément, prenez la main dans le navigateur.",
+          "Rejouez le test généré, validez-le puis envoyez-le dans JIRA."
+        ],
+        "after": "Le test est écrit dans tests/e2e/ et peut être relié au récit dans JIRA / Xray."
+      }
+    },
     "installation": {
       "label": "Installation du poste",
       "path": "/installation.html",
@@ -409,6 +426,15 @@
       "path": "/recits.html",
       "match": [
         "recits"
+      ]
+    },
+    {
+      "id": "automatisation",
+      "label": "Automatiser",
+      "icon": "bot",
+      "path": "/automatisation.html",
+      "match": [
+        "automatisation"
       ]
     },
     {

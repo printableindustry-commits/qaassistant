@@ -328,7 +328,7 @@ export const test = base
 export const { Given, When, Then } = createBdd(test)
 `
 
-const GITIGNORE = ['node_modules/', 'test-results/', 'playwright-report/', 'blob-report/', '.features-gen/', 'reports/', '.env', '.wizard-qa/']
+const GITIGNORE = ['node_modules/', 'test-results/', 'playwright-report/', 'blob-report/', '.features-gen/', 'reports/', '.env', '.wizard-qa/', 'tests/.auth/']
 
 async function k6SmokeScript() {
   try {

@@ -102,9 +102,16 @@ function normalizeBaseUrl(raw) {
     throw new Error('URL JIRA invalide : saisissez une adresse complète, par exemple https://monentreprise.atlassian.net')
   }
   if (!/^https?:$/.test(u.protocol)) throw new Error('L’URL JIRA doit commencer par https:// (ou http:// pour un serveur interne)')
-  // On retire les chemins d'écran collés par erreur (/browse/…, /jira/software/…).
-  const cut = u.pathname.search(/\/(browse|jira|projects|secure|issues)(\/|$)/)
-  const pathname = cut >= 0 ? u.pathname.slice(0, cut) : u.pathname
+  // On retire les chemins d'écran collés par erreur (/browse/…, /jira/software/…), mais on garde le
+  // chemin de contexte d'un JIRA Server / Data Center (https://intranet.entreprise.fr/jira) : sans lui,
+  // l'API serait appelée au mauvais endroit et l'URL collée sur la page Récits ne correspondrait jamais.
+  let pathname = u.pathname
+  if (/\.(atlassian\.net|jira\.com|jira-dev\.com)$/i.test(u.hostname)) {
+    pathname = '' // JIRA Cloud : l'instance est toujours à la racine de l'hôte.
+  } else {
+    const cut = pathname.search(/\/(browse|projects|secure|issues|plugins|rest|servicedesk|dashboards|login\.jsp|issuenavigator)(\/|$)|\/[^/]+\.jspa(\/|$)|\/jira\/(software|core|servicedesk|your-work|for-you)(\/|$)/i)
+    if (cut >= 0) pathname = pathname.slice(0, cut)
+  }
   return `${u.origin}${pathname}`.replace(/\/+$/, '')
 }
 

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Déclarer un risque — IRMA</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <script src="app.js"></script>
+  <main id="contenu" hidden>
+    <h1>Déclarer un risque</h1>
+    <p class="sous-titre">Saisie d’un nouveau risque métier pour votre entité. Les champs marqués * sont obligatoires.</p>
+    <div id="message-succes" class="message message-succes" role="status" hidden></div>
+    <form id="form-risque" class="carte" novalidate>
+      <div class="champ">
+        <label for="libelle">Libellé du risque *</label>
+        <input id="libelle" name="libelle" type="text" aria-describedby="err-libelle">
+        <span class="erreur-champ" id="err-libelle"></span>
+      </div>
+      <div class="champ">
+        <label for="entite">Entité *</label>
+        <select id="entite" name="entite">
+          <option>CA-TS Paris</option>
+          <option>CA-TS Lyon</option>
+          <option>CA-TS Marseille</option>
+        </select>
+      </div>
+      <fieldset aria-describedby="err-niveau">
+        <legend>Niveau de criticité *</legend>
+        <label><input type="radio" name="niveau" value="Faible"> Faible</label>
+        <label><input type="radio" name="niveau" value="Modéré"> Modéré</label>
+        <label><input type="radio" name="niveau" value="Élevé"> Élevé</label>
+        <label><input type="radio" name="niveau" value="Critique"> Critique</label>
+        <div class="erreur-champ" id="err-niveau"></div>
+      </fieldset>
+      <div class="champ">
+        <label for="date-identification">Date d’identification *</label>
+        <input id="date-identification" name="date" type="date" aria-describedby="err-date">
+        <span class="erreur-champ" id="err-date"></span>
+      </div>
+      <div class="champ">
+        <!-- Champ volontairement sans libellé : seul le placeholder le décrit -->
+        <input name="montant" type="text" inputmode="decimal" placeholder="Montant d’exposition (€)" aria-describedby="err-montant">
+        <span class="erreur-champ" id="err-montant"></span>
+      </div>
+      <div class="champ">
+        <label for="description">Description</label>
+        <textarea id="description" name="description"></textarea>
+      </div>
+      <div class="champ">
+        <label><input type="checkbox" name="notifier" id="notifier"> Notifier le valideur de l’entité</label>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <a class="btn" href="risques.html">Annuler</a>
+        <button class="btn btn-principal" type="submit" data-testid="btn-enregistrer">Enregistrer</button>
+      </div>
+    </form>
+  </main>
+  <script>
+    ;(function () {
+      'use strict'
+      const I = window.IRMA
+      const s = I.exigerSession()
+      document.body.prepend(I.entete('nouveau'))
+      document.getElementById('contenu').hidden = false
+      const form = document.getElementById('form-risque')
+      const succes = document.getElementById('message-succes')
+      const erreurs = {
+        libelle: document.getElementById('err-libelle'),
+        niveau: document.getElementById('err-niveau'),
+        date: document.getElementById('err-date'),
+        montant: document.getElementById('err-montant'),
+      }
+      function marquer(champ, message, input) {
+        erreurs[champ].textContent = message || ''
+        if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false')
+      }
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        succes.hidden = true
+        const libelle = form.libelle.value.trim()
+        const niveau = (form.querySelector('input[name="niveau"]:checked') || {}).value || ''
+        const date = form.date.value
+        const montantTexte = form.montant.value.trim().replace(/\s/g, '').replace(',', '.')
+        let ok = true
+        if (libelle.length < 5) { marquer('libelle', 'Le libellé est obligatoire (5 caractères minimum).', form.libelle); ok = false } else marquer('libelle', '', form.libelle)
+        if (!niveau) { marquer('niveau', 'Choisissez un niveau de criticité.'); ok = false } else marquer('niveau', '')
+        if (!date) { marquer('date', 'La date d’identification est obligatoire.', form.date); ok = false }
+        else if (date > I.aujourdHui()) { marquer('date', 'La date d’identification ne peut pas être dans le futur.', form.date); ok = false }
+        else marquer('date', '', form.date)
+        if (montantTexte && (!/^\d+(\.\d+)?$/.test(montantTexte))) { marquer('montant', 'Montant invalide : saisissez un nombre positif.', form.montant); ok = false } else marquer('montant', '', form.montant)
+        if (!ok) return
+        const liste = I.risques()
+        const ref = I.prochaineReference(liste)
+        const confirme = await I.confirmer('Confirmer la déclaration', `Le risque « ${libelle} » (niveau ${niveau}) sera enregistré sous la référence ${ref} pour l’entité ${form.entite.value}.`, 'Confirmer')
+        if (!confirme) return
+        liste.push({
+          ref, libelle, niveau, date, porteur: s.nom, montant: Number(montantTexte || 0), entite: form.entite.value,
+          description: form.description.value.trim(),
+          cotations: [{ date, niveau, auteur: s.nom, commentaire: 'Cotation initiale' }],
+        })
+        I.enregistrerRisques(liste)
+        form.reset()
+        succes.replaceChildren(`Le risque ${ref} a été enregistré.`, ' ', I.el('a', { href: 'risques.html' }, 'Voir la liste des risques'))
+        succes.hidden = false
+        if (form.notifier && form.notifier.checked) I.toast('Le valideur a été notifié.')
+      })
+    })()
+  </script>
+</body>
+</html>

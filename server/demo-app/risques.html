@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Risques — IRMA</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <script src="app.js"></script>
+  <script>
+    ;(function () {
+      'use strict'
+      const I = window.IRMA
+      const s = I.exigerSession()
+      const { el } = I
+      document.body.prepend(I.entete('risques'))
+
+      // Période par défaut : 3 derniers mois
+      const fin = I.aujourdHui()
+      const d = new Date()
+      d.setMonth(d.getMonth() - 3)
+      const debut = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      let filtres = { q: '', niveau: '', du: debut, au: fin }
+      try { filtres = Object.assign(filtres, JSON.parse(sessionStorage.getItem('irma.filtres') || '{}')) } catch (e) { /* ignoré */ }
+
+      // Champ de recherche SANS libellé (seulement un placeholder)
+      const recherche = el('input', { type: 'search', placeholder: 'Rechercher par référence ou libellé…', value: filtres.q })
+      const niveau = el('select', { id: 'filtre-niveau' },
+        el('option', { value: '' }, 'Tous les niveaux'),
+        I.NIVEAUX.map((n) => el('option', { value: n }, n)))
+      niveau.value = filtres.niveau
+      const du = el('input', { type: 'date', id: 'filtre-du', value: filtres.du })
+      const au = el('input', { type: 'date', id: 'filtre-au', value: filtres.au })
+      const erreur = el('p', { class: 'erreur-champ', id: 'erreur-periode', role: 'alert' })
+      const compteur = el('p', { class: 'compteur', role: 'status', 'aria-live': 'polite' })
+      const corps = el('tbody')
+
+      function appliquer() {
+        erreur.textContent = ''
+        if (du.value && au.value && au.value < du.value) {
+          erreur.textContent = 'La date de fin doit être postérieure à la date de début'
+          return
+        }
+        filtres = { q: recherche.value.trim(), niveau: niveau.value, du: du.value, au: au.value }
+        sessionStorage.setItem('irma.filtres', JSON.stringify(filtres))
+        const q = filtres.q.toLowerCase()
+        const liste = I.risques().filter((r) => r.entite === s.entite)
+          .filter((r) => !q || r.ref.toLowerCase().includes(q) || r.libelle.toLowerCase().includes(q))
+          .filter((r) => !filtres.niveau || r.niveau === filtres.niveau)
+          .filter((r) => (!filtres.du || r.date >= filtres.du) && (!filtres.au || r.date <= filtres.au))
+          .sort((a, b) => b.date.localeCompare(a.date))
+        compteur.textContent = liste.length ? `${liste.length} risque${liste.length > 1 ? 's' : ''} trouvé${liste.length > 1 ? 's' : ''}` : 'Aucun risque ne correspond aux filtres.'
+        corps.replaceChildren(...liste.map((r) => el('tr', {},
+          el('td', {}, r.ref),
+          el('td', {}, r.libelle),
+          el('td', {}, I.badgeNiveau(r.niveau)),
+          el('td', {}, I.dateFr(r.date)),
+          el('td', {}, r.porteur),
+          // Bouton-icône : seul l'attribut aria-label le décrit
+          el('td', {}, el('button', { class: 'btn-icone', type: 'button', 'aria-label': `Voir le détail de ${r.ref}`, onclick: () => { location.href = 'risque.html?ref=' + r.ref } }, I.icone('oeil'))))))
+      }
+      recherche.addEventListener('input', appliquer)
+      niveau.addEventListener('change', appliquer)
+
+      document.body.append(el('main', {},
+        el('div', { style: 'display:flex;justify-content:space-between;align-items:start' },
+          el('div', {},
+            el('h1', {}, 'Risques de l’entité'),
+            el('p', { class: 'sous-titre' }, `Entité ${s.entite} — filtrez par niveau de criticité et par période d’identification.`)),
+          el('a', { class: 'btn btn-principal', href: 'nouveau-risque.html' }, 'Déclarer un risque')),
+        el('section', { class: 'carte' },
+          el('div', { class: 'barre' },
+            recherche,
+            el('div', { class: 'champ', style: 'margin:0' }, el('label', { for: 'filtre-niveau' }, 'Niveau'), niveau),
+            el('div', { class: 'champ', style: 'margin:0' }, el('label', { for: 'filtre-du' }, 'Du'), du),
+            el('div', { class: 'champ', style: 'margin:0' }, el('label', { for: 'filtre-au' }, 'Au'), au),
+            el('button', { class: 'btn', type: 'button', onclick: appliquer }, 'Appliquer les filtres')),
+          erreur,
+          compteur,
+          el('table', { 'data-testid': 'table-risques' },
+            el('thead', {}, el('tr', {}, ['Référence', 'Libellé', 'Niveau', 'Identifié le', 'Porteur', 'Actions'].map((t) => el('th', { scope: 'col' }, t)))),
+            corps))))
+      appliquer()
+    })()
+  </script>
+</body>
+</html>

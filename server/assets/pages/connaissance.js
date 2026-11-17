@@ -28,6 +28,8 @@
     job: null,           // scan en cours ou terminé
     jql: '',
     projectKey: '',
+    scanUrl: '',         // URL du projet JIRA collée (prioritaire sur la clé et la JQL)
+    urlInfo: null,       // { ok, text } : résultat de /api/jira/parse-url
     tab: 'clarify',
     filters: { q: '', epic: '', status: '' },
   }
@@ -420,14 +422,55 @@
         if (!state.settings.settings.jql) { state.jql = proposedFor(state.projectKey); jql.value = state.jql }
       } })
 
-    const launch = h('button', { class: 'p-btn p-btn--primary', type: 'button', disabled: running || (!demo && !s.configured), onclick: startScan },
+    // URL du projet JIRA (tableau, backlog, ticket…) : l'instance et le projet en sont déduits.
+    const urlInfo = h('div', { class: 'p-hint kn-url-info', 'aria-live': 'polite' })
+    const drawUrlInfo = () => {
+      P.clear(urlInfo)
+      const i = state.urlInfo
+      urlInfo.classList.toggle('is-error', Boolean(i && !i.ok))
+      urlInfo.textContent = i ? i.text : 'Collez l’adresse d’un écran du projet (tableau, backlog ou ticket) : elle remplace la clé et la requête ci-dessous.'
+    }
+    let urlTimer = null
+    let urlSeq = 0
+    const checkUrl = async () => {
+      const seq = ++urlSeq
+      const value = state.scanUrl.trim()
+      if (!value) { state.urlInfo = null; drawUrlInfo(); return }
+      try {
+        const r = await P.api('/api/jira/parse-url', { body: { url: value } })
+        if (seq !== urlSeq) return
+        const p = r.parsed
+        state.urlInfo = {
+          ok: true,
+          text: `Reconnu : ${p.projectKey ? `projet ${p.projectKey}` : r.label} · ${p.host} (${r.demo ? 'démonstration' : p.deployment === 'cloud' ? 'Cloud' : 'Server / Data Center'})${r.ready ? '' : r.sameInstance ? ' · jeton à enregistrer' : ' · autre instance que la connexion enregistrée : identifiants à saisir'}`,
+        }
+      } catch (e) {
+        if (seq !== urlSeq) return
+        state.urlInfo = { ok: false, text: e.message }
+      }
+      drawUrlInfo()
+    }
+    const urlInput = h('input', {
+      class: 'p-input p-mono', type: 'url', value: demo ? '' : state.scanUrl, disabled: demo || running, spellcheck: 'false', autocomplete: 'off',
+      placeholder: 'https://monentreprise.atlassian.net/jira/software/projects/CLE/boards/12',
+      oninput: (e) => {
+        state.scanUrl = e.target.value
+        launch.disabled = running || (!s.configured && !state.scanUrl.trim())
+        clearTimeout(urlTimer)
+        urlTimer = setTimeout(checkUrl, 300)
+      },
+    })
+    drawUrlInfo()
+
+    const launch = h('button', { class: 'p-btn p-btn--primary', type: 'button', disabled: running || (!demo && !s.configured && !state.scanUrl.trim()), onclick: startScan },
       P.icon('play'), running ? 'Scan en cours…' : 'Lancer le scan')
     const form = P.card({
       title: demo ? 'Scan des données de démonstration' : 'Requête de scan',
       sub: demo ? 'Lecture du jeu IRMA comme s’il venait d’un JIRA Server' : 'Proposée à partir du projet et des types d’issues : modifiable avant le lancement',
       icon: 'search',
       body: h('div', { class: 'p-stack', style: { gap: '12px' } },
-        h('div', { class: 'p-field' }, h('label', null, 'Clé du projet'), key),
+        demo ? null : h('div', { class: 'p-field' }, h('label', null, 'URL du projet JIRA (recommandé)'), urlInput, urlInfo),
+        h('div', { class: 'p-field' }, h('label', null, demo ? 'Clé du projet' : 'Ou clé du projet'), key),
         h('div', { class: 'p-field' }, h('label', null, 'Requête JQL'), jql,
           demo ? null : h('div', { class: 'p-row p-hint' },
             'Sans requête personnalisée, les types d’issues absents du projet sont écartés automatiquement.',
@@ -460,7 +503,10 @@
       if (!ok) return
     }
     const body = { mode: demo ? 'demo' : 'jira' }
-    if (!demo) {
+    if (!demo && state.scanUrl.trim()) {
+      // L'URL désigne l'instance et le projet : le serveur en déduit la clé, la JQL ou le tableau.
+      body.url = state.scanUrl.trim()
+    } else if (!demo) {
       if (state.projectKey) body.projectKey = state.projectKey
       const proposed = proposedFor(state.projectKey)
       // Requête par défaut : le serveur la reconstruit avec les types réellement présents dans le projet.
@@ -474,7 +520,10 @@
       if (res.alreadyRunning) P.toast('Un scan est déjà en cours : affichage de sa progression', 'warn')
       follow(res.jobId)
     } catch (e) {
-      state.job = { status: 'error', lines: [], error: { message: e.message, hint: hintOf(e) }, mode: body.mode }
+      const hint = e.data?.needsCredentials
+        ? `Enregistrez l’adresse ${e.data.baseUrl} et un jeton dans l’étape « Connexion JIRA », puis relancez le scan (la page Récits les demande aussi directement).`
+        : hintOf(e)
+      state.job = { status: 'error', lines: [], error: { message: e.message, hint }, mode: body.mode }
       if (state.step === 'scan') render()
     }
   }

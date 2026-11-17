@@ -1,6 +1,9 @@
 /**
  * Scans de récits, exécutés en tâche de fond et suivis en direct (SSE).
- *   startScan({ mode: 'jira'|'demo', projectKey, jql, user }) → job
+ *   startScan({ mode: 'jira'|'demo', projectKey, jql, user, fromUrl }) → job
+ *   fromUrl (scan lancé depuis une URL collée, voir url.mjs) : { url, kind, boardId, filterId, issueKey }
+ *     → la JQL enregistrée dans les réglages est ignorée (l'URL désigne le périmètre) et, en cas de succès,
+ *       la clé projet est retenue dans les réglages.
  *   getJob(id) → job | null ; job.subscribe(fn) rejoue les événements passés puis suit les nouveaux.
  * Événements : progress { phase, message, loaded, total, percent }, done { scan, summary }, error { message, hint, code }.
  */
@@ -12,7 +15,7 @@ import { createJiraClient, JiraError } from './client.mjs'
 import { discoverFields, searchFields } from './fields.mjs'
 import { normalizeIssue, isEpic } from './normalize.mjs'
 import { saveScanResult } from './stories.mjs'
-import { loadSettings, proposedJql } from './settings.mjs'
+import { loadSettings, saveSettings, proposedJql } from './settings.mjs'
 
 const DEMO_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'conf', 'demo', 'irma-jira.json')
 const JOB_TTL_MS = 30 * 60 * 1000
@@ -125,9 +128,24 @@ async function fetchEpicSummaries(client, allKeys) {
   return map
 }
 
-async function scanJira(job, { projectKey, jql: customJql }) {
+/** Tableau agile → clé projet (emplacement du tableau) ou, à défaut, JQL de son filtre. */
+async function resolveBoard(client, boardId) {
+  try {
+    const board = await client.request(`/rest/agile/1.0/board/${encodeURIComponent(boardId)}`)
+    const key = String(board?.location?.projectKey || '').toUpperCase()
+    if (/^[A-Z][A-Z0-9_]{1,19}$/.test(key)) return { projectKey: key, name: board.name || '' }
+  } catch { /* API agile indisponible : on tente la configuration */ }
+  try {
+    const conf = await client.request(`/rest/agile/1.0/board/${encodeURIComponent(boardId)}/configuration`)
+    const id = String(conf?.filter?.id || '')
+    if (/^-?\d+$/.test(id)) return { jql: `filter = ${id} ORDER BY key ASC`, name: conf.name || '' }
+  } catch { /* ignoré : message explicite plus bas */ }
+  throw new JiraError(`Tableau ${boardId} introuvable ou inaccessible.`, { code: 'CONFIG', hint: 'Vérifiez que votre compte voit ce tableau, ou collez l’URL d’un ticket du projet (…/browse/CLE-1).' })
+}
+
+async function scanJira(job, { projectKey, jql: customJql, fromUrl }) {
   const { settings } = loadSettings()
-  const key = (projectKey || settings.projectKey || '').toUpperCase()
+  let key = (projectKey || (fromUrl ? '' : settings.projectKey) || '').toUpperCase()
   progress(job, 'connect', `Connexion à ${settings.baseUrl || 'JIRA'}…`)
   const client = await createJiraClient(settings)
   const me = await client.myself()
@@ -136,7 +154,16 @@ async function scanJira(job, { projectKey, jql: customJql }) {
   const map = discoverFields(await client.fields(), { acceptanceField: settings.acceptanceField })
   progress(job, 'fields', `Champs détectés : critères d’acceptation « ${map.acceptance?.name || 'aucun (lecture de la description)'} », lien d’épopée « ${map.epicLink?.name || (client.deployment === 'cloud' ? 'parent' : 'aucun')} », story points « ${map.storyPoints?.name || 'aucun'} »`)
 
-  let jql = (customJql || settings.jql || '').trim()
+  // Depuis une URL : le périmètre vient de l'adresse, jamais de la JQL enregistrée pour un autre projet.
+  let jql = (customJql || (fromUrl ? '' : settings.jql) || '').trim()
+  if (!jql && fromUrl?.filterId) jql = `filter = ${fromUrl.filterId} ORDER BY key ASC`
+  if (!jql && !key && fromUrl?.boardId) {
+    progress(job, 'search', `Lecture du tableau ${fromUrl.boardId}…`)
+    const b = await resolveBoard(client, fromUrl.boardId)
+    if (b.projectKey) key = b.projectKey
+    else jql = b.jql
+    progress(job, 'search', `Tableau ${fromUrl.boardId}${b.name ? ` « ${b.name} »` : ''} : ${b.projectKey ? `projet ${b.projectKey}` : jql}`)
+  }
   if (!jql) {
     if (!key) throw new JiraError('Clé projet manquante.', { code: 'CONFIG', hint: 'Renseignez la clé du projet JIRA (par exemple P0326) ou une requête JQL personnalisée.' })
     const { types } = await resolveIssueTypes(client, key, settings.issueTypes)
@@ -172,13 +199,13 @@ async function scanJira(job, { projectKey, jql: customJql }) {
 
 // ---------------------------------------------------------------- lancement
 
-export function startScan({ mode = 'demo', projectKey, jql, user } = {}) {
+export function startScan({ mode = 'demo', projectKey, jql, user, fromUrl = null } = {}) {
   pruneJobs()
   const job = createJob(mode, user)
   const started = Date.now()
   ;(async () => {
     try {
-      const result = mode === 'jira' ? await scanJira(job, { projectKey, jql }) : await scanDemo(job)
+      const result = mode === 'jira' ? await scanJira(job, { projectKey, jql, fromUrl }) : await scanDemo(job)
       progress(job, 'save', 'Extraction des critères d’acceptation et enregistrement…', result.stories.length, result.stories.length)
       const scan = saveScanResult({
         scan: {
@@ -191,10 +218,20 @@ export function startScan({ mode = 'demo', projectKey, jql, user } = {}) {
           fields: result.fields,
           durationMs: Date.now() - started,
           user: user || '',
+          url: fromUrl?.url || '',
+          urlKind: fromUrl?.kind || '',
         },
         stories: result.stories,
         epics: result.epics,
       })
+      // Scan réussi depuis une URL : l'instance et le projet deviennent les réglages par défaut.
+      if (mode === 'jira' && fromUrl && result.projectKey) {
+        try {
+          saveSettings({ baseUrl: result.baseUrl, projectKey: result.projectKey })
+        } catch (e) {
+          console.error('[jira] enregistrement du projet scanné :', e.message)
+        }
+      }
       job.status = 'done'
       job.emit('done', { scan, summary: summarize(result.stories, result.epics) })
     } catch (e) {

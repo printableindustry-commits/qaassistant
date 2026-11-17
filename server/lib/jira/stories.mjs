@@ -112,6 +112,8 @@ export function getScanInfo() {
     count: scan.count,
     source: scan.source,
     baseUrl: scan.baseUrl,
+    deployment: scan.deployment || '',
+    url: scan.url || '',
   }
 }
 

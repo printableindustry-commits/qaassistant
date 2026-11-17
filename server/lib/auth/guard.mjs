@@ -13,8 +13,10 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/session',
   '/api/health',
   '/favicon.ico',
+  '/demo-app',
 ])
-const PUBLIC_PREFIXES = ['/assets/prisme/', '/assets/logo-qa', '/assets/fonts/']
+// '/demo-app/' : application de démonstration IRMA (fichiers statiques uniquement, explorée par le moteur Playwright)
+const PUBLIC_PREFIXES = ['/assets/prisme/', '/assets/logo-qa', '/assets/fonts/', '/demo-app/']
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]', '::1'])
 
