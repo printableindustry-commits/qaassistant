@@ -4,6 +4,7 @@
   "documents": [
     {
       "id": "politique",
+      "short": "POL",
       "title": "Politique de test",
       "phase": "Organisation",
       "ref": "ISTQB CTAL-TM / ISO 29119-3 §6.2",
@@ -26,6 +27,7 @@
     },
     {
       "id": "strategie",
+      "short": "STR",
       "title": "Stratégie de test",
       "phase": "Organisation",
       "ref": "ISO 29119-3 §6.3",
@@ -49,6 +51,7 @@
     },
     {
       "id": "plan",
+      "short": "PTM",
       "title": "Plan de test (maître)",
       "phase": "Gestion",
       "ref": "ISO 29119-3 §7.2",
@@ -74,6 +77,7 @@
     },
     {
       "id": "avancement",
+      "short": "RAT",
       "title": "Rapport d'avancement des tests",
       "phase": "Gestion",
       "ref": "ISO 29119-3 §7.3",
@@ -91,6 +95,7 @@
     },
     {
       "id": "cloture",
+      "short": "RCT",
       "title": "Rapport de clôture des tests",
       "phase": "Gestion",
       "ref": "ISO 29119-3 §7.4",
@@ -110,6 +115,7 @@
     },
     {
       "id": "conception",
+      "short": "SCT",
       "title": "Spécification de conception et des cas de test",
       "phase": "Conception",
       "ref": "ISO 29119-3 §8.2–8.3",
@@ -127,6 +133,7 @@
     },
     {
       "id": "procedures",
+      "short": "SPT",
       "title": "Spécification des procédures de test (scripts automatisés)",
       "phase": "Conception",
       "ref": "ISO 29119-3 §8.4",
@@ -144,6 +151,7 @@
     },
     {
       "id": "tracabilite",
+      "short": "MTE",
       "title": "Matrice de traçabilité exigences ↔ tests",
       "phase": "Conception",
       "ref": "ISTQB CTFL §1.4.4 / ISO 29119-3 §8.2–8.3",
@@ -159,6 +167,7 @@
     },
     {
       "id": "environnement",
+      "short": "DET",
       "title": "Disponibilité de l'environnement et des données de test",
       "phase": "Exécution",
       "ref": "ISO 29119-3 §8.5–8.6",
@@ -175,6 +184,7 @@
     },
     {
       "id": "journal",
+      "short": "JET",
       "title": "Journal d'exécution des tests",
       "phase": "Exécution",
       "ref": "ISO 29119-3 §8.7",
@@ -190,6 +200,7 @@
     },
     {
       "id": "anomalies",
+      "short": "RAN",
       "title": "Rapports d'anomalies",
       "phase": "Exécution",
       "ref": "ISO 29119-3 §8.8",

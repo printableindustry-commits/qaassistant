@@ -14,12 +14,18 @@
  *   GET    /api/livrables/templates/:id        modèle courant et modèle de référence
  *   PUT    /api/livrables/templates/:id        { markdown } surcharge (administrateur)
  *   DELETE /api/livrables/templates/:id        retour au modèle de référence (administrateur)
+ *   GET    /api/livrables/word-model           modèle Word de l'entreprise { ok, model: { name, savedAt, size, summary } | null }
+ *   PUT    /api/livrables/word-model           dépôt (administrateur) : corps binaire application/octet-stream,
+ *                                              nom d'origine dans l'en-tête X-File-Name (encodé URI) ou ?name= ;
+ *                                              ou JSON { name, dataBase64 } ; 30 Mo au plus
+ *   DELETE /api/livrables/word-model           retrait (administrateur) : retour à l'export Word standard
  *   GET|PUT /api/livrables/profile, POST /api/livrables/profile/demo   → profile.mjs
  *   GET|POST /api/livrables/campaigns, GET /api/livrables/campaigns/:id  → campaigns.mjs
  */
 import { HttpError } from '../http/router.mjs'
 import { checkTemplate } from './template.mjs'
 import { catalogEntry, loadTemplate, saveTemplateOverride, deleteTemplateOverride } from './store.mjs'
+import { getModel, saveModel, deleteModel, MAX_MODEL_BYTES } from './word-model.mjs'
 import {
   listDocuments, getDocument, generateDocument, generateAll, editDocument, reviewDocumentById, approveDocument,
   listVersions, exportDocument, exportPack, getFacts, invalidateFacts,
@@ -29,6 +35,47 @@ async function objectBody(ctx) {
   const body = await ctx.body()
   if (body == null || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Corps de requête invalide : un objet JSON est attendu.')
   return body
+}
+
+/** Corps brut de la requête (Buffer), limité en taille. */
+function rawBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    let size = 0
+    req.on('data', (c) => {
+      size += c.length
+      if (size > limit) {
+        reject(new HttpError(413, `Fichier trop volumineux (${Math.round(MAX_MODEL_BYTES / 1048576)} Mo au plus).`))
+        req.destroy()
+        return
+      }
+      chunks.push(c)
+    })
+    req.on('end', () => resolve(Buffer.concat(chunks)))
+    req.on('error', reject)
+  })
+}
+
+/** Modèle Word déposé : binaire (application/octet-stream) ou JSON { name, dataBase64 }. */
+async function uploadedModel(ctx) {
+  const type = String(ctx.req.headers['content-type'] || '').toLowerCase()
+  if (type.includes('application/json')) {
+    const raw = await rawBody(ctx.req, Math.ceil(MAX_MODEL_BYTES * 1.4) + 4096)
+    let body
+    try {
+      body = JSON.parse(raw.toString('utf8'))
+    } catch {
+      throw new HttpError(400, 'JSON invalide')
+    }
+    if (typeof body?.dataBase64 !== 'string' || !body.dataBase64) throw new HttpError(400, 'dataBase64 attendu (contenu du .docx en base64).')
+    return { buffer: Buffer.from(body.dataBase64, 'base64'), name: String(body.name || '') }
+  }
+  let name = String(ctx.query.name || '')
+  const header = ctx.req.headers['x-file-name']
+  if (header) {
+    try { name = decodeURIComponent(String(header)) } catch { name = String(header) }
+  }
+  return { buffer: await rawBody(ctx.req, MAX_MODEL_BYTES), name }
 }
 
 function knownId(ctx) {
@@ -120,6 +167,26 @@ export function register(router) {
     const id = knownId(ctx)
     const removed = deleteTemplateOverride(id)
     return { ok: true, id, removed, overridden: false, hash: loadTemplate(id).hash }
+  }, { role: 'admin' })
+
+  // --- modèle Word de l'entreprise (word-model.mjs) ---
+  const modelPayload = (ctx, model) => ({
+    ok: true,
+    model: model ? { name: model.name, savedAt: model.savedAt, savedBy: model.savedBy, size: model.size, summary: model.summary, error: model.error || null } : null,
+    canEdit: ctx.user?.role === 'admin',
+  })
+
+  router.get('/api/livrables/word-model', (ctx) => modelPayload(ctx, getModel()))
+
+  router.put('/api/livrables/word-model', async (ctx) => {
+    const { buffer, name } = await uploadedModel(ctx)
+    const model = saveModel(buffer, name, ctx.user?.username || '')
+    return modelPayload(ctx, model)
+  }, { role: 'admin' })
+
+  router.delete('/api/livrables/word-model', (ctx) => {
+    const removed = deleteModel()
+    return { ...modelPayload(ctx, null), removed }
   }, { role: 'admin' })
 
   // --- informations projet (profile.mjs) ---

@@ -40,6 +40,7 @@
     draft: null,         // Markdown en cours de modification
     campaign: null,      // campagne affichée (détail)
     polling: null,
+    wordModel: null,     // modèle Word de l'entreprise (GET /api/livrables/word-model)
   }
   const refs = {}
 
@@ -78,7 +79,7 @@
     refs.app = document.getElementById('app')
     const wanted = new URLSearchParams(location.search).get('doc')
     try {
-      await loadList()
+      await Promise.all([loadList(), loadWordModel()])
       state.docId = (wanted && docs().some((d) => d.id === wanted)) ? wanted : docs()[0]?.id || null
       render()
       if (state.docId) await openDoc(state.docId, { keepTab: true })
@@ -100,6 +101,14 @@
     state.list = await P.api('/api/livrables')
   }
 
+  async function loadWordModel() {
+    try {
+      state.wordModel = (await P.api('/api/livrables/word-model')).model || null
+    } catch {
+      state.wordModel = null // serveur sans la route : export Word standard
+    }
+  }
+
   async function refreshAll() {
     await loadList()
     renderTop()
@@ -115,6 +124,7 @@
     refs.top = h('div', { class: 'lv-top' })
     refs.docList = h('div', { class: 'lv-doclist' })
     refs.profileCard = h('div')
+    refs.modelCard = h('div')
     refs.campaignCard = h('div')
     refs.docZone = h('div', { class: 'lv-doczone' })
     app.append(
@@ -123,18 +133,25 @@
         h('div', { class: 'lv-side' },
           P.card({ title: 'Documents', sub: 'Structure ISO/IEC/IEEE 29119-3', icon: 'layers', flush: true, body: refs.docList }),
           refs.profileCard,
+          refs.modelCard,
           refs.campaignCard),
         refs.docZone))
     renderActions()
     renderTop()
     renderDocList()
+    renderModelCard()
     renderCampaign()
   }
 
   function renderActions() {
     P.shell.setActions(
       h('button', { class: 'p-btn', type: 'button', onclick: () => openWizard() }, P.icon('users'), 'Informations projet'),
-      h('button', { class: 'p-btn', type: 'button', title: 'Exporter tous les documents générés (ZIP)', onclick: () => download('/api/livrables/export.zip') }, P.icon('package'), 'Exporter le pack'),
+      h('button', {
+        class: 'p-btn',
+        type: 'button',
+        title: state.wordModel ? 'Exporter tous les documents (ZIP) ; les fichiers Word sont au format de votre modèle' : 'Exporter tous les documents générés (ZIP)',
+        onclick: () => download('/api/livrables/export.zip'),
+      }, P.icon('package'), 'Exporter le pack'),
       h('button', { class: 'p-btn p-btn--primary', type: 'button', onclick: (e) => generateAll(e.currentTarget) }, P.icon('sparkles'), 'Tout générer'))
   }
 
@@ -222,6 +239,83 @@
     }))
   }
 
+  // ------------------------------------------------------------------ modèle Word de l'entreprise
+
+  function renderModelCard() {
+    const m = state.wordModel
+    const admin = isAdmin()
+    const input = h('input', { type: 'file', accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document', hidden: true })
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0]
+      input.value = ''
+      if (file) uploadWordModel(file, replaceBtn)
+    })
+    const replaceBtn = admin
+      ? h('button', { class: 'p-btn p-btn--sm', type: 'button', onclick: () => input.click() }, P.icon('upload'), m ? 'Remplacer' : 'Déposer un modèle')
+      : null
+    const removeBtn = admin && m
+      ? h('button', { class: 'p-btn p-btn--sm', type: 'button', onclick: (e) => removeWordModel(e.currentTarget) }, P.icon('trash'), 'Retirer')
+      : null
+    const size = m?.size ? `${(m.size / 1048576).toFixed(1).replace('.', ',')} Mo` : ''
+    P.clear(refs.modelCard).appendChild(P.card({
+      title: 'Modèle Word de l’entreprise',
+      sub: m ? 'Utilisé pour l’export Word' : 'Mise en forme standard',
+      icon: 'fileText',
+      tone: m?.error ? 'amber' : '',
+      body: h('div', { class: 'p-stack' },
+        m
+          ? h('div', null,
+            h('div', { class: 'lv-model-name', title: m.name }, m.name),
+            h('div', { class: 'p-hint' }, `Déposé ${P.fmtAgo(m.savedAt)}${m.savedBy ? ` par ${m.savedBy}` : ''}${size ? ` · ${size}` : ''}`),
+            m.error ? h('div', { class: 'p-hint' }, `Modèle illisible : ${m.error}`) : null)
+          : h('div', { class: 'p-hint' }, 'Déposez le modèle Word de l’entreprise (.docx) : page de garde, tableau des rôles, sommaire, styles de titres et pied de page seront repris dans chaque export Word.'),
+        h('div', { class: 'p-hint' }, 'Le modèle reste sur ce poste : il n’est pas versionné.'),
+        admin ? h('div', { class: 'lv-model-actions' }, replaceBtn, removeBtn, input) : (m ? null : h('div', { class: 'p-hint' }, 'Seul un administrateur peut déposer le modèle.'))),
+    }))
+  }
+
+  /** Libellés d'export à jour (sans perdre une modification en cours dans l'onglet Modifier). */
+  function modelChanged() {
+    renderActions()
+    if (state.tab !== 'modifier') renderDoc()
+  }
+
+  async function uploadWordModel(file, btn) {
+    if (!/\.docx$/i.test(file.name)) {
+      P.toast('Choisissez un document Word .docx (les .doc ne sont pas pris en charge).', 'error', 7000)
+      return
+    }
+    if (file.size > 30 * 1024 * 1024) {
+      P.toast('Modèle trop volumineux (30 Mo au plus).', 'error', 7000)
+      return
+    }
+    await guard(btn, async () => {
+      const res = await fetch(`${apiBase()}/api/livrables/word-model`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) },
+        body: file,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data.ok === false) throw new Error(data.error || `Erreur ${res.status}`)
+      state.wordModel = data.model || null
+      renderModelCard()
+      modelChanged()
+      P.toast('Modèle Word enregistré : les exports Word utilisent désormais sa mise en forme.')
+    })
+  }
+
+  async function removeWordModel(btn) {
+    if (!(await P.confirm('Retirer le modèle Word ? Les exports Word reprendront la mise en forme standard.', { okLabel: 'Retirer' }))) return
+    await guard(btn, async () => {
+      await P.api('/api/livrables/word-model', { method: 'DELETE' })
+      state.wordModel = null
+      renderModelCard()
+      modelChanged()
+      P.toast('Modèle Word retiré.')
+    })
+  }
+
   async function selectDoc(id) {
     if (state.draft != null && state.docId !== id && !(await P.confirm('Abandonner les modifications non enregistrées ?', { okLabel: 'Abandonner' }))) return
     state.docId = id
@@ -307,8 +401,14 @@
 
   function exportMenu(d, generated) {
     const fmt = (format) => `/api/livrables/docs/${encodeURIComponent(d.id)}/export?format=${format}`
+    const model = state.wordModel
     return h('div', { class: 'p-seg lv-export', title: generated ? 'Exporter' : 'Générez d’abord le document' },
-      h('button', { type: 'button', disabled: !generated, onclick: () => download(fmt('docx')) }, 'Word'),
+      h('button', {
+        type: 'button',
+        disabled: !generated,
+        title: model ? `Word au format de votre modèle (${model.name})` : 'Word (mise en forme standard)',
+        onclick: () => download(fmt('docx')),
+      }, model ? 'Word · au format de votre modèle' : 'Word'),
       h('button', { type: 'button', disabled: !generated, onclick: () => printHtml(fmt('html')) }, 'HTML / PDF'),
       h('button', { type: 'button', disabled: !generated, onclick: () => download(fmt('md')) }, 'Markdown'))
   }

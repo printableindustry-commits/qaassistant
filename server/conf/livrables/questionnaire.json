@@ -8,6 +8,7 @@
       "help": "Qui teste quoi, dans quel cadre : ces informations alimentent le cartouche et les rôles de tous les documents.",
       "fields": [
         { "id": "organisme", "label": "Organisme", "help": "Entité qui porte les tests (direction, tribu, équipe).", "type": "text", "required": true, "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
+        { "id": "equipe", "label": "Équipe ou squad", "help": "Nom affiché en tête de la page de garde du modèle Word de l'entreprise (à défaut : le produit).", "type": "text" },
         { "id": "produit", "label": "Produit testé", "type": "text", "required": true, "prefill": "facts.project.name", "appliesTo": ["politique", "strategie", "plan", "avancement", "cloture", "conception", "procedures", "tracabilite", "environnement", "journal", "anomalies"] },
         { "id": "versionProduit", "label": "Version ou release testée", "help": "Exemple : 2.4 (release de mars).", "type": "text", "required": true, "appliesTo": ["plan", "avancement", "cloture", "journal", "anomalies", "environnement", "conception", "procedures", "strategie", "tracabilite"] },
         { "id": "contexteReglementaire", "label": "Contexte réglementaire et normatif", "help": "Obligations qui pèsent sur le produit (contrôle interne, RGPD, accessibilité, sécurité…).", "type": "textarea", "required": true, "appliesTo": ["politique", "strategie", "plan"] },

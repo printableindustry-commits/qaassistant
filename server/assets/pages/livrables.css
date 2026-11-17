@@ -100,3 +100,5 @@
 .lv-edit-table td { padding: 4px 6px; }
 .lv-edit-table .p-input { height: 30px; min-width: 120px; }
 .lv-add-row { margin: 6px; }
+.lv-model-name { font-weight: 600; overflow-wrap: anywhere; }
+.lv-model-actions { display: flex; flex-wrap: wrap; gap: 8px; }

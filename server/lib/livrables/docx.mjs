@@ -9,7 +9,7 @@ import { zipStore } from './zip.mjs'
 
 const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
 
-function xml(s) {
+export function xml(s) {
   return String(s ?? '')
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g, '')

@@ -18,6 +18,8 @@ import { HttpError } from '../http/router.mjs'
 import { renderTemplate } from './template.mjs'
 import { markdownToHtml, printableHtml } from './render.mjs'
 import { markdownToDocx } from './docx.mjs'
+import { coverInfo, markdownToModelDocx } from './docx-model.mjs'
+import { loadModel } from './word-model.mjs'
 import { zipStore } from './zip.mjs'
 import { reviewDocument } from './review.mjs'
 import {
@@ -462,7 +464,24 @@ function fileBase(id, facts, n) {
 
 async function exportable(id, user) {
   const d = await getDocument(id, user)
-  return { title: d.doc.title, markdown: d.markdown, version: d.doc.version, preview: d.doc.preview }
+  return { title: d.doc.title, markdown: d.markdown, version: d.doc.version, preview: d.doc.preview, updatedAt: d.doc.updatedAt }
+}
+
+/** .docx du livrable : au format du modèle Word de l'entreprise s'il a été déposé, sinon format standard. */
+async function docxOf(entry, d, user, facts) {
+  let model = null
+  try {
+    model = loadModel()
+  } catch (e) {
+    throw new HttpError(422, `Modèle Word de l'entreprise illisible : ${e.message}. Remplacez-le ou retirez-le (page Livrables).`)
+  }
+  if (!model) return markdownToDocx(d.markdown, { title: d.title, author: userName(user) })
+  const cover = coverInfo({ entry, profile: await getProfileValues(), facts, version: d.version, date: d.updatedAt })
+  try {
+    return markdownToModelDocx(d.markdown, model, cover, { author: userName(user) })
+  } catch (e) {
+    throw new HttpError(422, `Export au format du modèle Word impossible : ${e.message}`)
+  }
 }
 
 export async function exportDocument(id, format = 'docx', user) {
@@ -476,7 +495,7 @@ export async function exportDocument(id, format = 'docx', user) {
     return {
       filename: `${base}.docx`,
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      body: markdownToDocx(d.markdown, { title: d.title, author: userName(user) }),
+      body: await docxOf(catalogEntry(id), d, user, facts),
     }
   }
   throw new HttpError(400, 'Format attendu : md, html ou docx.')
@@ -490,7 +509,7 @@ export async function exportPack(user) {
   for (const e of loadCatalog().documents) {
     const d = await exportable(e.id, user)
     const name = `${String(k++).padStart(2, '0')}-${e.id}`
-    files.push({ name: `${name}.docx`, data: markdownToDocx(d.markdown, { title: e.title, author: userName(user) }) })
+    files.push({ name: `${name}.docx`, data: await docxOf(e, d, user, facts) })
     files.push({ name: `${name}.md`, data: d.markdown })
     files.push({ name: `${name}.html`, data: printableHtml(d.markdown, { title: e.title }) })
     lines.push(`${name} : ${e.title} — ${d.preview ? 'aperçu non enregistré (document jamais généré)' : `version ${d.version}`} (${STATUS_LABEL[loadDoc(e.id).status]})`)
