@@ -17,7 +17,7 @@
         { "id": "normes", "title": "Normes et exigences réglementaires", "required": true, "from": "profile" },
         { "id": "amelioration", "title": "Mesure et amélioration du processus", "required": false, "from": "facts" }
       ],
-      "requires": ["profile.organisation", "profile.produit", "profile.contexteReglementaire", "profile.responsableTest"]
+      "requires": ["profile.organisme", "profile.produit", "profile.contexteReglementaire", "profile.responsableTest"]
     },
     {
       "id": "strategie",

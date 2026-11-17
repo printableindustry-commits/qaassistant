@@ -4,7 +4,7 @@
 |---|---|
 | Projet | {{facts.project.name}} ({{facts.project.key}}) |
 | Produit / version | {{profile.produit}} {{profile.versionProduit}} |
-| Organisme | {{profile.organisation}} |
+| Organisme | {{profile.organisme}} |
 | Référence normative | {{doc.ref}} |
 | Version du document | {{doc.version}} |
 | Date | {{doc.date|date}} |
@@ -17,7 +17,7 @@
 
 ## Contexte du test
 
-Ce plan de test maître couvre la version **{{profile.versionProduit}}** du produit **{{profile.produit}}** (projet JIRA {{facts.project.key}}). Il applique la stratégie de test et la politique de test de {{profile.organisation}}.
+Ce plan de test maître couvre la version **{{profile.versionProduit}}** du produit **{{profile.produit}}** (projet JIRA {{facts.project.key}}). Il applique la stratégie de test et la politique de test de {{profile.organisme}}.
 
 {{profile.contexteReglementaire|}}
 

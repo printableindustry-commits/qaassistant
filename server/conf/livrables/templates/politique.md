@@ -3,7 +3,7 @@
 | Rubrique | Valeur |
 |---|---|
 | Projet | {{facts.project.name}} ({{facts.project.key}}) |
-| Organisme | {{profile.organisation}} |
+| Organisme | {{profile.organisme}} |
 | Produit | {{profile.produit}} |
 | Référence normative | {{doc.ref}} |
 | Version du document | {{doc.version}} |
@@ -17,7 +17,7 @@
 
 ## Objet et domaine d'application
 
-La présente politique définit les principes et objectifs de test retenus par **{{profile.organisation}}** pour le produit **{{profile.produit}}**. Elle s'impose à tous les projets et évolutions de ce produit et sert de référence à la stratégie de test et aux plans de test.
+La présente politique définit les principes et objectifs de test retenus par **{{profile.organisme}}** pour le produit **{{profile.produit}}**. Elle s'impose à tous les projets et évolutions de ce produit et sert de référence à la stratégie de test et aux plans de test.
 
 Elle couvre les activités de test fonctionnel, de non-régression et, lorsque c'est pertinent, de performance, qu'elles soient manuelles ou automatisées.
 

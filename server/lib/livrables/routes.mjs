@@ -53,6 +53,14 @@ async function lib(name) {
   }
 }
 
+/** Profil + questionnaire + préremplissage depuis les faits, tel qu'attendu par l'assistant. */
+async function profilePayload(m) {
+  const p = m.getProfile()
+  let prefill = {}
+  try { prefill = m.prefillFromFacts(await getFacts()) } catch { /* faits indisponibles */ }
+  return { ok: true, profile: p, values: p.values, questionnaire: m.getQuestionnaire(), prefill, completion: m.completion(p.values) }
+}
+
 export function register(router) {
   router.get('/api/livrables', () => listDocuments())
 
@@ -117,22 +125,22 @@ export function register(router) {
   // --- informations projet (profile.mjs) ---
   router.get('/api/livrables/profile', async () => {
     const m = await lib('profile')
-    return m.getProfilePayload()
+    return profilePayload(m)
   })
 
   router.put('/api/livrables/profile', async (ctx) => {
     const m = await lib('profile')
     const body = await objectBody(ctx)
-    const r = await m.saveProfile(body.values, ctx.user)
+    m.saveProfile(body.values, ctx.user?.username || '')
     invalidateFacts()
-    return r
+    return profilePayload(m)
   })
 
   router.post('/api/livrables/profile/demo', async (ctx) => {
     const m = await lib('profile')
-    const r = await m.fillDemoProfile(ctx.user)
+    m.applyDemoProfile(ctx.user?.username || '')
     invalidateFacts()
-    return r
+    return profilePayload(m)
   })
 
   // --- campagnes d'exécution (campaigns.mjs) ---

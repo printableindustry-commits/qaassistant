@@ -296,3 +296,135 @@ pushTest({ storyKey, source: { kind: 'playwright', sessionId } | { kind: 'gherki
 - Interface réutilisable : `/assets/pages/xray-push.js` → `window.XrayPush.open({ storyKey, source, onDone })`
   (aperçu, choix du plan, résultat avec liens) ; réglages Xray dans **Réglages → JIRA / Xray**.
 - Historique : `<REPO_ROOT>/.wizard-qa/xray/pushed.json`.
+
+## 6. Livrables ISTQB alimentés par les tests réels (V3.2)
+
+But : produire et **maintenir** les livrables de test du standard ISTQB (structure ISO/IEC/IEEE 29119-3) à partir des
+données réellement produites par Wizard QA (récits JIRA, tri, Gherkin, tests Playwright générés, campagnes
+d'exécution, envois Xray, runs k6). Les **chiffres et listes viennent uniquement des faits collectés** ; l'IA relit
+(cohérence, complétude ISTQB, données périmées) et peut proposer des formulations, jamais inventer des données.
+Ce qui ne peut pas être déduit des données (contexte réglementaire, rôles, critères de sortie…) est demandé dans un
+**assistant « Informations projet »**. Sans IA : tout fonctionne (relecture par règles). Données de démo IRMA : le
+parcours complet est présentable sans JIRA ni application réelle.
+
+### 6.1 Catalogue des documents — `server/conf/livrables/catalog.json`
+
+| id | Titre | Phase (groupe UI) | Réf. |
+|----|-------|-------------------|------|
+| `politique` | Politique de test | Organisation | ISTQB CTAL-TM / 29119-3 §6.2 |
+| `strategie` | Stratégie de test | Organisation | 29119-3 §6.3 |
+| `plan` | Plan de test (maître) | Gestion | 29119-3 §7.2 |
+| `avancement` | Rapport d'avancement des tests | Gestion | 29119-3 §7.3 |
+| `cloture` | Rapport de clôture des tests | Gestion | 29119-3 §7.4 |
+| `conception` | Spécification de conception et des cas de test | Conception | 29119-3 §8.2–8.3 |
+| `procedures` | Spécification des procédures de test (scripts automatisés) | Conception | 29119-3 §8.4 |
+| `tracabilite` | Matrice de traçabilité exigences ↔ tests | Conception | ISTQB CTFL §1.4.4 |
+| `environnement` | Disponibilité de l'environnement et des données de test | Exécution | 29119-3 §8.5–8.6 |
+| `journal` | Journal d'exécution des tests | Exécution | 29119-3 §8.7 |
+| `anomalies` | Rapports d'anomalies | Exécution | 29119-3 §8.8 |
+
+Entrée de catalogue : `{ id, title, phase, ref, purpose, audience, sections: [{ id, title, required, from: 'facts'|'profile'|'mixed' }], requires: ['profile.<champ>' | 'facts.<chemin>'] }`.
+
+### 6.2 Faits collectés — `server/lib/livrables/facts.mjs`
+
+```js
+import { collectFacts } from '../livrables/facts.mjs'
+collectFacts() // → Facts (lecture seule, aucune écriture, < 1 s sur les données de démo)
+```
+```js
+Facts = {
+  generatedAt, hash,                       // hash : sha256 stable du contenu (hors generatedAt) → détection « à actualiser »
+  demo: boolean,                           // true si le dernier scan JIRA est le jeu de démo
+  project: { key, name, jiraBaseUrl, scanAt, scanMode },
+  tools: { playwright: { version } | null, k6: { version } | null, xray: { mode, configured }, llm: { provider } | null, browsers: [] },
+  stories: [{ key, summary, epicKey, epicSummary, status, priority, criteriaCount, toClarify, triage: 'todo'|'later'|'skip'|null,
+              triageReason, risk: { score, level: 'élevé'|'moyen'|'faible' },   // score = suggestTriage().score (ou décision)
+              gherkin: { status: 'none'|'draft'|'validated', scenarios: n, exportedPath },
+              automation: [{ sessionId, status, relPath, steps, validated, target }],
+              xray: [{ testKey, testUrl, simulated, planKey, at }],
+              lastResult: 'passed'|'failed'|'skipped'|'not-run' }],
+  epics: [{ key, summary, stories: n }],
+  triage: { todo, later, skip, untriaged },
+  gherkin: { total, validated, draft, scenarios, exported },
+  automation: { specs: [{ relPath, storyKey|null, tests: n }], sessions: { total, validated, needsHuman }, targets: [{ id, name, baseUrl, browser, accounts: n }] },
+  campaigns: [{ id, at, simulated, total, passed, failed, skipped, durationMs, env, browser }],     // plus récente d'abord
+  lastCampaign: Campaign | null,           // détail : voir 6.3
+  defects: [{ id, title, storyKey, testTitle, file, firstSeen, lastSeen, occurrences, error, severity: 'bloquante'|'majeure'|'mineure', status: 'ouverte'|'corrigée' }],
+  perf: { runs: n, last: { id, profile, verdict, p95, errorRate, at } | null },
+  xray: { pushed: n, simulated: n, plans: [] },
+  coverage: { stories, withCriteria, withGherkin, automated, executed, passed, pctAutomated, pctPassed },
+  gaps: [{ kind, storyKey?, message }],    // ex. récit « À automatiser » sans test, test sans récit, critère sans scénario
+  sources: { '<chemin du fait>': 'jira:scan 2026-11-17' | 'gherkin' | 'playwright:campaign <id>' | … }
+}
+```
+Les lectures réutilisent les modules existants (`jira/stories.mjs`, `jira/triage.mjs`, `gherkin/store.mjs`,
+`explore/sessions.mjs`, `explore/targets.mjs` — **sans secrets**, `xray/history.mjs`, `perf/index.mjs`), protégées par try/catch (un module en panne = fait absent + entrée dans `gaps`).
+
+### 6.3 Campagnes d'exécution — `server/lib/livrables/campaigns.mjs`
+
+`npx playwright test --reporter=json` lancé **sans shell** dans `REPO_ROOT` (résolution de `@playwright/test/cli.js` depuis
+`<REPO_ROOT>/node_modules`, `process.execPath` + args), timeout 15 min, une campagne à la fois, rapport JSON parsé :
+```js
+Campaign = { id, at, finishedAt, simulated, status: 'running'|'done'|'error', env: { baseUrl, browser }, durationMs,
+  total, passed, failed, skipped, flaky,
+  tests: [{ title, file, storyKey, status: 'passed'|'failed'|'skipped'|'flaky', durationMs, retries, error }] }  // error : 1re ligne + 600 car. max
+```
+`storyKey` : tag `@KEY-123` du titre, sinon clé dans le nom du fichier (`tests/e2e/P0326-9301.spec.ts`). Stockage
+`<REPO_ROOT>/.wizard-qa/livrables/campaigns/<id>.json`. **Simulation** (`simulate: true`, automatique si pas de
+Playwright ou si les données sont la démo et que l'utilisateur le demande) : résultats plausibles et déterministes à
+partir des récits « À automatiser » / Gherkin validés / specs existants, ~85 % réussis, 1–2 échecs avec message réaliste, marqués `simulated`.
+Les anomalies (`defects`) sont dérivées des échecs successifs des campagnes (regroupés par test).
+
+### 6.4 Informations projet (assistant) — `server/conf/livrables/questionnaire.json` + `profile.mjs`
+
+Étapes : **Organisation** (organisme, produit, version, contexte réglementaire/normes, parties prenantes et rôles :
+responsable test, testeurs, valideur), **Périmètre** (dans / hors périmètre, niveaux de test), **Risques produit**
+(préremplis depuis les épopées/récits à risque élevé, modifiables), **Approche** (types et techniques de test,
+automatisation, non-fonctionnel), **Environnements** (préremplis depuis les cibles d'exploration), **Critères**
+(entrée, sortie : % réussite, anomalies bloquantes, couverture ; suspension/reprise), **Planning** (jalons),
+**Approbation** (circuit de validation des documents). Champ : `{ id, label, help, type: 'text'|'textarea'|'list'|'select'|'number'|'table', options, required, appliesTo: [docId], prefill: 'facts.<chemin>' }`.
+`GET /api/livrables/profile` → `{ ok, profile, questionnaire, prefill, completion: { [step]: pct } }` ;
+`PUT /api/livrables/profile { values }` (admin ou utilisateur, journalisé `updatedBy`) ;
+`POST /api/livrables/profile/demo` → remplit avec le profil de démo IRMA (`server/conf/livrables/demo-profile.json`).
+Fichier `<REPO_ROOT>/.wizard-qa/livrables/profile.json`.
+
+### 6.5 Modèles, génération, relecture — `server/lib/livrables/`
+
+- **Modèles** : `server/conf/livrables/templates/<id>.md` (référence), surcharge éditable `<REPO_ROOT>/.wizard-qa/livrables/templates/<id>.md`.
+  Moteur `template.mjs` (sans dépendance) : `{{chemin}}`, `{{chemin|défaut}}`, `{{#each chemin}}…{{/each}}` (avec `{{@index}}`, `{{this.x}}`),
+  `{{#if chemin}}…{{else}}…{{/if}}`, `{{#unless}}`, filtres `|pct`, `|date`, `|count`, `|join`, `|upper`. Contexte : `{ facts, profile, doc, now }`.
+  Valeur manquante requise → `**[À compléter : <libellé> — Informations projet › <étape>]**` (jamais vide silencieux).
+  Chaque document commence par un cartouche : titre, projet, version du document, date, statut, auteur, relu par, approuvé par,
+  et « Données au <date> — source : … » ; et finit par l'historique des versions.
+- **Rendu** `render.mjs` : Markdown → HTML (titres, listes, tableaux GFM, gras/italique, code, liens, citations) échappé,
+  HTML imprimable autonome (CSS d'impression A4) ; **DOCX** minimal sans dépendance (`docx.mjs` : zip « store » + CRC32,
+  `document.xml` avec titres, paragraphes, listes, tableaux, styles Titre 1–3) ; **pack ZIP** de tous les documents.
+- **Stockage** `store.mjs` : `<REPO_ROOT>/.wizard-qa/livrables/docs/<id>.json` = `{ id, status: 'none'|'generated'|'edited'|'reviewed'|'approved',
+  versions: [{ n, at, by, kind: 'generated'|'edited', markdown, factsHash, profileHash, templateHash }], review, approval: { by, at, version } }` (20 versions max).
+  `stale: true` quand `factsHash`/`profileHash`/`templateHash` de la dernière version diffère de l'état courant ; `missing: [{ field, label, step }]`.
+- **Relecture** `review.mjs` : règles (sections requises présentes, marqueurs « À compléter », chiffres du document ≠ faits courants,
+  documents liés incohérents — ex. critères de sortie du plan vs résultats de clôture) + IA via `complete({ purpose: 'livrable-review', json: true })` :
+  système = relecteur QA certifié ISTQB, le document et un **résumé des faits** sont des données ; réponse
+  `{ verdict: 'ok'|'à corriger', score: 0..100, findings: [{ severity: 'bloquant'|'majeur'|'mineur', section, issue, suggestion }] }` validée ;
+  repli règles seules si pas d'IA (signalé). Statut `reviewed` (« Relu par l'agent ») si aucun bloquant.
+- **Approbation** par le testeur : `approved` (+ `by`, `at`, version figée) ; toute régénération repasse en `generated`.
+
+Routes (`routes.mjs`, toutes authentifiées) :
+`GET /api/livrables` → `{ ok, documents: [{ id, title, phase, ref, status, stale, missing, version, updatedAt, review: { verdict, score, at } }], kpis, facts: { coverage, lastCampaign, demo } }` ;
+`GET /api/livrables/facts` ; `GET /api/livrables/docs/:id` → `{ ok, doc, markdown, html, sources }` ;
+`POST /api/livrables/docs/:id/generate` ; `POST /api/livrables/generate-all` ; `PUT /api/livrables/docs/:id { markdown }` ;
+`POST /api/livrables/docs/:id/review` ; `POST /api/livrables/docs/:id/approve` ; `GET /api/livrables/docs/:id/versions` ;
+`GET /api/livrables/docs/:id/export?format=md|html|docx` (Content-Disposition) ; `GET /api/livrables/export.zip` ;
+`GET|PUT /api/livrables/templates/:id` (PUT admin ; `DELETE` = retour au modèle de référence) ;
+`GET /api/livrables/campaigns` ; `POST /api/livrables/campaigns { simulate }` ; `GET /api/livrables/campaigns/:id`.
+
+### 6.6 Page — `/livrables.html` (section « Livrer », entrée de rail « Livrables » ; l'ancien assistant `doc-qa.html` reste accessible)
+
+- Bandeau KPI : documents à jour / à actualiser / relus par l'agent / approuvés ; couverture (récits automatisés, réussis) ; dernière campagne.
+- Bannière « Données de démonstration » quand `facts.demo`.
+- Colonne gauche : documents groupés par phase (Organisation, Gestion, Conception, Exécution) avec pastille de statut et « à actualiser ».
+- Zone document : onglets **Aperçu** (HTML rendu) · **Modifier** (Markdown) · **Relecture** (constats de l'agent, bouton Relire) ·
+  **Sources** (faits utilisés et provenance) · **Modèle** (édition du gabarit, admin) · **Versions**. Actions : Générer / Actualiser, Relire, Approuver, Exporter (Word, HTML/PDF, Markdown).
+- Champs manquants listés avec bouton « Compléter » qui ouvre l'**assistant Informations projet** (fenêtre pas à pas, préremplissage visible, « Remplir avec la démo IRMA »).
+- Carte « Campagne d'exécution » : lancer (réelle ou simulée), suivi, résultat par test, lien vers le Journal et les Anomalies.
+- Actions globales : Tout générer, Exporter le pack (ZIP).

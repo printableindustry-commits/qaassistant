@@ -4,7 +4,7 @@
 |---|---|
 | Projet | {{facts.project.name}} ({{facts.project.key}}) |
 | Produit / version | {{profile.produit}} {{profile.versionProduit}} |
-| Organisme | {{profile.organisation}} |
+| Organisme | {{profile.organisme}} |
 | Référence normative | {{doc.ref}} |
 | Version du document | {{doc.version}} |
 | Date | {{doc.date|date}} |

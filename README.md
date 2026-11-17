@@ -9,7 +9,10 @@ Application web (et extension VS Code) qui accompagne une équipe QA de bout en 
 3. **Proposer les tests en Gherkin** pour chaque récit scanné : génération par l'assistant IA (Copilot local en premier)
    ou par le modèle intégré sans IA, relecture, validation, export en fichiers `.feature`.
 4. **Mesurer la performance** avec k6 : profils, runs suivis en direct, seuils, historique et comparaison.
-5. **Relier les tests à JIRA / Xray** et produire les livrables QA (écrans existants, restylés).
+5. **Relier les tests à JIRA / Xray** : ticket Test lié au récit, plan de test optionnel.
+6. **Produire les livrables ISTQB** (ISO/IEC/IEEE 29119-3) à partir des données réelles : politique, stratégie, plan,
+   avancement, clôture, conception, procédures, traçabilité, environnement, journal d'exécution, anomalies —
+   assistant « Informations projet », relecture par l'agent, approbation, export Word / HTML / Markdown.
 
 Interface au design **Prisme** : rail d'icônes, en-tête avec fil d'Ariane, recherche `Ctrl K`, bandeau d'état, guide de page.
 
@@ -60,6 +63,7 @@ pour essayer toute la chaîne : scan → Gherkin → export → test de charge s
 | Récits & Gherkin | `server/lib/gherkin/` | Génération (IA ou modèle), éditeur avec contrôle syntaxique FR/EN, validation, export `.feature`, génération par lot |
 | Installation | `server/lib/install/` | Plan déclaratif (`server/conf/install-plan.reference.json`), composants idempotents détecter/installer/vérifier, suivi en direct, journaux, diagnostic IA |
 | Performance k6 | `server/lib/perf/` | Profils, runs non bloquants en direct, lecture du `summary.json`, seuils, comparaison, mode simulation |
+| Livrables | `server/lib/livrables/` | 11 livrables ISTQB alimentés par les faits (récits, Gherkin, tests, campagnes, Xray, k6), modèles éditables (`server/conf/livrables/`), relecture, approbation, exports |
 | Assistant IA | `server/lib/llm/` | Fournisseurs, test, bac à sable, journal d'usage |
 | Réglages | `server/lib/auth/` + config V2 | Utilisateurs, mot de passe, export / import |
 
