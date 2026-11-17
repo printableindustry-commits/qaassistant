@@ -81,10 +81,10 @@
     svg.setAttribute('stroke-linecap', 'round')
     svg.setAttribute('stroke-linejoin', 'round')
     svg.setAttribute('aria-hidden', 'true')
-    if (size) {
-      svg.setAttribute('width', size)
-      svg.setAttribute('height', size)
-    }
+    // Taille par défaut en attribut : les règles CSS des composants la remplacent, mais une icône
+    // placée dans un conteneur sans style ne s'étire plus sur toute la largeur.
+    svg.setAttribute('width', size || 16)
+    svg.setAttribute('height', size || 16)
     svg.innerHTML = ICONS[name] || ICONS.info
     return svg
   }

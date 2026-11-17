@@ -692,6 +692,7 @@ button.p-step:hover { background: var(--p-mint-2); }
   border: 1px solid var(--p-line);
   border-radius: var(--p-radius);
 }
+.p-toolbar > svg { width: 16px; height: 16px; flex: none; color: var(--p-text-3); }
 .p-toolbar .p-input { width: auto; min-width: 220px; height: 30px; }
 .p-toolbar .p-select { width: auto; height: 30px; }
 .p-toolbar-count { font-size: 12px; font-weight: 700; color: var(--p-text-2); margin-left: 4px; }
