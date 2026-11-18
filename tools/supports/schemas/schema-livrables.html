@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Livrables ISTQB</title>
+<link rel="stylesheet" href="schema.css"><script src="fleches.js"></script>
+<style>
+  .phases { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .phase { background: #fff; border: 1px solid var(--trait); border-radius: 12px; padding: 10px 12px; }
+  .phase h3 { font-size: 15px; letter-spacing: .5px; color: var(--vert); font-weight: 700; margin-bottom: 6px; }
+  .doc { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 2px; border-top: 1px solid #EEF3F0; font-size: 15.5px; font-weight: 600; }
+  .doc:first-of-type { border-top: 0; }
+  .doc i { font-style: normal; font-weight: 500; font-size: 12.5px; color: var(--gris); white-space: nowrap; }
+  .statuts .badge { position: static; }
+  .statuts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--gris); }
+</style></head>
+<body><div class="page">
+  <h1>Livrables ISTQB : des faits au document Word</h1>
+  <div class="sous">11 documents structurés selon ISO/IEC/IEEE 29119-3 · les chiffres viennent des faits collectés · l’agent relit, un humain approuve</div>
+
+  <div class="bloc" id="faits" style="left:40px; top:128px; width:420px; height:348px">
+    <h2>Faits collectés</h2>
+    <div class="s">lus dans les modules, avec leur provenance (onglet Sources)</div>
+    <div class="carte"><b>Récits JIRA et tri</b><span>scan, critères d’acceptation, épopées, décisions</span></div>
+    <div class="carte"><b>Gherkin et tests Playwright</b><span>scénarios validés, specs générées, sessions</span></div>
+    <div class="carte"><b>Campagnes et anomalies</b><span>résultats par test ; anomalies dérivées des échecs</span></div>
+    <div class="carte" style="margin:0"><b>Envois Xray et runs k6</b><span>tickets Test, plans, seuils p95</span></div>
+  </div>
+  <div class="bloc" id="profil" style="left:40px; top:492px; width:420px; height:196px">
+    <h2>Informations projet</h2>
+    <div class="s">ce que les données ne disent pas, demandé une fois</div>
+    <div><span class="puce">Organisation</span><span class="puce">Périmètre</span><span class="puce">Risques produit</span><span class="puce">Approche</span><span class="puce">Environnements</span><span class="puce">Critères</span><span class="puce">Planning</span><span class="puce">Approbation</span></div>
+  </div>
+  <div class="bloc" id="modeles" style="left:40px; top:704px; width:420px; height:148px">
+    <h2>Modèles</h2>
+    <div class="s">un gabarit Markdown par document, surcharge éditable</div>
+    <div class="carte" style="margin:0"><span style="margin:0">cartouche, rubriques du standard, historique des versions ; valeur manquante → <b style="display:inline;font-size:14px">« À compléter »</b></span></div>
+  </div>
+
+  <div class="bloc" id="gen" style="left:540px; top:128px; width:760px; height:724px">
+    <h2>11 documents par phase</h2>
+    <div class="s">générés à partir de { faits, informations projet, modèle } · versionnés (20 versions)</div>
+    <div class="phases">
+      <div class="phase"><h3>ORGANISATION</h3>
+        <div class="doc">Politique de test <i>§6.2</i></div>
+        <div class="doc">Stratégie de test <i>§6.3</i></div></div>
+      <div class="phase"><h3>GESTION</h3>
+        <div class="doc">Plan de test (maître) <i>§7.2</i></div>
+        <div class="doc">Rapport d’avancement <i>§7.3</i></div>
+        <div class="doc">Rapport de clôture <i>§7.4</i></div></div>
+      <div class="phase"><h3>CONCEPTION</h3>
+        <div class="doc">Conception et cas de test <i>§8.2–8.3</i></div>
+        <div class="doc">Procédures de test (scripts) <i>§8.4</i></div>
+        <div class="doc">Matrice de traçabilité <i>CTFL 1.4.4</i></div></div>
+      <div class="phase"><h3>EXÉCUTION</h3>
+        <div class="doc">Environnement et données <i>§8.5–8.6</i></div>
+        <div class="doc">Journal d’exécution <i>§8.7</i></div>
+        <div class="doc">Rapports d’anomalies <i>§8.8</i></div></div>
+    </div>
+    <div style="margin-top:16px" class="carte">
+      <b>Statut de chaque document</b>
+      <div class="statuts" style="margin-top:6px"><span class="badge clair">Généré</span>→<span class="badge clair">Modifié</span>→<span class="badge violet">Relu par l’agent</span>→<span class="badge">Approuvé</span><span style="margin-left:10px"><span class="badge ambre">À actualiser</span> quand faits, profil ou modèle changent</span></div>
+    </div>
+    <div class="carte"><b>Cartouche en tête de chaque document</b><span>titre, projet, version, date, statut, auteur, relu par, approuvé par ; « Données au … — source : … »</span></div>
+    <div class="carte" style="margin:0"><b>Onglets</b><span>Aperçu · Modifier (Markdown) · Relecture · Sources · Modèle · Versions</span></div>
+  </div>
+
+  <div class="bloc" id="rel" style="left:1380px; top:128px; width:500px; height:236px">
+    <h2>Relecture par l’agent</h2>
+    <div class="s">relecteur QA certifié ISTQB ; document et faits sont des données</div>
+    <div class="carte"><b>Règles</b><span>sections requises, « À compléter », chiffres ≠ faits courants, documents liés incohérents</span></div>
+    <div class="carte" style="margin:0"><b>IA (si branchée)</b><span>verdict, score 0–100, constats bloquant / majeur / mineur</span></div>
+  </div>
+  <div class="bloc" id="app" style="left:1380px; top:390px; width:500px; height:170px">
+    <h2>Approbation humaine</h2>
+    <div class="s">par le testeur responsable</div>
+    <div class="carte" style="margin:0"><b>Version figée</b><span>qui, quand, quelle version ; toute régénération repasse en « Généré »</span></div>
+  </div>
+  <div class="bloc" id="exp" style="left:1380px; top:586px; width:500px; height:266px">
+    <h2>Export</h2>
+    <div class="s">un document ou tout le pack</div>
+    <div class="carte forte"><b>Word .docx au modèle</b><span>modèle de l’entreprise déposé sur le poste : page de garde, rôles, sommaire, styles, numérotation</span></div>
+    <div><span class="puce">HTML / PDF imprimable</span><span class="puce">Markdown</span><span class="puce">pack ZIP</span></div>
+  </div>
+
+  <div class="bloc blanc" style="left:40px; top:878px; width:1840px; height:96px; padding:14px 20px">
+    <div style="display:flex; gap:40px">
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Jamais de donnée inventée</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">chiffres et listes viennent uniquement des faits ; l’IA relit et peut proposer des formulations.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Sans IA</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">génération, relecture par règles, approbation et exports fonctionnent ; la relecture IA est signalée absente.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Démo IRMA</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">11 documents générés, 3 relus, 2 approuvés, 3 campagnes simulées, profil prérempli.</div></div>
+    </div>
+  </div>
+
+  <div class="legende" style="height:44px; bottom:22px">
+    <strong>Légende</strong>
+    <span class="item"><span class="ligne-l"></span> production du document</span>
+    <span class="item"><span class="ligne-l tir"></span> retour : à actualiser, nouvelle version</span>
+    <span class="item"><span class="badge violet">Relu</span> par l’agent</span>
+    <span class="item"><span class="badge">Approuvé</span> par un humain</span>
+    <span class="item" style="margin-left:auto">Source : docs/V3-ARCHITECTURE.md § 6, server/conf/livrables/catalog.json</span>
+  </div>
+</div>
+<script>
+  fleche('#faits', '#gen', { texte: 'faits', posVers: 0.2 })
+  fleche('#profil', '#gen', { texte: 'profil', posVers: 0.52 })
+  fleche('#modeles', '#gen', { texte: 'modèle', posVers: 0.86 })
+  fleche('#gen', '#rel', { posDe: 0.17, posVers: 0.5, texte: 'relire' })
+  fleche('#rel', '#app', { de: 'b', vers: 't' })
+  fleche('#app', '#exp', { de: 'b', vers: 't' })
+  fleche('#app', '#gen', { de: 'l', vers: 'r', tir: true, posVers: 0.6, texte: 'régénérer' })
+</script>
+</body></html>

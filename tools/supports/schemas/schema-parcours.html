@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Parcours Wizard QA</title>
+<link rel="stylesheet" href="schema.css"><script src="fleches.js"></script>
+<style>
+  .et { position: absolute; width: 270px; height: 178px; background: #fff; border: 2px solid var(--menthe-bord); border-radius: 14px; padding: 12px 14px 12px; }
+  .et.cle { border-color: var(--vert); }
+  .et .n { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--vert); color: #fff; font-weight: 700; font-size: 15px; margin-right: 8px; }
+  .et h3 { display: flex; align-items: center; font-size: 19px; font-weight: 700; color: var(--encre); }
+  .et p { font-size: 14px; color: var(--gris); line-height: 1.38; margin: 8px 0 10px; min-height: 58px; }
+  .et .bas { position: absolute; left: 14px; right: 10px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .et .ecran { font-size: 12.5px; color: var(--vert); font-weight: 600; background: var(--menthe); border-radius: 6px; padding: 2px 7px; }
+  .bande { position: absolute; height: 34px; border-radius: 8px; background: var(--menthe); color: var(--vert); font-weight: 700; font-size: 15px; display: flex; align-items: center; padding-left: 12px; letter-spacing: .4px; }
+  .humain { background: var(--ambre-fond); color: var(--ambre); border: 1.5px solid #F2C38B; }
+</style></head>
+<body><div class="page">
+  <h1>Parcours QA : du récit JIRA au livrable signé</h1>
+  <div class="sous">Une URL JIRA suffit pour démarrer · l’IA propose, le testeur décide · chaque étape alimente la suivante, puis les livrables</div>
+
+  <!-- bandes de section (rail de navigation) -->
+  <div class="bande" style="left:40px; top:130px; width:898px">COMPRENDRE · Prise de connaissance, Récits</div>
+  <div class="bande" style="left:982px; top:130px; width:898px">TESTER · Récits et Gherkin, Automatiser</div>
+
+  <!-- rangée 1 -->
+  <div class="et" id="e1" style="left:40px; top:180px"><h3><span class="n">1</span>URL JIRA</h3>
+    <p>Collez l’adresse d’un tableau ou d’un ticket : instance et projet sont déduits.</p>
+    <div class="bas"><span class="ecran">Prise de connaissance</span></div></div>
+  <div class="et" id="e2" style="left:354px; top:180px"><h3><span class="n">2</span>Scan des récits</h3>
+    <p>Récits, critères d’acceptation extraits, points à clarifier avec le PO.</p>
+    <div class="bas"><span class="ecran">Synthèse du scan</span><span class="badge clair">règles</span></div></div>
+  <div class="et cle" id="e3" style="left:668px; top:180px"><h3><span class="n">3</span>Tri des récits</h3>
+    <p>À automatiser, plus tard ou ignoré : suggestion motivée, décision humaine.</p>
+    <div class="bas"><span class="ecran">Récits</span><span class="badge violet">IA</span><span class="badge humain">humain</span></div></div>
+  <div class="et" id="e4" style="left:982px; top:180px"><h3><span class="n">4</span>Gherkin</h3>
+    <p>Généré depuis les critères d’acceptation, relu puis validé, exporté en .feature.</p>
+    <div class="bas"><span class="ecran">Gherkin</span><span class="badge violet">IA</span><span class="badge clair">modèle</span><span class="badge humain">humain</span></div></div>
+  <div class="et cle" id="e5" style="left:1296px; top:180px"><h3><span class="n">5</span>Exploration IA</h3>
+    <p>L’agent ouvre l’application, trouve les sélecteurs et capture chaque écran.</p>
+    <div class="bas"><span class="ecran">Automatiser</span><span class="badge violet">IA</span><span class="badge clair">Playwright</span></div></div>
+  <div class="et" id="e6" style="left:1610px; top:180px"><h3><span class="n">6</span>Spec Playwright</h3>
+    <p>Étapes lisibles et code Playwright, éditables ; aucun mot de passe dans le code.</p>
+    <div class="bas"><span class="ecran">Test généré</span><span class="badge clair">tests/e2e</span></div></div>
+
+  <div class="et cle" id="e5b" style="height:150px; left:1296px; top:420px; background:var(--ambre-fond); border-color:#E9A55B"><h3><span class="n" style="background:var(--ambre)">5′</span>Prenez la main</h3>
+    <p style="min-height:0">Si l’IA bloque, vous montrez le geste : il est enregistré dans le test.</p>
+    <div class="bas"><span class="badge humain">humain</span></div></div>
+
+  <div class="bloc blanc" style="left:40px; top:420px; width:1210px; height:150px">
+    <h2 style="font-size:19px">Ce qui reste dans le projet de test</h2>
+    <div class="s">chaque étape écrit un résultat réutilisable, lu ensuite par les livrables (faits collectés)</div>
+    <div><span class="puce">.wizard-qa/jira · scan et tri</span><span class="puce">tests/features/*.feature</span><span class="puce">.wizard-qa/explore · sessions</span><span class="puce">tests/e2e/*.spec.ts</span><span class="puce">.wizard-qa/xray · envois</span><span class="puce">campagnes d’exécution</span><span class="puce">reports/k6</span><span class="puce">.wizard-qa/livrables</span></div>
+  </div>
+  <!-- rangée 2 (de droite à gauche) -->
+  <div class="bande" style="left:40px; top:610px; width:584px">PERFORMANCE · en parallèle</div>
+  <div class="bande" style="left:668px; top:610px; width:584px">LIVRER · Livrables</div>
+  <div class="bande" style="left:1296px; top:610px; width:584px">TESTER · Automatiser, JIRA Xray</div>
+
+  <div class="et" id="e7" style="left:1610px; top:660px"><h3><span class="n">7</span>Validation</h3>
+    <p>Le test est rejoué tel quel avant d’être validé : pas de test fragile en base.</p>
+    <div class="bas"><span class="ecran">Rejeu</span><span class="badge humain">humain</span></div></div>
+  <div class="et" id="e8" style="left:1296px; top:660px"><h3><span class="n">8</span>Ticket Test Xray</h3>
+    <p>Relié au récit et, en option, au plan de test ; aperçu avant tout envoi.</p>
+    <div class="bas"><span class="ecran">Envoi vers Xray</span><span class="badge ambre">simulé en démo</span></div></div>
+  <div class="et" id="e9" style="left:982px; top:660px"><h3><span class="n">9</span>Campagne</h3>
+    <p>Les tests Playwright du projet sont exécutés ; les résultats nourrissent les livrables.</p>
+    <div class="bas"><span class="ecran">Campagne d’exécution</span></div></div>
+  <div class="et cle" id="e10" style="left:668px; top:660px"><h3><span class="n">10</span>Livrables ISTQB</h3>
+    <p>11 documents ISO/IEC/IEEE 29119-3, relus par l’agent puis approuvés.</p>
+    <div class="bas"><span class="ecran">Livrables</span><span class="badge violet">IA</span><span class="badge humain">humain</span></div></div>
+  <div class="et" id="e11" style="left:354px; top:660px"><h3><span class="n">11</span>Export Word</h3>
+    <p>Export .docx au modèle de l’entreprise, prêt à diffuser ; aussi HTML / PDF, Markdown.</p>
+    <div class="bas"><span class="ecran">Word · pack ZIP</span></div></div>
+
+  <div class="bloc blanc pointille" id="perf" style="left:40px; top:660px; width:270px; height:178px; padding:12px 14px">
+    <h2 style="font-size:19px">Performance k6</h2>
+    <div class="s" style="font-size:14px; line-height:1.38; margin-top:8px">Exigences des récits → profils de charge → runs, seuils p95, comparaison.</div>
+    <span class="ecran" style="font-size:12.5px; color:var(--vert); font-weight:600; background:var(--menthe); border-radius:6px; padding:2px 7px">Perf k6</span>
+  </div>
+
+  <div class="bloc blanc" style="left:40px; top:880px; width:1840px; height:96px; padding:14px 20px">
+    <div style="display:flex; gap:40px; align-items:flex-start">
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Sans IA, tout reste utilisable</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">tri par règles, Gherkin par le modèle intégré, prise de main directe, test généré à partir de l’enregistrement, relecture des livrables par règles.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Démo IRMA</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">chaque étape a un état dans les données fictives ; la visite guidée de 25 étapes enchaîne ce parcours en 7 minutes.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Pilotage</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">le parcours QA de l’accueil affiche l’état de chaque étape et la prochaine action.</div></div>
+    </div>
+  </div>
+
+  <div class="legende" style="height:44px; bottom:22px">
+    <strong>Légende</strong>
+    <span class="item"><span class="badge violet">IA</span> proposé par l’assistant</span>
+    <span class="item"><span class="badge humain">humain</span> décision ou geste du testeur</span>
+    <span class="item"><span class="badge clair">règles</span> sans IA</span>
+    <span class="item"><span class="ligne-l"></span> enchaînement</span>
+    <span class="item"><span class="ligne-l tir"></span> alimente</span>
+    <span class="item" style="margin-left:auto">Source : server/conf/demo/visite.json, docs/V3-ARCHITECTURE.md § 5–6</span>
+  </div>
+</div>
+<script>
+  fleche('#e1', '#e2'); fleche('#e2', '#e3'); fleche('#e3', '#e4'); fleche('#e4', '#e5'); fleche('#e5', '#e6')
+  fleche('#e5', '#e5b', { de: 'b', vers: 't', double: true, texte: 'si l’IA bloque', tx: 0 })
+  fleche('#e6', '#e7', { de: 'b', vers: 't' })
+  fleche('#e7', '#e8', { de: 'l', vers: 'r' }); fleche('#e8', '#e9', { de: 'l', vers: 'r' })
+  fleche('#e9', '#e10', { de: 'l', vers: 'r' }); fleche('#e10', '#e11', { de: 'l', vers: 'r' })
+  fleche('#perf', '#e10', { de: 't', vers: 't', tir: true, coude: 652, posVers: 0.3, texte: 'runs k6', texteA: 0.15 })
+</script>
+</body></html>

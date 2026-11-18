@@ -1,0 +1,883 @@
+{
+  "note": "Coordonnées en pixels de la capture brute 1440×900.",
+  "captures": [
+    {
+      "fichier": "01-pilotage.jpg",
+      "brute": "supports/captures/01-pilotage.png",
+      "titre": "Pilotage",
+      "sousTitre": "Où en est la campagne de test, en un coup d’œil.",
+      "page": "/",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 68,
+          "y": 56,
+          "w": 1372,
+          "h": 42,
+          "titre": "Bandeau d’état",
+          "texte": "Poste, récits, points à clarifier, Gherkin, k6 et IA : l’état du projet en une ligne."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 228,
+          "w": 1336,
+          "h": 94,
+          "titre": "Indicateurs clés",
+          "texte": "Poste de test, récits scannés, points à clarifier et couverture Gherkin."
+        },
+        {
+          "n": 3,
+          "x": 88,
+          "y": 330,
+          "w": 1336,
+          "h": 175,
+          "titre": "Parcours QA",
+          "texte": "Du poste installé aux tests reliés à Xray : chaque étape et son état."
+        },
+        {
+          "n": 4,
+          "x": 88,
+          "y": 513,
+          "w": 664,
+          "h": 358,
+          "titre": "À traiter",
+          "texte": "Les actions prioritaires, chacune avec son bouton pour agir."
+        },
+        {
+          "n": 5,
+          "x": 760,
+          "y": 513,
+          "w": 664,
+          "h": 358,
+          "titre": "Couverture par épopée",
+          "texte": "Part des récits dont les scénarios Gherkin sont validés."
+        },
+        {
+          "n": 6,
+          "x": 790,
+          "y": 13,
+          "w": 119,
+          "h": 34,
+          "titre": "Visite guidée",
+          "texte": "Lance l’autodémo : l’application passe seule d’écran en écran."
+        }
+      ]
+    },
+    {
+      "fichier": "02-prise-de-connaissance.jpg",
+      "brute": "supports/captures/02-prise-de-connaissance.png",
+      "titre": "Prise de connaissance",
+      "sousTitre": "Comprendre ce qu’il faut tester avant d’écrire le moindre test.",
+      "page": "/connaissance.html#synthese",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 156,
+          "w": 1336,
+          "h": 78,
+          "titre": "Projet, JIRA, scan",
+          "texte": "Une URL JIRA suffit : instance et projet sont déduits, puis les récits scannés."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 278,
+          "w": 1336,
+          "h": 93,
+          "titre": "Synthèse du scan",
+          "texte": "Récits, critères d’acceptation extraits, points à clarifier et épopées."
+        },
+        {
+          "n": 3,
+          "x": 88,
+          "y": 379,
+          "w": 664,
+          "h": 301,
+          "titre": "Critères d’acceptation",
+          "texte": "D’où viennent les critères : champ dédié, section de la description ou absents."
+        },
+        {
+          "n": 4,
+          "x": 760,
+          "y": 379,
+          "w": 664,
+          "h": 301,
+          "titre": "Statuts JIRA",
+          "texte": "Où en sont les récits dans le flux de l’équipe."
+        },
+        {
+          "n": 5,
+          "x": 88,
+          "y": 688,
+          "w": 1336,
+          "h": 212,
+          "titre": "Par épopée",
+          "texte": "Récits, critères et questions à clarifier, épopée par épopée."
+        }
+      ]
+    },
+    {
+      "fichier": "03-recits-tri.jpg",
+      "brute": "supports/captures/03-recits-tri.png",
+      "titre": "Récits et tri",
+      "sousTitre": "Chaque récit reçoit une décision de test.",
+      "page": "/recits.html?key=P0326-9302",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 92,
+          "w": 1336,
+          "h": 94,
+          "titre": "Indicateurs",
+          "texte": "Récits, à automatiser, couverture Gherkin, brouillons à relire, validés."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 258,
+          "w": 1336,
+          "h": 48,
+          "titre": "Tri des récits",
+          "texte": "À automatiser, plus tard ou ignoré : chaque récit reçoit une décision."
+        },
+        {
+          "n": 3,
+          "x": 88,
+          "y": 314,
+          "w": 1336,
+          "h": 48,
+          "titre": "Actions par lot",
+          "texte": "Trier plusieurs récits d’un coup, appliquer les suggestions ou classer avec l’IA."
+        },
+        {
+          "n": 4,
+          "x": 88,
+          "y": 370,
+          "w": 368,
+          "h": 530,
+          "titre": "Liste par épopée",
+          "texte": "Décision et état Gherkin de chaque récit."
+        },
+        {
+          "n": 5,
+          "x": 464,
+          "y": 486,
+          "w": 960,
+          "h": 244,
+          "titre": "Suggestions motivées",
+          "texte": "L’assistant propose un tri et explique pourquoi ; vous gardez la décision."
+        }
+      ]
+    },
+    {
+      "fichier": "04-gherkin.jpg",
+      "brute": "supports/captures/04-gherkin.png",
+      "titre": "Scénarios Gherkin",
+      "sousTitre": "Générés depuis les critères d’acceptation, relus puis validés par le testeur.",
+      "page": "/recits.html?key=P0326-9301",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 465,
+          "y": 67,
+          "w": 958,
+          "h": 63,
+          "titre": "État du scénario",
+          "texte": "Validé, brouillon ou à générer ; source (IA ou modèle intégré) et fournisseur IA actif."
+        },
+        {
+          "n": 2,
+          "x": 479,
+          "y": 136,
+          "w": 279,
+          "h": 40,
+          "titre": "Générer",
+          "texte": "Par l’assistant IA (Copilot local d’abord) ou par le modèle intégré, sans IA."
+        },
+        {
+          "n": 3,
+          "x": 1193,
+          "y": 137,
+          "w": 216,
+          "h": 37,
+          "titre": "Affichage",
+          "texte": "Édition, côte à côte ou aperçu coloré."
+        },
+        {
+          "n": 4,
+          "x": 479,
+          "y": 178,
+          "w": 464,
+          "h": 648,
+          "titre": "Éditeur",
+          "texte": "Le Gherkin reste modifiable par le testeur avant validation."
+        },
+        {
+          "n": 5,
+          "x": 945,
+          "y": 178,
+          "w": 464,
+          "h": 648,
+          "titre": "Aperçu contrôlé",
+          "texte": "Mots-clés français ou anglais reconnus, étiquettes et récit JIRA rappelés."
+        }
+      ]
+    },
+    {
+      "fichier": "05-automatisation.jpg",
+      "brute": "supports/captures/05-automatisation.png",
+      "titre": "Automatisation",
+      "sousTitre": "L’agent explore l’application et écrit le test Playwright.",
+      "page": "/automatisation.html?key=P0326-9301",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 106,
+          "w": 1336,
+          "h": 107,
+          "titre": "Récit à automatiser",
+          "texte": "Le récit, sa décision de tri et son Gherkin validé."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 219,
+          "w": 1336,
+          "h": 70,
+          "titre": "Étapes de la session",
+          "texte": "Application, plan de test IA, exploration, test généré, envoi dans JIRA."
+        },
+        {
+          "n": 3,
+          "x": 103,
+          "y": 391,
+          "w": 398,
+          "h": 509,
+          "titre": "Plan exploré",
+          "texte": "L’IA déduit les étapes du Gherkin ; chacune est trouvée, passée ou confiée au testeur."
+        },
+        {
+          "n": 4,
+          "x": 537,
+          "y": 393,
+          "w": 872,
+          "h": 495,
+          "titre": "Navigateur en direct",
+          "texte": "L’agent ouvre l’application, trouve les sélecteurs et capture chaque écran."
+        }
+      ]
+    },
+    {
+      "fichier": "06-prenez-la-main.jpg",
+      "brute": "supports/captures/06-prenez-la-main.png",
+      "titre": "Prenez la main",
+      "sousTitre": "Si l’IA bloque, le testeur montre le geste : il est enregistré dans le test.",
+      "page": "/automatisation.html?key=P0326-9310",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 113,
+          "y": 155,
+          "w": 1214,
+          "h": 66,
+          "titre": "Où l’IA bloque",
+          "texte": "L’étape du plan que l’IA cherchait, après ses tentatives."
+        },
+        {
+          "n": 2,
+          "x": 113,
+          "y": 255,
+          "w": 605,
+          "h": 98,
+          "titre": "Fenêtre du navigateur",
+          "texte": "Le testeur agit directement dans Edge ou Chrome, sur la page en cours."
+        },
+        {
+          "n": 3,
+          "x": 722,
+          "y": 255,
+          "w": 605,
+          "h": 98,
+          "titre": "Agir sur la capture",
+          "texte": "Ou il clique et saisit sur la capture, sans quitter Wizard QA."
+        },
+        {
+          "n": 4,
+          "x": 537,
+          "y": 729,
+          "w": 872,
+          "h": 128,
+          "titre": "Journal",
+          "texte": "Les gestes enregistrés deviennent des étapes du test, sélecteurs compris."
+        }
+      ]
+    },
+    {
+      "fichier": "07-envoi-xray.jpg",
+      "brute": "supports/captures/07-envoi-xray.png",
+      "titre": "Envoi vers Xray",
+      "sousTitre": "Un ticket Test relié au récit et au plan de test, aperçu avant tout envoi.",
+      "page": "/automatisation.html?key=P0326-9301",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 283,
+          "y": 155,
+          "w": 874,
+          "h": 72,
+          "titre": "Récit",
+          "texte": "Le récit couvert et la source du test (Playwright ou Gherkin)."
+        },
+        {
+          "n": 2,
+          "x": 283,
+          "y": 233,
+          "w": 874,
+          "h": 117,
+          "titre": "Simulé en démo",
+          "texte": "Sur les données de démonstration, rien n’est créé dans JIRA ; un renvoi met à jour sans doublon."
+        },
+        {
+          "n": 3,
+          "x": 283,
+          "y": 356,
+          "w": 874,
+          "h": 152,
+          "titre": "Ticket Test et plan",
+          "texte": "Résumé proposé, type Xray, plan de test facultatif."
+        },
+        {
+          "n": 4,
+          "x": 283,
+          "y": 514,
+          "w": 874,
+          "h": 233,
+          "titre": "Aperçu",
+          "texte": "Ce qui sera créé ou mis à jour : ticket, lien « Test », plan, étiquettes."
+        },
+        {
+          "n": 5,
+          "x": 267,
+          "y": 755,
+          "w": 906,
+          "h": 65,
+          "titre": "Envoyer",
+          "texte": "L’envoi n’a lieu qu’après cet aperçu."
+        }
+      ]
+    },
+    {
+      "fichier": "08-livrables.jpg",
+      "brute": "supports/captures/08-livrables.png",
+      "titre": "Livrables ISTQB",
+      "sousTitre": "Onze documents ISO/IEC/IEEE 29119-3 tirés des données réelles.",
+      "page": "/livrables.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 157,
+          "w": 1336,
+          "h": 93,
+          "titre": "Indicateurs",
+          "texte": "Documents à jour, relus, approuvés ; couverture et dernière campagne."
+        },
+        {
+          "n": 2,
+          "x": 89,
+          "y": 311,
+          "w": 336,
+          "h": 589,
+          "titre": "Documents ISTQB",
+          "texte": "Politique, stratégie, plan, rapports : la structure ISO/IEC/IEEE 29119-3."
+        },
+        {
+          "n": 3,
+          "x": 873,
+          "y": 271,
+          "w": 536,
+          "h": 40,
+          "titre": "Relire et approuver",
+          "texte": "Chaque document est généré, relu par l’agent puis approuvé par un humain."
+        },
+        {
+          "n": 4,
+          "x": 447,
+          "y": 397,
+          "w": 962,
+          "h": 48,
+          "titre": "Onglets du document",
+          "texte": "Aperçu, modification, relecture, sources, modèle et versions."
+        },
+        {
+          "n": 5,
+          "x": 447,
+          "y": 449,
+          "w": 928,
+          "h": 451,
+          "titre": "Aperçu",
+          "texte": "Le document tel qu’il sera exporté, chiffres tirés des faits collectés."
+        }
+      ]
+    },
+    {
+      "fichier": "09-livrable-document.jpg",
+      "brute": "supports/captures/09-livrable-document.png",
+      "titre": "Relecture d’un livrable",
+      "sousTitre": "Plan de test relu par l’agent avant approbation humaine.",
+      "page": "/livrables.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 447,
+          "y": 271,
+          "w": 416,
+          "h": 122,
+          "titre": "Document",
+          "texte": "Référence ISO 29119-3, phase, objet du document."
+        },
+        {
+          "n": 2,
+          "x": 869,
+          "y": 271,
+          "w": 540,
+          "h": 40,
+          "titre": "Relire et approuver",
+          "texte": "Actualiser, relire, approuver ; export Word, HTML / PDF, Markdown."
+        },
+        {
+          "n": 3,
+          "x": 447,
+          "y": 449,
+          "w": 962,
+          "h": 266,
+          "titre": "Relecture par l’agent",
+          "texte": "Sections manquantes, « À compléter », chiffres écartés des faits : verdict et score."
+        }
+      ]
+    },
+    {
+      "fichier": "10-informations-projet.jpg",
+      "brute": "supports/captures/10-informations-projet.png",
+      "titre": "Informations projet",
+      "sousTitre": "Ce que les données ne disent pas, demandé une fois pour tous les livrables.",
+      "page": "/livrables.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 283,
+          "y": 155,
+          "w": 874,
+          "h": 56,
+          "titre": "Six étapes",
+          "texte": "Organisation, périmètre, risques produit, approche, environnements, critères."
+        },
+        {
+          "n": 2,
+          "x": 283,
+          "y": 269,
+          "w": 434,
+          "h": 101,
+          "titre": "Organisation",
+          "texte": "Organisme, équipe, produit et version : cartouche et rôles des documents."
+        },
+        {
+          "n": 3,
+          "x": 283,
+          "y": 462,
+          "w": 874,
+          "h": 146,
+          "titre": "Contexte réglementaire",
+          "texte": "Obligations du produit, reprises dans la politique et la stratégie."
+        },
+        {
+          "n": 4,
+          "x": 283,
+          "y": 612,
+          "w": 874,
+          "h": 126,
+          "titre": "Normes",
+          "texte": "ISO/IEC/IEEE 29119, ISTQB et référentiels propres au produit."
+        }
+      ]
+    },
+    {
+      "fichier": "11-campagne.jpg",
+      "brute": "supports/captures/11-campagne.png",
+      "titre": "Campagne d’exécution",
+      "sousTitre": "Les résultats des campagnes nourrissent directement les livrables.",
+      "page": "/livrables.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 267,
+          "y": 78,
+          "w": 906,
+          "h": 69,
+          "titre": "Campagne",
+          "texte": "Une exécution des tests Playwright du projet, réelle ou simulée en démo."
+        },
+        {
+          "n": 2,
+          "x": 284,
+          "y": 156,
+          "w": 872,
+          "h": 602,
+          "titre": "Résultats par test",
+          "texte": "Chaque test avec son récit JIRA, son fichier et sa durée."
+        },
+        {
+          "n": 3,
+          "x": 284,
+          "y": 398,
+          "w": 872,
+          "h": 60,
+          "titre": "Instable",
+          "texte": "Réussi après une nouvelle tentative : signalé, pas masqué."
+        },
+        {
+          "n": 4,
+          "x": 284,
+          "y": 503,
+          "w": 872,
+          "h": 98,
+          "titre": "Échec",
+          "texte": "Le message d’erreur Playwright est gardé ; il alimente le rapport d’anomalies."
+        }
+      ]
+    },
+    {
+      "fichier": "12-performance-k6.jpg",
+      "brute": "supports/captures/12-performance-k6.png",
+      "titre": "Performance k6",
+      "sousTitre": "Profils de charge, runs et seuils : la performance suit les exigences des récits.",
+      "page": "/perf.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 189,
+          "w": 1336,
+          "h": 110,
+          "titre": "Indicateurs",
+          "texte": "Profils, runs, taux de réussite, p95 du dernier run et son seuil."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 307,
+          "w": 1336,
+          "h": 47,
+          "titre": "Onglets",
+          "texte": "Lancer, runs, comparer, exigences de performance tirées des récits."
+        },
+        {
+          "n": 3,
+          "x": 89,
+          "y": 476,
+          "w": 1334,
+          "h": 211,
+          "titre": "Historique des runs",
+          "texte": "Temps de réponse p95, débit et erreurs de chaque run, comparables."
+        },
+        {
+          "n": 4,
+          "x": 89,
+          "y": 550,
+          "w": 1334,
+          "h": 51,
+          "titre": "Seuil franchi",
+          "texte": "p95 au-delà du seuil : le run est signalé, à comparer à la référence."
+        }
+      ]
+    },
+    {
+      "fichier": "13-installation.jpg",
+      "brute": "supports/captures/13-installation.png",
+      "titre": "Installation du poste",
+      "sousTitre": "Node, Playwright, k6 : tout le poste QA s’installe en une fois.",
+      "page": "/installation.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 228,
+          "w": 1336,
+          "h": 93,
+          "titre": "État du poste",
+          "texte": "Composants requis en place, à installer, optionnels, dernière vérification."
+        },
+        {
+          "n": 2,
+          "x": 103,
+          "y": 399,
+          "w": 1306,
+          "h": 109,
+          "titre": "Stacks à installer",
+          "texte": "Playwright, Gherkin, k6, assistant IA : on coche, seuls les composants manquants s’installent."
+        },
+        {
+          "n": 3,
+          "x": 88,
+          "y": 564,
+          "w": 1336,
+          "h": 336,
+          "titre": "Suivi en direct",
+          "texte": "Chaque composant est détecté, installé puis vérifié ; journal et console."
+        },
+        {
+          "n": 4,
+          "x": 654,
+          "y": 10,
+          "w": 128,
+          "h": 40,
+          "titre": "Installer tout",
+          "texte": "Une installation en une fois ; la simulation est ouverte à tous."
+        }
+      ]
+    },
+    {
+      "fichier": "14-assistant-ia.jpg",
+      "brute": "supports/captures/14-assistant-ia.png",
+      "titre": "Assistant IA",
+      "sousTitre": "Copilot local d’abord, sans clé exposée.",
+      "page": "/ia.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 156,
+          "w": 1336,
+          "h": 93,
+          "titre": "État de l’IA",
+          "texte": "Fournisseur actif, fournisseurs prêts, pont Copilot local, appels ; sans IA, mode copier-coller."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 257,
+          "w": 1336,
+          "h": 48,
+          "titre": "Onglets",
+          "texte": "Fournisseurs (ordre d’essai), Copilot local, Copilot CLI, bac à sable, journal."
+        },
+        {
+          "n": 3,
+          "x": 103,
+          "y": 454,
+          "w": 1306,
+          "h": 57,
+          "titre": "Brancher Copilot local",
+          "texte": "VS Code, Copilot Chat, extension Wizard QA, appairage par jeton, essai."
+        },
+        {
+          "n": 4,
+          "x": 103,
+          "y": 517,
+          "w": 1306,
+          "h": 383,
+          "titre": "Procédure guidée",
+          "texte": "Chaque étape expliquée ; la page se met à jour seule quand l’extension se connecte."
+        }
+      ]
+    },
+    {
+      "fichier": "15-reglages-demonstration.jpg",
+      "brute": "supports/captures/15-reglages-demonstration.png",
+      "titre": "Réglages › Démonstration",
+      "sousTitre": "Un jeu de données fictif et complet, chargé en un clic.",
+      "page": "/reglages.html",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 88,
+          "y": 217,
+          "w": 1048,
+          "h": 48,
+          "titre": "Réglages",
+          "texte": "Compte, utilisateurs, configuration, démonstration, JIRA / Xray."
+        },
+        {
+          "n": 2,
+          "x": 88,
+          "y": 273,
+          "w": 1048,
+          "h": 419,
+          "titre": "Données de démonstration",
+          "texte": "Projet fictif IRMA de la Banque Horizon : rien n’est envoyé vers JIRA, Xray ou k6."
+        },
+        {
+          "n": 3,
+          "x": 103,
+          "y": 392,
+          "w": 1018,
+          "h": 229,
+          "titre": "Contenu chargé",
+          "texte": "Récits, tri, Gherkin, sessions, envois Xray, campagnes, anomalies, runs k6, livrables."
+        },
+        {
+          "n": 4,
+          "x": 103,
+          "y": 625,
+          "w": 1018,
+          "h": 40,
+          "titre": "Charger ou réinitialiser",
+          "texte": "Recharger remplace le jeu ; réinitialiser n’efface que ce que la démo a créé."
+        }
+      ]
+    },
+    {
+      "fichier": "16-visite-guidee.jpg",
+      "brute": "supports/captures/16-visite-guidee.png",
+      "titre": "Visite guidée",
+      "sousTitre": "L’autodémo encadrée : 25 étapes, environ 7 minutes.",
+      "page": "/recits.html?visite=recits-suggestions",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 458,
+          "y": 324,
+          "w": 972,
+          "h": 256,
+          "titre": "Halo",
+          "texte": "L’élément à regarder est entouré, le reste de l’écran est voilé."
+        },
+        {
+          "n": 2,
+          "x": 458,
+          "y": 586,
+          "w": 348,
+          "h": 102,
+          "titre": "Étiquette",
+          "texte": "Titre et une phrase sobre, numérotés, toujours dans l’écran."
+        },
+        {
+          "n": 3,
+          "x": 259,
+          "y": 851,
+          "w": 884,
+          "h": 17,
+          "titre": "Étapes",
+          "texte": "Largeur selon la durée ; un clic saute à l’étape."
+        },
+        {
+          "n": 4,
+          "x": 1270,
+          "y": 851,
+          "w": 158,
+          "h": 42,
+          "titre": "Arrêter l’autodémo",
+          "texte": "Rend la main ; « Reprendre la visite » repart où elle en était."
+        }
+      ]
+    },
+    {
+      "fichier": "17-palette.jpg",
+      "brute": "supports/captures/17-palette.png",
+      "titre": "Palette Ctrl K",
+      "sousTitre": "Rechercher ou lancer n’importe quelle action au clavier.",
+      "page": "/",
+      "taille": {
+        "w": 1440,
+        "h": 900
+      },
+      "reperes": [
+        {
+          "n": 1,
+          "x": 451,
+          "y": 90,
+          "w": 516,
+          "h": 30,
+          "titre": "Recherche",
+          "texte": "Pages, actions et récits, filtrés à la frappe."
+        },
+        {
+          "n": 2,
+          "x": 407,
+          "y": 125,
+          "w": 626,
+          "h": 476,
+          "titre": "Actions et pages",
+          "texte": "Installer, scanner, générer, lancer un test de charge ; toutes les pages."
+        },
+        {
+          "n": 3,
+          "x": 413,
+          "y": 332,
+          "w": 614,
+          "h": 43,
+          "titre": "Visite guidée",
+          "texte": "L’autodémo se lance aussi d’ici ; Entrée exécute l’action choisie."
+        }
+      ]
+    }
+  ]
+}

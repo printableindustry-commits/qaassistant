@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Architecture Wizard QA</title>
+<link rel="stylesheet" href="schema.css"><script src="fleches.js"></script>
+<style>
+  .pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+  .pipe .carte { margin: 0; min-height: 78px; }
+  .mods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .mods .carte { margin: 0; min-height: 66px; }
+  .mods .carte b .mono { color: var(--vert); font-weight: 600; margin-left: 6px; }
+  .ordre .carte { padding: 6px 12px; margin-bottom: 6px; }
+  .ordre .carte b { font-size: 15.5px; }
+</style></head>
+<body><div class="page">
+  <h1>Architecture logique de Wizard QA</h1>
+  <div class="sous">Application web authentifiée · serveur Node sans dépendance npm · modules V3 derrière une garde unique · données locales sous <span class="mono">workspace/.wizard-qa</span></div>
+
+  <div class="bloc" id="nav" style="left:40px; top:128px; width:310px; height:690px">
+    <h2>Navigateur</h2>
+    <div class="s">Edge, Chrome ou webview VS Code</div>
+    <div class="carte forte" id="pages"><b>Pages Prisme</b><span>rail d'icônes, fil d'Ariane, bandeau d'état, palette Ctrl K, visite guidée</span></div>
+    <div class="carte"><b>Session</b><span>cookie <span class="mono">qa_sid</span> HttpOnly, SameSite=Lax, 12 h glissantes</span></div>
+    <div class="carte"><b>Écrans</b><span>Pilotage, Connaissance, Récits, Automatiser, Installation, Perf k6, JIRA Xray, Livrables, IA, Réglages</span></div>
+    <div class="carte"><b>Connexion</b><span>comptes <span class="mono">admin</span> ou <span class="mono">user</span> ; verrouillage après 5 échecs en 10 min</span></div>
+    <div class="carte" id="vscode" style="margin-top:20px"><b>Extension VS Code</b><span>mode intégré <span class="mono">--embedded</span> ; pont Copilot local via <span class="mono">vscode.lm</span>, appairé par jeton</span></div>
+  </div>
+
+  <div class="bloc" id="srv" style="left:410px; top:128px; width:900px; height:690px">
+    <h2>Serveur Node · <span class="mono" style="font-size:19px">server/portail.mjs</span></h2>
+    <div class="s">Ordre de traitement d'une requête, puis modules <span class="mono">server/lib/&lt;module&gt;/routes.mjs</span></div>
+    <div class="pipe">
+      <div class="carte" id="p1"><b>1 · Hôte et origine</b><span>boucle locale ou <span class="mono">PORTAIL_ALLOWED_HOSTS</span> ; même origine si modifiante</span></div>
+      <div class="carte forte" id="p2"><b>2 · Garde d'auth</b><span>session valide, sinon 302 vers la connexion ou 401</span></div>
+      <div class="carte forte" id="p3"><b>3 · Routeur V3</b><span><span class="mono">lib/http/router.mjs</span> ; option rôle admin</span></div>
+      <div class="carte" id="p4"><b>4 · Routes V2</b><span>écrans historiques restylés</span></div>
+    </div>
+    <div style="font-size:14px; color:var(--gris); margin:14px 0 8px; font-weight:600; letter-spacing:.3px">MODULES V3</div>
+    <div class="mods" id="mods">
+      <div class="carte" id="m-jira"><b>jira</b><span>URL JIRA, scan JQL, critères d'acceptation, tri</span></div>
+      <div class="carte" id="m-gherkin"><b>gherkin</b><span>génération IA ou modèle, éditeur, export .feature</span></div>
+      <div class="carte forte" id="m-explore"><b>explore</b><span>sessions, exploration IA, prise de main, spec Playwright</span></div>
+      <div class="carte" id="m-livrables"><b>livrables</b><span>faits, 11 documents ISTQB, relecture, Word</span></div>
+      <div class="carte" id="m-perf"><b>perf</b><span>profils k6, runs en direct, seuils, comparaison</span></div>
+      <div class="carte forte" id="m-llm"><b>llm</b><span>fournisseurs IA, <span class="mono">complete()</span>, journal d'usage</span></div>
+      <div class="carte" id="m-install"><b>install</b><span>détecter, installer, vérifier ; journaux</span></div>
+      <div class="carte" id="m-demo"><b>demo</b><span>jeu fictif IRMA, visite guidée, réinitialisation</span></div>
+      <div class="carte" id="m-xray"><b>xray</b><span>ticket Test relié au récit, plan de test, aperçu</span></div>
+    </div>
+    <div style="margin-top:10px; font-size:14px; color:var(--gris)">Aussi : <span class="puce grise">auth · comptes, rôles</span><span class="puce grise">dashboard · pilotage</span><span class="puce grise">app-registry.json · pages et guides</span></div>
+  </div>
+
+  <div class="bloc" id="moteur" style="left:1370px; top:128px; width:510px; height:222px">
+    <h2>Moteur Playwright</h2>
+    <div class="s">processus Node enfant, lancé sans shell dans le projet de test</div>
+    <div class="carte"><b>Dialogue en lignes JSON</b><span>stdin / stdout : ouvrir, observer, agir, enregistrer, rejouer</span></div>
+    <div class="carte" style="margin:0"><b>Edge ou Chrome du poste</b><span>ouvre l'application à tester, limitée à ses origines autorisées</span></div>
+  </div>
+
+  <div class="bloc" id="ia" style="left:1370px; top:366px; width:510px; height:300px">
+    <h2>Fournisseurs IA</h2>
+    <div class="s">essayés dans cet ordre, modifiable dans Assistant IA</div>
+    <div class="ordre">
+      <div class="carte forte" id="ia1"><b><span class="num">1</span>Copilot local (VS Code)</b><span style="margin-left:34px">relayé par l'extension Wizard QA, sans clé côté serveur</span></div>
+      <div class="carte"><b><span class="num">2</span>Copilot CLI</b></div>
+      <div class="carte"><b><span class="num">3</span>API compatible OpenAI <span class="num" style="margin-left:14px">4</span>Anthropic</b></div>
+      <div class="carte" style="margin:0"><b><span class="num">5</span>Manuel : prompt copié, réponse collée</b></div>
+    </div>
+  </div>
+
+  <div class="bloc" id="jx" style="left:1370px; top:682px; width:510px; height:136px">
+    <h2>JIRA / Xray</h2>
+    <div class="s">Cloud ou Server/DC ; simulé sur les données de démo</div>
+    <div><span class="puce">JIRA REST · scan des récits</span><span class="puce">Xray GraphQL ou REST</span><span class="puce">plan de test</span></div>
+  </div>
+
+  <div class="bloc blanc" id="fic" style="left:40px; top:868px; width:1840px; height:128px">
+    <h2>Fichiers locaux · projet de test <span class="mono" style="font-size:17px">WIZARD_REPO_ROOT</span></h2>
+    <div class="s">écriture atomique (.tmp puis renommage) ; fichiers de secrets en mode 0o600</div>
+    <div>
+      <span class="puce">.wizard-qa/conf · users, sessions, jira, llm, xray</span><span class="puce">.wizard-qa/jira · scan, tri</span><span class="puce">.wizard-qa/gherkin</span><span class="puce">.wizard-qa/livrables</span><span class="puce">.wizard-qa/xray · envois</span><span class="puce">.wizard-qa/install</span><span class="puce">.wizard-qa/demo</span>
+      <span class="puce grise">tests/e2e/*.spec.ts</span><span class="puce grise">tests/features/*.feature</span><span class="puce grise">reports/k6</span>
+    </div>
+  </div>
+
+  <div class="legende" style="height:44px; bottom:22px">
+    <strong>Légende</strong>
+    <span class="item"><span class="ligne-l"></span> appel ou flux principal</span>
+    <span class="item"><span class="ligne-l tir"></span> lecture / écriture de fichiers, relais</span>
+    <span class="item"><span class="badge" style="background:#fff;color:var(--encre);border:2px solid var(--vert)">cadre vert</span> élément central du parcours</span>
+    <span class="item" style="margin-left:auto">Sources : README.md, docs/V3-ARCHITECTURE.md · utilisateur affiché : VERGER Rémy</span>
+  </div>
+</div>
+<script>
+  fleche('#pages', '#p1', { de: 'r', vers: 'l', texte: 'HTTP + cookie', posDe: 0.5 })
+  fleche('#p1', '#p2', {}); fleche('#p2', '#p3', {}); fleche('#p3', '#p4', {})
+  fleche('#p3', '#mods', { de: 'b', vers: 't', posDe: 0.5, posVers: 0.55, texte: 'routes /api/…' })
+  fleche('#m-explore', '#moteur', { de: 'r', vers: 'l', texte: 'lignes JSON', coude: 1336, posVers: 0.6 })
+  fleche('#m-llm', '#ia', { de: 'r', vers: 'l', texte: 'complete()', coude: 1340, posVers: 0.3, texteA: 0.2, ty: -12 })
+  fleche('#m-xray', '#jx', { de: 'r', vers: 'l', coude: 1340, posVers: 0.55, texte: 'ticket Test' })
+  fleche('#srv', '#fic', { de: 'b', vers: 't', tir: true, double: true, posDe: 0.5, posVers: 0.4457, texte: 'faits, états, journaux' })
+</script>
+</body></html>

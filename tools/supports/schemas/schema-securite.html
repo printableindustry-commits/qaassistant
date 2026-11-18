@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Sécurité Wizard QA</title>
+<link rel="stylesheet" href="schema.css"><script src="fleches.js"></script>
+<style>
+  .garde { display: grid; grid-template-columns: repeat(5, 1fr); gap: 40px; }
+  .garde .carte { margin: 0; min-height: 104px; }
+  .garde .refus { display: block; margin-top: 6px; font-size: 12.5px; color: var(--rouge); font-weight: 600; }
+  .boite { position: absolute; background: #fff; border: 2px solid var(--trait); border-radius: 12px; padding: 10px 14px; }
+  .boite b { display: block; font-size: 17px; }
+  .boite > span { display: block; font-size: 13.5px; color: var(--gris); line-height: 1.38; margin-top: 2px; }
+  .boite.ia { border-color: #CDB8F5; background: var(--violet-fond); }
+  .boite.ia b { color: var(--violet); }
+  .boite.mot { border-color: var(--vert); }
+  .boite > span.marq, .boite > span.secret { display: inline-block; }
+  .marq { font-family: Consolas, monospace; font-size: 14px; background: #fff; border: 1.5px dashed var(--violet); color: var(--violet); border-radius: 6px; padding: 2px 7px; display: inline-block; margin-top: 6px; }
+  .secret { font-family: Consolas, monospace; font-size: 14px; background: var(--rouge-fond); border: 1.5px solid #F2B8B2; color: var(--rouge); border-radius: 6px; padding: 2px 7px; display: inline-block; margin-top: 6px; }
+  table.roles { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border-radius: 10px; overflow: hidden; }
+  table.roles th { text-align: left; background: #fff; color: var(--vert); font-size: 13px; letter-spacing: .4px; padding: 7px 10px; border-bottom: 2px solid var(--trait); }
+  table.roles td { padding: 6px 10px; border-bottom: 1px solid #EEF3F0; color: var(--encre); }
+  table.roles td.c { text-align: center; font-weight: 700; color: var(--vert); width: 70px; }
+  table.roles td.n { text-align: center; color: #A3B0AA; width: 70px; }
+</style></head>
+<body><div class="page">
+  <h1>Sécurité : secrets, accès et rôles</h1>
+  <div class="sous">Les secrets ne quittent jamais le poste vers l’IA · chaque requête passe la même garde · les actions sensibles sont réservées aux administrateurs</div>
+
+  <div class="bloc" id="req" style="left:40px; top:128px; width:1840px; height:186px">
+    <h2>Chaque requête passe la garde</h2>
+    <div class="s"><span class="mono">authorize()</span> avant tout module ; pages et API, sans exception</div>
+    <div class="garde">
+      <div class="carte" id="g1"><b>1 · Hôte autorisé</b><span>boucle locale ou <span class="mono">PORTAIL_ALLOWED_HOSTS</span> : anti DNS rebinding</span><span class="refus">sinon refusée</span></div>
+      <div class="carte" id="g2"><b>2 · Origine identique</b><span>exigée pour toute requête modifiante (POST, PUT, DELETE)</span><span class="refus">sinon refusée</span></div>
+      <div class="carte forte" id="g3"><b>3 · Session valide</b><span>cookie <span class="mono">qa_sid</span> HttpOnly, SameSite=Lax, 12 h glissantes</span><span class="refus">sinon 302 connexion ou 401</span></div>
+      <div class="carte" id="g4"><b>4 · Rôle</b><span>option <span class="mono">{ role: 'admin' }</span> sur les routes sensibles</span><span class="refus">sinon 403</span></div>
+      <div class="carte" id="g5"><b>5 · Module</b><span>routes V3 puis V2 ; commandes lancées sans shell</span></div>
+    </div>
+  </div>
+
+  <div class="bloc" id="ia-bloc" style="left:40px; top:338px; width:1110px; height:516px">
+    <h2>Secrets jamais envoyés à l’IA</h2>
+    <div class="s">l’IA ne voit que des marqueurs ; seul le moteur navigateur les remplace, au moment de la saisie</div>
+
+    <div class="boite" id="cible" style="left:18px; top:100px; width:300px">
+      <b>Comptes de la cible</b><span>Application de démo IRMA : comptes <span class="mono">agent</span>, <span class="mono">gestionnaire</span> ; fichier en 0o600, masqués en lecture</span>
+      <span class="secret">mot de passe réel</span>
+    </div>
+    <div class="boite ia" id="ia" style="left:400px; top:100px; width:330px">
+      <b>Assistant IA</b><span>reçoit le Gherkin, le plan, la page explorée comme <b style="display:inline;font-size:13.5px;color:var(--encre)">donnée</b>, jamais comme consigne</span>
+      <span class="marq">{{account:agent:password}}</span>
+    </div>
+    <div class="boite mot" id="moteur" style="left:400px; top:300px; width:330px">
+      <b>Moteur Playwright</b><span>remplace le marqueur par la valeur au moment de saisir ; refuse toute navigation hors des origines autorisées</span>
+    </div>
+    <div class="boite" id="appli" style="left:812px; top:300px; width:270px">
+      <b>Application à tester</b><span>reçoit la saisie réelle, comme un testeur</span>
+    </div>
+    <div class="boite" id="spec" style="left:812px; top:100px; width:270px">
+      <b>Spec Playwright</b><span>aucun mot de passe : lit <span class="mono">tests/.auth/accounts.local.json</span> (ignoré par Git) ou <span class="mono">QA_ACCOUNT_&lt;ID&gt;_PASSWORD</span></span>
+    </div>
+    <div class="boite" id="prise" style="left:18px; top:384px; width:300px; background:var(--ambre-fond); border-color:#F2C38B">
+      <b style="color:var(--ambre)">Prise de main</b><span>une saisie qui correspond à un secret connu, ou un champ <span class="mono">type=password</span>, est enregistrée comme marqueur</span>
+    </div>
+  </div>
+
+  <div class="bloc" id="repos" style="left:1180px; top:338px; width:700px; height:228px">
+    <h2>Secrets au repos</h2>
+    <div class="s">jetons JIRA, client Xray, clés IA, mot de passe du proxy</div>
+    <div class="carte"><b>Jamais renvoyés en clair</b><span>une route GET rend <span class="mono">••••</span> + 4 derniers caractères ; la valeur masquée renvoyée garde l’ancienne</span></div>
+    <div class="carte" style="margin:0"><b>Fichiers 0o600, hors journaux</b><span>l’export de configuration les exclut par défaut ; mots de passe des comptes en scrypt</span></div>
+  </div>
+
+  <div class="bloc" id="roles" style="left:1180px; top:584px; width:700px; height:270px">
+    <h2>Rôles</h2>
+    <div class="s">verrouillage après 5 échecs en 10 min · compte demo signalé tant que son mot de passe n’est pas changé</div>
+    <table class="roles">
+      <tr><th>ACTION</th><th style="text-align:center">ADMIN</th><th style="text-align:center">USER</th></tr>
+      <tr><td>Parcours QA, simulation d’installation</td><td class="c">✓</td><td class="c">✓</td></tr>
+      <tr><td>Installations réelles du poste</td><td class="c">✓</td><td class="n">—</td></tr>
+      <tr><td>Comptes, export / import de configuration</td><td class="c">✓</td><td class="n">—</td></tr>
+      <tr><td>Charger / réinitialiser la démo, modèles de livrables</td><td class="c">✓</td><td class="n">—</td></tr>
+    </table>
+  </div>
+
+  <div class="bloc blanc" style="left:40px; top:878px; width:1840px; height:96px; padding:14px 20px">
+    <div style="display:flex; gap:40px">
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Commandes sans shell</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">arguments séparés, jamais construits à partir de saisies ; processus enfants arrêtés en fin de session.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Envoi Xray maîtrisé</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">aperçu avant tout envoi ; simulé et signalé sur les données de démonstration.</div></div>
+      <div style="flex:1"><b style="color:var(--vert); font-size:17px">Mode intégré VS Code</b><div style="font-size:14.5px; color:var(--gris); margin-top:3px">utilisateur local implicite ; CORS limité à la webview ; pont Copilot appairé par jeton.</div></div>
+    </div>
+  </div>
+
+  <div class="legende" style="height:44px; bottom:22px">
+    <strong>Légende</strong>
+    <span class="item"><span class="secret" style="margin:0">secret</span> valeur réelle, reste sur le poste</span>
+    <span class="item"><span class="marq" style="margin:0">{{account:…}}</span> marqueur vu par l’IA</span>
+    <span class="item"><span class="ligne-l"></span> flux</span>
+    <span class="item"><span class="ligne-l tir"></span> valeur réelle, locale</span>
+    <span class="item" style="margin-left:auto">Source : README.md § Sécurité, docs/V3-ARCHITECTURE.md § 1, 2, 5</span>
+  </div>
+</div>
+<script>
+  fleche('#g1', '#g2'); fleche('#g2', '#g3'); fleche('#g3', '#g4'); fleche('#g4', '#g5')
+  fleche('#cible', '#ia', { texte: 'libellés seuls' })
+  fleche('#ia', '#moteur', { de: 'b', vers: 't', texte: 'action + marqueur' })
+  fleche('#cible', '#moteur', { de: 'b', vers: 'l', tir: true, posDe: 0.85, texte: 'valeur réelle', texteA: 0.7 })
+  fleche('#moteur', '#appli', { texte: 'saisie' })
+  fleche('#ia', '#spec', { texte: 'étapes' })
+  fleche('#prise', '#moteur', { tir: false, texte: 'gestes', posDe: 0.5, posVers: 0.75 })
+</script>
+</body></html>
