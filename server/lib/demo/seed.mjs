@@ -28,7 +28,7 @@ import * as A from '../explore/agent.mjs'
 import { getTarget, DEMO_TARGET_ID } from '../explore/targets.mjs'
 import { XRAY_DATA_DIR, listPushed } from '../xray/history.mjs'
 import { pushTest } from '../xray/push.mjs'
-import { saveMeta, deleteRunFiles, getMeta, getSettings as getPerfSettings, saveSettings as savePerfSettings, writeJsonAtomic } from '../perf/store.mjs'
+import { saveMeta, deleteRunFiles, getMeta, listMetas, getSettings as getPerfSettings, saveSettings as savePerfSettings, writeJsonAtomic } from '../perf/store.mjs'
 import { listRuns } from '../perf/history.mjs'
 import { saveK6Profile, deleteK6Profile, getK6Profile } from '../k6-profiles.mjs'
 import { CAMPAIGNS_DIR, listCampaigns, deriveDefects } from '../livrables/campaigns.mjs'
@@ -958,6 +958,23 @@ async function resetInner() {
     if (!S.isValidId(id)) continue
     try { S.forgetSession(id) } catch { /* déjà oubliée */ }
     drop(path.join(S.SESSIONS_DIR, id), `explore/${id}`)
+  }
+  // Ajoutés en manipulant le jeu (démo « Tout rejouer », essais) : sessions des récits de démo, campagnes simulées
+  // portant sur ces récits, runs k6 simulés des profils de démo. Les clés et profils de démo sont fictifs.
+  for (const r of S.listSessions()) {
+    if (!keys.has(r.storyKey) || !S.isValidId(r.id) || S.ACTIVE_STATUSES.has(r.status)) continue
+    try { S.forgetSession(r.id) } catch { /* déjà oubliée */ }
+    drop(path.join(S.SESSIONS_DIR, r.id), `explore/${r.id}`)
+  }
+  for (const c of listCampaigns({ full: true })) {
+    if (!c.simulated || c.status === 'running' || !/^\d{8}-\d{6}-[a-f0-9]{4}$/.test(c.id)) continue
+    if ((c.tests || []).some((t) => keys.has(t.storyKey))) drop(path.join(CAMPAIGNS_DIR, `${c.id}.json`), `campagne ${c.id}`)
+  }
+  const demoProfiles = new Set(m.k6ProfileIds || [])
+  for (const r of listMetas()) {
+    if (!r.simulated || !demoProfiles.has(r.profileId) || r.status === 'running') continue
+    try { deleteRunFiles(r.id); removed.push(`k6 ${r.id}`) } catch { /* déjà supprimé */ }
+    try { deleteK6Run(r.id) } catch { /* absent de l'historique */ }
   }
   // Fichiers de test générés (tests/e2e, tests/features) — uniquement ceux recensés
   for (const rel of m.files || []) drop(insideRepo(rel), rel)

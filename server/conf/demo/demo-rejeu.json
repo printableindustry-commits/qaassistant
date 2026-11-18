@@ -142,6 +142,7 @@
         { "clic": "Lancer", "dans": ".p-tab", "optionnel": true, "note": "Onglet « Lancer »" },
         { "clic": "◇ Simulation", "dans": "button", "note": "Choisir le mode simulation (aucun k6 réel)" },
         { "clic": "Lancer la simulation", "dans": "button", "note": "Lancer la simulation", "attente": 5000 },
+        { "attendre": ".p-toast", "contenant": "Run terminé", "max": 70000, "note": "Le run simulé se termine : verdict et seuils" },
         { "clic": "Runs", "dans": ".p-tab", "note": "Ouvrir l’historique des runs", "attente": 1500 }
       ],
       "cible": ".perf-charts, .perf-table-wrap, .perf-panel", "secondes": 4,

@@ -65,7 +65,7 @@
   /**
    * Actions d'une étape : « texte ou sélecteur » (clic) ou objets
    *   { clic, dans?, note?, optionnel?, attente? }   { saisie: { cible, texte, entree? }, note? }
-   *   { coche: { cible, valeur? } }   { attendre: sélecteur, max? }   { fermer: true }   { attente: ms }
+   *   { coche: { cible, valeur? } }   { attendre: sélecteur, contenant?, max? }   { fermer: true }   { attente: ms }
    * attente avec une autre action : pause après l'action (ms à ×1).
    */
   function normAction(a) {
@@ -81,7 +81,7 @@
       const co = pick(x, 'coche', 'check')
       if (co) return { ...base, type: 'coche', cible: String(pick(co, 'cible', 'target') || ''), valeur: pick(co, 'valeur', 'value') !== false }
       const att = pick(x, 'attendre', 'waitFor')
-      if (att) return { ...base, type: 'attendre', cible: String(att), max: base.max || 30000, opt: true }
+      if (att) return { ...base, type: 'attendre', cible: String(att), contenant: String(pick(x, 'contenant', 'containing') || ''), max: base.max || 30000, opt: true }
       if (pick(x, 'fermer', 'close')) return { ...base, type: 'fermer' }
       if (base.pause) return { ...base, type: 'pause' }
       return null
@@ -383,11 +383,10 @@
     const titre = override ? override.titre : step.titre
     const texte = override ? override.texte : step.texte
     P.clear(ui.label)
-    ui.label.append(
-      h('div', { class: 'p-tour-label-head' },
-        h('span', { class: 'p-tour-title' }, h('span', { class: 'p-tour-stepno' }, `Étape ${n}`), ` — ${titre}`),
-        h('span', { class: 'p-tour-pause' }, '⏸ En pause')),
-      texte ? h('div', { class: 'p-tour-text' }, texte) : null)
+    ui.label.append(h('div', { class: 'p-tour-label-head' },
+      h('span', { class: 'p-tour-title' }, h('span', { class: 'p-tour-stepno' }, `Étape ${n}`), ` — ${titre}`),
+      h('span', { class: 'p-tour-pause' }, '⏸ En pause')))
+    if (texte) ui.label.append(h('div', { class: 'p-tour-text' }, texte))
     ui.pin.textContent = n
     ui.caption.textContent = `Étape ${n} — ${titre}`
     labelFor = `${st.idx}|${titre}`
@@ -494,8 +493,15 @@
     const set = nativeSetter(el)
     set.call(el, '')
     el.dispatchEvent(new Event('input', { bubbles: true }))
+    // La frappe n'est pas suspendue par la pause : une valeur partielle déclencherait les contrôles de la page
+    // (ex. analyse d'URL JIRA). Si la démo s'arrête ou change d'étape, le texte est complété d'un coup.
     for (const ch of text) {
-      if (!(await wait(35, my))) return
+      if (my !== seq || st?.stopped) {
+        set.call(el, text)
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        break
+      }
+      await sleep(35 / (st?.speed || 1))
       set.call(el, el.value + ch)
       el.dispatchEvent(new InputEvent('input', { bubbles: true, data: ch, inputType: 'insertText' }))
     }
@@ -518,7 +524,7 @@
     if (a.type === 'clic') return findClickable(a.cible, a.dans)
     if (a.type === 'saisie') return findField(a.cible, a.dans)
     if (a.type === 'coche') return findCheck(a.cible)
-    if (a.type === 'attendre') return findTarget({ cible: a.cible, texteCible: '', rang: 0 })
+    if (a.type === 'attendre') return findTarget({ cible: a.cible, texteCible: a.contenant, rang: 0 })
     return null
   }
 

@@ -1080,6 +1080,8 @@ button.p-step:hover { background: var(--p-mint-2); }
 
 html.p-tour-on .p-shell-main { padding-bottom: 100px; }
 html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 110px; }
+/* toasts au-dessus de la légende et de la barre de démo, et devant le voile */
+html.p-tour-on .p-toasts { bottom: 112px; z-index: 9004; }
 .p-tour-ui { font-family: var(--p-font); }
 
 /* annotation rouge des vidéos (tools/supports/gifs/enregistreur.mjs) : cadre arrondi #C62828 avec lueur,
@@ -1256,6 +1258,7 @@ html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 110px; }
   .p-tour-actions { margin-left: auto; }
   .p-tour-stop, .p-tour-resume { height: 30px; padding: 0 10px; }
   html.p-tour-on .p-shell-main { padding-bottom: 132px; }
+  html.p-tour-on .p-toasts { bottom: 140px; }
   .p-tour-caption { bottom: 84px; font-size: 12.5px; }
   .p-tour-launch span { display: none; }
 }
