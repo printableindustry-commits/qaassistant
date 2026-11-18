@@ -66,7 +66,7 @@
     if (s.demoAvailable) $('demo').classList.remove('p-hidden')
   }).catch(() => {})
   P.api('/api/health', { allow401: true }).then((h) => {
-    $('version').textContent = `Wizard QA v${h.version} · Outil — TRIBU IT pour CA-TS`
+    $('version').textContent = `Wizard QA v${h.version}`
     $('versionSmall').textContent = `v${h.version}`
   }).catch(() => {})
 

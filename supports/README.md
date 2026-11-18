@@ -12,6 +12,7 @@ l'entreprise n'est jamais utilisé : les exports Word montrés sont au format st
 | Slides de synthèse | `supports/presentations/WizardQA-synthese.pptx` | 22 slides 16:9 avec notes du présentateur : couverture, sommaire, contexte, promesse, parcours, la démo en chiffres, 11 slides d'écran (capture, pastilles, encadré « Repères », lien ▶ GIF), architecture, livrables, sécurité, branchements réels, fin |
 | PDF des slides | `supports/presentations/WizardQA-synthese.pdf` | export PowerPoint des 22 slides (sans les notes) |
 | Gabarit | `supports/presentations/gabarit-demo.pptx` | dispositions Wizard QA (Couverture, Contexte, Sommaire, Le produit, L'application, planches, La suite), sans slide |
+| Vidéos MP4 | `supports/videos/*.mp4` | 21 vidéos 1440 × 900 de 13 à 29 s, annotées en rouge, environ 20 Mo ; détail dans [videos/README.md](videos/README.md) |
 | GIF animés | `supports/gifs/*.gif` | 13 GIF de 960 × 646, 18 à 27 s, environ 20 Mo en tout ; détail dans [gifs/README.md](gifs/README.md) |
 | Captures annotées | `docs/captures-annotees/*.jpg` | 17 écrans 2000 × 900 : capture, pastilles numérotées, légende « Repères » ; `reperes.json` décrit chaque repère |
 | Captures brutes | `supports/captures/*.png` | les 17 mêmes écrans en 1440 × 900, sans annotation (utilisées par les slides) |

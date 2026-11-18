@@ -57,6 +57,7 @@ runs k6 et livrables, données 100 % fictives) : **Réglages → Démonstration 
    [docs/demo/VISITE-GUIDEE.md](docs/demo/VISITE-GUIDEE.md).
 3. **Supports de présentation**, avec l'inventaire et les commandes de régénération dans [supports/README.md](supports/README.md) :
    - slides de synthèse avec notes du présentateur : [WizardQA-synthese.pptx](supports/presentations/WizardQA-synthese.pptx) et son [PDF](supports/presentations/WizardQA-synthese.pdf) ;
+   - 21 vidéos MP4 de moins de 30 s, annotées en rouge étape par étape : [supports/videos/](supports/videos/README.md) ;
    - 13 GIF, un par fonctionnalité : [supports/gifs/](supports/gifs/README.md) ;
    - 17 captures annotées : [docs/captures-annotees/](docs/captures-annotees/) ;
    - 4 schémas (parcours, architecture, livrables, sécurité) : [supports/schemas/](supports/schemas/).
