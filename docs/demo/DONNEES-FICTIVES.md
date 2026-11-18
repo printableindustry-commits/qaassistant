@@ -13,7 +13,7 @@ entreprise, entité interne ni application réelle.
 | JIRA | `https://jira.demo.irma.local` (domaine local non résolu) ; clés de test simulées `P0326-T<n>`, plan `P0326-10528` |
 | Comptes de l'application de démo | `agent` / `agent-demo-2026`, `gestionnaire` / `gestion-demo-2026` (publics, sans valeur) |
 
-Seule exception : « VERGER Rémy » est le nom de l'utilisateur de l'application (compte `demo`), conservé volontairement.
+Seule exception : « Rémy VERGER » est le nom de l'utilisateur de l'application (compte `demo`), conservé volontairement.
 
 Fichiers concernés : `server/conf/demo/irma-jira.json`, `server/conf/livrables/demo-profile.json`, `server/demo-app/`,
 `server/lib/demo-defaults.mjs`, `server/lib/explore/targets.mjs` (comptes de démo) et le jeu chargé par

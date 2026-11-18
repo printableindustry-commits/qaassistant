@@ -1,7 +1,7 @@
 # Supports de présentation de Wizard QA
 
 Tous les supports sont produits sur l'application réelle avec les **données de démonstration** : projet IRMA de
-l'organisme fictif Banque Horizon, personnes fictives. L'utilisateur affiché, « VERGER Rémy », est le compte de
+l'organisme fictif Banque Horizon, personnes fictives. L'utilisateur affiché, « Rémy VERGER », est le compte de
 démonstration. Convention : ◇ marque une donnée ou une action simulée, ou une donnée fictive. Le modèle Word de
 l'entreprise n'est jamais utilisé : les exports Word montrés sont au format standard.
 

@@ -66,12 +66,20 @@ function publicUser(u) {
 
 function loadUsers() {
   const data = readJson(USERS_FILE, null)
-  if (data && Array.isArray(data.users)) return data
+  if (data && Array.isArray(data.users)) {
+    // ancien nom d'affichage du compte de démo (« NOM Prénom ») → « Prénom NOM »
+    const old = data.users.find((u) => u.username === 'demo' && u.displayName === 'VERGER Rémy')
+    if (old) {
+      old.displayName = 'Rémy VERGER'
+      writeJsonAtomic(USERS_FILE, data)
+    }
+    return data
+  }
   const seeded = {
     version: 1,
     users: [{
       username: 'demo',
-      displayName: 'VERGER Rémy',
+      displayName: 'Rémy VERGER',
       role: 'admin',
       demo: true,
       createdAt: new Date().toISOString(),

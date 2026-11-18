@@ -9,7 +9,7 @@ voir [DONNEES-FICTIVES.md](DONNEES-FICTIVES.md)) qui rend chaque écran vivant, 
 node server/portail.mjs
 ```
 
-Ouvrez `http://127.0.0.1:3920/` et connectez-vous avec **demo / demo** (compte administrateur « VERGER Rémy »).
+Ouvrez `http://127.0.0.1:3920/` et connectez-vous avec **demo / demo** (compte administrateur « Rémy VERGER »).
 
 Pour une démo isolée (sans toucher à votre projet de test) :
 

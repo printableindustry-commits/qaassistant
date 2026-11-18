@@ -489,7 +489,7 @@ def construire():
     carte(s, G, 4472940, 4480560, 1836420, 'listChecks', 'Conventions',
           '◇ marque une donnée ou une action simulée, ou une donnée fictive : tout vient du jeu de démonstration '
           'IRMA (Banque Horizon, personnes fictives). Pastilles rouges = renvois aux Repères. ▶ GIF en pied de page '
-          '= animation de la fonctionnalité. Utilisateur affiché : VERGER Rémy.', 'M')
+          '= animation de la fonctionnalité. Utilisateur affiché : Rémy VERGER.', 'M')
     cap = s.shapes.add_picture(os.path.join(SUPPORTS, 'captures', '01-pilotage.png'),
                                Emu(5349240), Emu(1433608), Emu(6385255), Emu(3990785))
     cap.name = 'Capture Pilotage'

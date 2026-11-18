@@ -6,7 +6,7 @@ export const DEMO_FORM = {
   poName: 'Claire FONTAINE',
   baName: 'Nadia PERRIN',
   scrumMasterName: 'Julien ROCHE',
-  qaName: 'VERGER Rémy',
+  qaName: 'Rémy VERGER',
   productCode: 'P0326',
   solutionCode: 'S0998',
   applicationLabel: 'IRMA – Analyse des Risques Métier (démo)',

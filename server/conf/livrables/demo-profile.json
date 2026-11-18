@@ -15,13 +15,13 @@
     "ameliorationProcessus": "Les enseignements de chaque rapport de clôture sont revus avec le PO et l'équipe de développement ; les actions d'amélioration sont suivies dans JIRA. La politique est revue chaque année par le responsable des tests et approuvée par le valideur.",
     "partiesPrenantes": [
       { "role": "Product Owner", "nom": "Claire FONTAINE (PO IRMA)", "responsabilite": "Priorise les récits, valide les critères d'acceptation" },
-      { "role": "Responsable des tests", "nom": "VERGER Rémy (QA Lead IRMA)", "responsabilite": "Stratégie, plan, rapports, décision de sortie" },
+      { "role": "Responsable des tests", "nom": "Rémy VERGER (QA Lead IRMA)", "responsabilite": "Stratégie, plan, rapports, décision de sortie" },
       { "role": "Testeurs", "nom": "Inès CARON, Mathis BLANC (Squad Qualité Risques)", "responsabilite": "Conception, automatisation, exécution, anomalies" },
       { "role": "Développeurs", "nom": "Équipe de développement IRMA", "responsabilite": "Correction des anomalies, tests de composants" },
       { "role": "Métier", "nom": "Nadia PERRIN (Direction des Risques)", "responsabilite": "Recette métier, acceptation" },
       { "role": "Valideur", "nom": "Olivier MERCIER (Responsable de domaine Risques)", "responsabilite": "Approbation des livrables de test" }
     ],
-    "responsableTest": "VERGER Rémy",
+    "responsableTest": "Rémy VERGER",
     "testeurs": ["Inès CARON", "Mathis BLANC"],
     "valideur": "Olivier MERCIER",
     "dansPerimetre": [
