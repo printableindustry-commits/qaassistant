@@ -371,6 +371,7 @@ export const SCENARIOS = {
       }
       const id = await page.evaluate((i) => window.Prisme?.tour?.script?.()?.etapes?.[i]?.id, i).catch(() => null)
       const e = await etat(id)
+      await pretes(page)  // l'écran de l'étape doit être chargé (pas de « Chargement de… » dans le GIF)
       await sleep(400)
       rec.reprendre()
       if (!e) continue

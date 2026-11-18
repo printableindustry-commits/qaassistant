@@ -82,7 +82,7 @@ export const ECRANS = [
   },
   {
     n: '08', id: 'livrables', url: '/livrables.html',
-    titre: 'Livrables ISTQB', sousTitre: 'Onze documents ISO/IEC/IEEE 29119-3 tirés des données réelles.',
+    titre: 'Livrables ISTQB', sousTitre: 'Onze documents ISO/IEC/IEEE 29119-3 tirés des faits collectés.',
     reperes: [
       { cible: '.lv-top .p-kpis', titre: 'Indicateurs', texte: 'Documents à jour, relus, approuvés ; couverture et dernière campagne.' },
       { cible: '.lv-doclist', titre: 'Documents ISTQB', texte: 'Politique, stratégie, plan, rapports : la structure ISO/IEC/IEEE 29119-3.' },

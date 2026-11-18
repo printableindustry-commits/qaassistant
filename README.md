@@ -47,6 +47,22 @@ runs k6 et livrables, données 100 % fictives) : **Réglages → Démonstration 
 | `WIZARD_BRIDGE_TOKEN` | généré | Jeton d'appairage du pont Copilot local |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` | — | Clés lues par les fournisseurs IA correspondants (sinon saisies dans **Assistant IA**) |
 
+## Démo et supports
+
+1. **Charger la démo** : se connecter en `demo` / `demo`, puis **Réglages › Démonstration › Charger la démo**. Le jeu
+   est 100 % fictif (projet IRMA, Banque Horizon). Rien n'est envoyé vers JIRA, Xray ou k6, et **Réinitialiser**
+   n'efface que ce que la démo a créé. Voir [docs/demo/DEMO.md](docs/demo/DEMO.md).
+2. **Visite guidée** : le bouton **Visite guidée** de l'en-tête (ou `Ctrl K`) lance l'autodémo. Elle enchaîne
+   25 étapes en 7 minutes environ. `Espace` met en pause et `Échap` rend la main. Voir
+   [docs/demo/VISITE-GUIDEE.md](docs/demo/VISITE-GUIDEE.md).
+3. **Supports de présentation**, avec l'inventaire et les commandes de régénération dans [supports/README.md](supports/README.md) :
+   - slides de synthèse avec notes du présentateur : [WizardQA-synthese.pptx](supports/presentations/WizardQA-synthese.pptx) et son [PDF](supports/presentations/WizardQA-synthese.pdf) ;
+   - 13 GIF, un par fonctionnalité : [supports/gifs/](supports/gifs/README.md) ;
+   - 17 captures annotées : [docs/captures-annotees/](docs/captures-annotees/) ;
+   - 4 schémas (parcours, architecture, livrables, sécurité) : [supports/schemas/](supports/schemas/).
+
+   Les scripts qui les produisent sont dans [tools/supports/](tools/supports/README.md).
+
 ## Sécurité
 
 - Toutes les pages et API exigent une session (cookie `qa_sid` HttpOnly, SameSite=Lax, 12 h glissantes) ;

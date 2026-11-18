@@ -13,6 +13,31 @@ Microsoft Edge, Python avec Pillow.
 | `schemas/*.html` | sources des schémas (`schema.css`, `fleches.js` communs) |
 | `rendre-schemas.mjs` | rend chaque schéma en PNG 1920×1080 dans `supports/schemas/` |
 | `gifs/` | GIF animés des fonctionnalités → `supports/gifs/` (voir [gifs/README.md](gifs/README.md)) |
+| `build_slides.py` | slides de synthèse → `supports/presentations/WizardQA-synthese.pptx` (python-pptx) ; `--preparer-gabarit <source>` réécrit `gabarit-demo.pptx` |
+| `slides/pictos.mjs` | icônes du design system Prisme → `slides/pictos/*.png` (vert et gris) |
+| `slides/chiffres.mjs` | chiffres du jeu de démo lus par l'API → `slides/chiffres-demo.json` |
+| `slides/rendre-slides.ps1` | rendu PNG de chaque slide (contrôle) et export PDF, via PowerPoint (COM) |
+
+## Refaire les slides
+
+Prérequis : Python avec python-pptx, PowerPoint pour le rendu et le PDF. Les captures, `reperes.json` et les
+schémas doivent exister (voir plus bas).
+
+```bash
+SUPPORTS_BASE=http://127.0.0.1:4002 node tools/supports/slides/chiffres.mjs --demo   # serveur isolé lancé
+python tools/supports/build_slides.py
+powershell -File tools/supports/slides/rendre-slides.ps1 -Pptx supports/presentations/WizardQA-synthese.pptx \
+  -Sortie "$TMPDIR/rendu-slides" -Pdf "$PWD/supports/presentations/WizardQA-synthese.pdf"
+```
+
+- Le gabarit `supports/presentations/gabarit-demo.pptx` porte les dispositions (Couverture, Contexte, Sommaire,
+  Le produit, L'application, Architecture · planche, Le parcours · planche, La suite) et leur pied de page ;
+  les composants (cartes à liseré, pastilles, encadré « Repères », tuiles, tableau) sont dessinés par
+  `build_slides.py` avec les cotes, couleurs et polices relevées sur le gabarit d'origine.
+- Les pastilles des slides reprennent les boîtes de `docs/captures-annotees/reperes.json` ; deux pastilles
+  trop proches sont décalées le long de leur encadré.
+- Chaque slide a ses notes du présentateur ; les slides d'écran ont un lien ▶ GIF relatif (`../gifs/…`).
+- Le script s'arrête si un texte « PRISME » ou « ARGOS » reste dans le paquet.
 
 ## Refaire les captures
 

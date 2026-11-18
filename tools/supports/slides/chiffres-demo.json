@@ -1,0 +1,78 @@
+{
+  "releve": "2026-11-18T05:30:31.395Z",
+  "source": "API /api/demo/status, /api/jira/overview, /api/livrables/facts, /api/perf/runs",
+  "projet": {
+    "cle": "P0326",
+    "nom": "IRMA - Analyse des Risques Métier",
+    "organisme": "Banque Horizon — Tribu Risques"
+  },
+  "recits": {
+    "total": 16,
+    "epopees": 4,
+    "avecCriteres": 14,
+    "sansCriteres": 2,
+    "aClarifier": 8,
+    "questions": 16
+  },
+  "tri": {
+    "todo": 9,
+    "later": 4,
+    "skip": 3,
+    "untriaged": 0
+  },
+  "gherkin": {
+    "total": 9,
+    "validated": 6,
+    "draft": 3,
+    "scenarios": 34,
+    "exported": 6
+  },
+  "automatisation": {
+    "sessions": 2,
+    "validees": 1,
+    "etapes": 23
+  },
+  "xray": {
+    "simules": 4,
+    "plans": [
+      "P0326-10528"
+    ]
+  },
+  "campagnes": {
+    "nombre": 3,
+    "total": 10,
+    "reussis": [
+      6,
+      8,
+      8
+    ]
+  },
+  "anomalies": {
+    "total": 2,
+    "corrigees": 1
+  },
+  "livrables": {
+    "total": 11,
+    "relus": 3,
+    "approuves": 2
+  },
+  "perf": {
+    "runs": 4,
+    "seuilsFranchis": 1,
+    "dernierP95": 655
+  },
+  "compteurs": {
+    "stories": 16,
+    "triage": 16,
+    "gherkinValidated": 6,
+    "gherkinDraft": 3,
+    "sessions": 2,
+    "xray": 4,
+    "campaigns": 3,
+    "defects": 2,
+    "perfRuns": 4,
+    "livrables": 11,
+    "livrablesReviewed": 3,
+    "livrablesApproved": 2
+  }
+}
