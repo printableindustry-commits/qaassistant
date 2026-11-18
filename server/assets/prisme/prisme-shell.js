@@ -109,9 +109,14 @@
     }
   }
 
+  /** Nom affiché dans l'en-tête quand les données de démo sont chargées ou qu'une démo tourne (personne fictive). */
+  const DEMO_NAME = 'Camille DURAND'
+  const tourRunning = () => { try { return Boolean(sessionStorage.getItem('p-tour')) } catch { return false } }
+
   function renderUser() {
-    const u = state.user
-    if (!u) return
+    const real = state.user
+    if (!real) return
+    const u = state.demoLoaded || tourRunning() ? { ...real, displayName: DEMO_NAME } : real
     userBtn.querySelector('.p-avatar').textContent = initials(u.displayName || u.username)
     userBtn.querySelector('.p-user-name').textContent = u.displayName || u.username
     userBtn.querySelector('.p-user-role').textContent = u.role === 'admin' ? 'Administrateur' : 'Utilisateur'
@@ -329,6 +334,8 @@
         P.toast('Chargement des données de démonstration…', 'ok', 2500)
         await P.api('/api/demo/load', { method: 'POST', body: {} })
       }
+      state.demoLoaded = true
+      renderUser()
       const t = await loadTour()
       await t.start(fromId, 'rejeu')
     } catch (e) {
@@ -357,10 +364,12 @@
   // ---------------------------------------------------------------- démarrage
 
   async function boot() {
-    const [model, session] = await Promise.all([
+    const [model, session, demo] = await Promise.all([
       P.api('/api/app/model').catch(() => null),
       P.api('/api/auth/session').catch(() => null),
+      P.api('/api/demo/status').catch(() => null),
     ])
+    state.demoLoaded = Boolean(demo?.loaded)
     state.model = model || { pages: {}, rail: [], statuses: {} }
     state.user = session?.user || null
     Object.assign(state, findPage(state.model))
