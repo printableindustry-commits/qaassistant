@@ -32,7 +32,7 @@
   const KIND_LABEL = { goto: 'Ouverture', login: 'Connexion', action: 'Action', check: 'Vérification', context: 'Contexte' }
   const ACTION_LABEL = { goto: 'Ouvrir', click: 'Cliquer', fill: 'Saisir', select: 'Choisir', check: 'Cocher', uncheck: 'Décocher', press: 'Touche', hover: 'Survoler', expect: 'Vérifier' }
   const EXPECT_LABEL = { visible: 'visible', hidden: 'masqué', text: 'contient le texte', url: 'adresse contient', value: 'valeur' }
-  const SOURCE_BADGE = { ai: ['IA', 'purple'], human: ['Testeur', 'amber'], rule: ['Règle', 'teal'] }
+  const SOURCE_BADGE = { ai: ['IA', 'purple'], human: ['Testeur', 'amber'], rule: ['Règle', 'teal'], heuristic: ['Heuristique', 'blue'] }
   const DECISION = { todo: ['À automatiser', 'mint'], later: ['Plus tard', 'amber'], skip: ['Ignoré', 'grey'] }
   const BUSY = new Set(['planning', 'exploring', 'recording', 'replaying'])
 
@@ -287,7 +287,9 @@
         if (d.reason) st.reason = d.reason
       }
       if (refs.iter && d.status === 'running') {
-        refs.iter.textContent = d.iteration
+        refs.iter.textContent = d.what
+          ? d.what
+          : d.iteration
           ? `Essai ${d.iteration} · ${d.failures || 0} échec(s) sans progrès sur ${d.maxIterations || s.maxIterations} autorisé(s)`
           : 'Analyse de la page…'
       }

@@ -1,8 +1,25 @@
 import { verifyHook } from './verify.mjs'
 import { loadWizardDefaults, saveWizardDefaults } from './wizard-defaults.mjs'
+import { demoPoste } from './demo/poste.mjs'
 
 export function getHookGitReadiness() {
   const verify = verifyHook()
+  const demo = demoPoste()?.hook
+  if (demo) {
+    return {
+      configured: true,
+      dryRunOk: true,
+      readyForJiraSync: true,
+      lastDryRunAt: demo.lastDryRunAt || null,
+      lastDryRunLogFile: demo.lastDryRunLogFile || null,
+      lastDryRunLogDisplayTime: demo.lastDryRunLogDisplayTime || null,
+      checks: verify.checks,
+      message: 'Hook Git opérationnel — Sync JIRA débloquée (◇ démonstration)',
+      demo: true,
+      lastAnalyze: demo.analyze || null,
+      lastSync: demo.lastSync || null,
+    }
+  }
   const hookGit = loadWizardDefaults().hookGit || {}
   const dryRunOk = Boolean(hookGit.dryRunOk)
   const configured = verify.ok

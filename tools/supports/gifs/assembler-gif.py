@@ -12,6 +12,7 @@ Usage : python assembler-gif.py <dossier-captures> <sortie.gif> [--vitesse 1.0] 
 import argparse
 import json
 import os
+import re
 import sys
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont
@@ -28,13 +29,27 @@ def police(taille):
     return ImageFont.load_default()
 
 
+ETAPE = re.compile(r"^Étape (\d+) — (.*)$")
+ROUGE = (198, 40, 40)
+
+
 def bandeau(img, texte, fnt):
     w, h = img.size
     out = Image.new("RGB", (w, h + BANDEAU), FOND)
     out.paste(img, (0, 0))
     d = ImageDraw.Draw(out)
-    d.rectangle([0, h, 6, h + BANDEAU], fill=(15, 122, 90))  # liseré vert Prisme
-    if texte:
+    m = ETAPE.match(texte or "")
+    d.rectangle([0, h, 6, h + BANDEAU], fill=ROUGE if m else (15, 122, 90))  # liseré rouge (étape) ou vert Prisme
+    if m:  # pastille rouge numérotée, comme les annotations de l'image
+        n, reste = m.group(1), m.group(2)
+        cy = h + BANDEAU / 2
+        tw = d.textlength(reste, font=fnt)
+        x = (w - (34 + 10 + tw)) / 2
+        d.ellipse([x, cy - 17, x + 34, cy + 17], fill=(255, 255, 255))
+        d.ellipse([x + 3, cy - 14, x + 31, cy + 14], fill=ROUGE)
+        d.text((x + 17, cy), n, font=fnt, fill=(255, 255, 255), anchor="mm")
+        d.text((x + 44, cy), reste, font=fnt, fill=(255, 255, 255), anchor="lm")
+    elif texte:
         tw = d.textlength(texte, font=fnt)
         d.text(((w - tw) / 2, h + BANDEAU / 2), texte, font=fnt, fill=(255, 255, 255), anchor="lm")
     return out

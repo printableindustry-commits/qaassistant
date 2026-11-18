@@ -22,7 +22,7 @@
           <label for="mot-de-passe">Mot de passe</label>
           <div class="mdp">
             <input id="mot-de-passe" name="motDePasse" type="password" autocomplete="current-password" aria-describedby="erreur-connexion">
-            <button class="btn-icone" type="button" id="voir-mdp" aria-label="Afficher le mot de passe" aria-pressed="false">
+            <button class="btn-icone" type="button" id="voir-mdp" aria-label="Afficher la saisie" aria-pressed="false">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
             </button>
           </div>
@@ -45,7 +45,7 @@
         const visible = champMdp.type === 'password'
         champMdp.type = visible ? 'text' : 'password'
         e.currentTarget.setAttribute('aria-pressed', String(visible))
-        e.currentTarget.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe')
+        e.currentTarget.setAttribute('aria-label', visible ? 'Masquer la saisie' : 'Afficher la saisie')
       })
       document.getElementById('form-connexion').addEventListener('submit', (e) => {
         e.preventDefault()

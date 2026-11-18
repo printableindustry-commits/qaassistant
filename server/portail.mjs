@@ -187,6 +187,7 @@ import * as xrayRoutes from './lib/xray/routes.mjs'
 import * as livrablesRoutes from './lib/livrables/routes.mjs'
 import * as demoRoutes from './lib/demo/routes.mjs'
 import * as demoTourRoutes from './lib/demo/tour-routes.mjs'
+import { demoPoste } from './lib/demo/poste.mjs'
 
 // Modules V3 (Prisme) : chacun déclare ses routes dans son routes.mjs.
 const router = createRouter()
@@ -1322,6 +1323,16 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       sendJson(res, 400, { ok: false, error: e.message })
     }
+    return
+  }
+  // Démonstration : analyse, aperçu et synchronisation JIRA / Xray simulés (◇), aucun script ni appel réseau.
+  const demoHook = req.method === 'POST' && pathname.startsWith('/api/hook/') ? demoPoste()?.hook : null
+  if (demoHook && ['/api/hook/jira-analyze', '/api/hook/sync-preview', '/api/hook/sync', '/api/hook/test'].includes(pathname)) {
+    const a = demoHook.analyze || {}
+    if (pathname === '/api/hook/jira-analyze') sendJson(res, 200, { ok: Boolean(a.ok), output: a.output || '', plans: a.plans || [], demo: true, log: null })
+    else if (pathname === '/api/hook/sync-preview') sendJson(res, 200, { ok: true, demo: true, ...(demoHook.preview || {}), log: null })
+    else if (pathname === '/api/hook/test') sendJson(res, 200, { ok: true, code: 0, demo: true, output: demoHook.dryRunOutput || '', log: null, readiness: getHookGitReadiness() })
+    else sendJson(res, 200, { ok: true, code: 0, demo: true, output: demoHook.syncOutput || '◇ Synchronisation simulée (démonstration) : aucune donnée envoyée.', log: null })
     return
   }
   if (req.method === 'POST' && pathname === '/api/hook/test') {

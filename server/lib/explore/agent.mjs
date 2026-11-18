@@ -21,6 +21,7 @@ import { bestCandidate, STRATEGY_ORDER, selectorCode } from './selectors.mjs'
 import * as S from './sessions.mjs'
 import * as PL from './plan.mjs'
 import { getTarget, secretsFor } from './targets.mjs'
+import { runHeuristic, parseStep, intentLabel } from './heuristic.mjs'
 
 export class AgentError extends Error {
   constructor(status, message, details) {
@@ -553,13 +554,58 @@ async function runPlanStep(rec, b, si, pi, signal) {
   const ruled = await tryRules(rec, b, si, pi, step)
   if (ruled === 'found') return 'found'
 
-  if (!llmAvailable()) {
-    const why = step.kind === 'check'
-      ? 'Aucun assistant IA n\'est configuré et cette vérification ne peut pas être déduite automatiquement. Montrez l\'élément à vérifier (mode « Vérifier ») ou passez l\'étape.'
-      : 'Aucun assistant IA n\'est configuré : cette étape doit être réalisée par vous, l\'enregistrement servira à construire le test.'
-    return needsHuman(rec, si, pi, typeof ruled === 'string' && ruled !== 'none' ? `${ruled} ${why}` : why)
+  // l'IA reste prioritaire ; sans elle, l'explorateur heuristique cherche seul avant de demander la main
+  if (llmAvailable()) return aiLoop(rec, b, si, pi, signal)
+  return heuristicStep(rec, b, si, pi, signal, typeof ruled === 'string' && ruled !== 'none' ? ruled : '')
+}
+
+/** Annotation dans la page (cadre rouge + légende) : la capture diffusée montre ce que l'outil fait. */
+async function annotate(rec, b, { ref, selector, text, label }) {
+  if (!b.annotate) return
+  await b.annotate({ ref, selector, text, label: S.redact(rec.id, String(label || '')) }).catch(() => {})
+}
+
+// ---------- Explorateur heuristique (sans IA) ----------
+async function heuristicStep(rec, b, si, pi, signal, ruled) {
+  const step = rec.plan.scenarios[si].steps[pi]
+  const maxIt = rec.maxIterations || 4
+  const p = parseStep(step)
+  log(rec, `Heuristique : ${intentLabel(p.intent)} pour « ${step.goal} » (mots-clés : ${p.keywords.slice(0, 8).join(', ') || '—'}${p.quoted.length ? ` ; valeur citée : « ${p.quoted[0]} »` : ''}).`)
+  const ctx = {
+    b,
+    step,
+    account: step.account || rec.accountIds?.[0] || null,
+    maxIterations: maxIt,
+    signal,
+    snap: () => snap(rec, b),
+    selectorOf: selectorOfElement,
+    onTry: async ({ iteration, maxIterations, what, ref, text }) => {
+      ctx.acted = true
+      step.attempts = iteration
+      rec.progress = { scenarioIndex: si, stepIndex: pi, iteration }
+      const line = `Heuristique (essai ${iteration}/${maxIterations}) : ${what}`
+      emitStep(rec, { phase: 'explore', scenarioIndex: si, stepIndex: pi, planStepId: step.id, status: 'running', iteration, failures: iteration - 1, maxIterations, goal: step.goal, source: 'heuristic', what: line })
+      log(rec, line)
+      await annotate(rec, b, { ref, text, label: `Étape ${pi + 1} · essai ${iteration}/${maxIterations} — ${what}` })
+      touch(rec)
+    },
   }
-  return aiLoop(rec, b, si, pi, signal)
+  const r = await runHeuristic(ctx)
+  if (signal.aborted) return 'aborted'
+  if (r.ok) {
+    putSteps(rec, si, step.id, r.steps)
+    await snap(rec, b)
+    markStep(rec, si, pi, 'found', { source: 'heuristic' })
+    log(rec, `Étape trouvée par l'heuristique : ${step.goal} (${r.steps.length} action(s)).`, 'ok')
+    return 'found'
+  }
+  // la page a pu changer pendant les essais : l'état du scénario sera rejoué avant la prise de main
+  if (ctx.acted) S.runtimeOf(rec.id).stateKey = null
+  const why = step.kind === 'check'
+    ? 'Montrez l\'élément à vérifier (mode « Vérifier ») ou passez l\'étape.'
+    : 'Réalisez l\'étape vous-même : l\'enregistrement servira à construire le test.'
+  const reason = [ruled, r.reason, `Aucun assistant IA n'est configuré. ${why}`].filter(Boolean).join(' ')
+  return needsHuman(rec, si, pi, reason, r.attempts || [])
 }
 
 // ---------- Règles ----------
@@ -1134,7 +1180,7 @@ export function updateSteps(rec, { scenarios }) {
         url: st.url == null ? null : String(st.url).slice(0, 1000),
         expect: null,
         gherkin: st.gherkin == null ? null : String(st.gherkin).slice(0, 300),
-        source: ['ai', 'human', 'rule'].includes(st.source) ? st.source : 'human',
+        source: ['ai', 'human', 'rule', 'heuristic'].includes(st.source) ? st.source : 'human',
         note: st.note == null ? null : String(st.note).slice(0, 300),
         label: st.label == null ? '' : String(st.label).slice(0, 120),
       }

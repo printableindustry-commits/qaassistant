@@ -400,6 +400,15 @@
     }
     roleIndex = null
     const bodyText = document.body ? trunc(document.body.innerText, 3000) : ''
+    // lignes visibles (titres, légendes, en-têtes de tableau, messages) : vérifications de l'explorateur heuristique
+    const lines = []
+    if (document.body) {
+      for (const l of String(document.body.innerText || '').split(/\n+/)) {
+        const t = norm(l)
+        if (t && t.length <= 160 && lines.indexOf(t) < 0) lines.push(t)
+        if (lines.length >= 200) break
+      }
+    }
     return {
       url: location.href,
       title: document.title,
@@ -408,6 +417,7 @@
       elements,
       truncated: skipped,
       text: bodyText,
+      lines,
     }
   }
 

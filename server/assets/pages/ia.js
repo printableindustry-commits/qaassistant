@@ -155,7 +155,7 @@
   function renderPanel() {
     P.clear(panel)
     const views = { providers: viewProviders, copilot: viewCopilot, cli: viewCli, sandbox: viewSandbox, audit: viewAudit }
-    panel.append(...[].concat(views[state.tab]()))
+    panel.append(...[].concat(views[state.tab]()).filter((n) => n != null && n !== false))
     schedulePoll()
   }
 

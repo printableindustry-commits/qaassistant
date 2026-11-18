@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { SERVER_CONF_DIR } from './paths.mjs'
+import { demoPoste, assertNotDemoPoste, DEMO_MARK } from './demo/poste.mjs'
 
 const TEMPLATE_PATH = path.join(SERVER_CONF_DIR, 'npmrc.template')
 
@@ -107,6 +108,7 @@ export function previewNpmrc(fields, options = {}) {
 }
 
 export function writeNpmrc(fields, { bare = false, exact = false } = {}) {
+  assertNotDemoPoste('Écriture du .npmrc')
   const npmrcPath = getNpmrcPath()
   const content = buildNpmrc(fields, { bare, exact })
   fs.writeFileSync(npmrcPath, content, 'utf8')
@@ -115,6 +117,11 @@ export function writeNpmrc(fields, { bare = false, exact = false } = {}) {
 
 export function readNpmrc() {
   const npmrcPath = getNpmrcPath()
+  // Démonstration : profil .npmrc fictif (aucun secret réel), le vrai fichier n'est ni lu ni modifié.
+  const demo = demoPoste()?.npmrc
+  if (demo?.content) {
+    return { path: npmrcPath, displayPath: `${getDisplayPath()} ${DEMO_MARK}`, exists: true, content: demo.content, fields: parseNpmrc(demo.content), demo: true }
+  }
   const exists = fs.existsSync(npmrcPath)
   const content = exists ? fs.readFileSync(npmrcPath, 'utf8') : ''
   return {
@@ -139,6 +146,7 @@ function formatArchiveStamp(date = new Date()) {
 }
 
 export function archiveNpmrc() {
+  assertNotDemoPoste('Archivage du .npmrc')
   const npmrcPath = getNpmrcPath()
   if (!fs.existsSync(npmrcPath)) {
     throw new Error('Aucun fichier .npmrc à archiver')

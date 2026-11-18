@@ -15,7 +15,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { fileURLToPath } from 'url'
-import { REPO_ROOT } from '../paths.mjs'
+import { REPO_ROOT, DOC_QA_DIR } from '../paths.mjs'
 import { JIRA_DATA_DIR, writeAtomic, saveScanResult, getScanInfo, getStory, listStories } from '../jira/stories.mjs'
 import { discoverFields } from '../jira/fields.mjs'
 import { normalizeIssue } from '../jira/normalize.mjs'
@@ -37,6 +37,10 @@ import { applyDemoProfile } from '../livrables/profile.mjs'
 import { generateAll, reviewDocumentById, approveDocument, invalidateFacts } from '../livrables/service.mjs'
 import { loadWizardDefaults, saveWizardDefaults } from '../wizard-defaults.mjs'
 import { getDemoFormDefaults } from '../demo-defaults.mjs'
+import { appendK6Run, deleteK6Run } from '../k6-run-history.mjs'
+import { AUDIT_PATH } from '../llm/audit.mjs'
+import { DEMO_POSTE_FILE } from './poste.mjs'
+import { detectComponents, getState as getInstallState } from '../install/orchestrator.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const DEMO_FILE = path.join(HERE, '..', '..', 'conf', 'demo', 'irma-jira.json')
@@ -491,6 +495,14 @@ function seedPerf(user) {
       demo: true,
     }
     saveMeta(meta)
+    // historique V2 (écran « Scénarios k6 ») : même forme que les runs consignés par le module perf
+    try {
+      appendK6Run({
+        id, profileId: meta.profileId, profileName: meta.profileName, campaignName: meta.profileName, runAt: meta.startedAt, status: meta.status,
+        command: meta.command, reportPath: meta.reportDir, notes: 'Exécution simulée (◇ démonstration)', triggeredBy: 'perf',
+        summary: { measured: true, simulated: true, durationMs, exitCode: meta.exitCode, vus: r.vus, duration: r.dur, p95Ms: r.p95, metrics: meta.metrics },
+      })
+    } catch { /* historique V2 facultatif */ }
     // série par 10 s (courbe affichée dans le détail du run)
     const series = []
     for (let t = 0; t <= durationMs / 1000; t += 10) {
@@ -504,7 +516,7 @@ function seedPerf(user) {
   // référence : premier run du profil « tableau de bord »
   try {
     const st = getPerfSettings()
-    savePerfSettings({ baselines: { ...(st.baselines || {}), [profiles[0].id]: ids[0] } })
+    savePerfSettings({ baselines: { ...(st.baselines || {}), [profiles[0].id]: ids[0], [profiles[1].id]: ids[1] } })
   } catch { /* référence facultative */ }
   return { runIds: ids, profileIds: profiles.map((p) => p.id) }
 }
@@ -551,6 +563,11 @@ function seedProject(manifest) {
       squad: 'Squad Qualité Risques',
       onboardingComplete: true,
       onboardingCompletedAt: iso(9 * DAY),
+      usesJiraPlans: true,
+      arborescences: [
+        { id: 'demo-plan-10528', folderName: 'P0326-10528_Recette_IRMA_R1', productCode: 'P0326', solutionCode: 'S0998', planKey: 'P0326-10528', planName: 'Recette IRMA R1', applicationLabel: 'IRMA (démo)', createdAt: iso(9 * DAY), demo: true },
+        { id: 'demo-plan-10531', folderName: 'P0326-10531_Non_regression_IRMA', productCode: 'P0326', solutionCode: 'S0998', planKey: 'P0326-10531', planName: 'Non-régression IRMA', applicationLabel: 'IRMA (démo)', createdAt: iso(9 * DAY), demo: true },
+      ],
       demo: true,
     },
   })
@@ -584,6 +601,248 @@ async function seedLivrables(user, warnings) {
     }
   }
   return { generated: loadCatalog().documents.length, reviewed, approved }
+}
+
+/** 10. Projet de test minimal (package.json, configuration Playwright, script k6…) : seuls les fichiers absents sont créés. */
+const WORKSPACE_FILES = {
+  'package.json': () => `${JSON.stringify({
+    name: 'irma-tests-qa-demo',
+    version: '1.0.0',
+    private: true,
+    description: 'Projet de test IRMA — données de démonstration (fictif)',
+    scripts: { 'test:e2e': 'playwright test --project=e2e', 'test:bdd': 'bddgen && playwright test --project=bdd', 'test:perf': 'k6 run k6/scripts/smoke.js' },
+    devDependencies: { '@playwright/test': '^1.56.1', 'playwright-bdd': '^8.4.0', '@types/k6': '^1.2.0' },
+    volta: { node: '22.12.0' },
+  }, null, 2)}\n`,
+  '.gitignore': () => '# Wizard QA (démonstration)\nnode_modules/\ntest-results/\nplaywright-report/\nblob-report/\n.features-gen/\nreports/\n.env\n.wizard-qa/\ntests/.auth/\n',
+  'playwright.config.ts': () => "// Projet de test IRMA — démonstration (fictif)\nimport { defineConfig } from '@playwright/test'\n\nexport default defineConfig({\n  testDir: 'tests',\n  use: { baseURL: process.env.BASE_URL || 'http://127.0.0.1:3920/demo-app/', channel: 'msedge' },\n  projects: [{ name: 'e2e', testDir: 'tests/e2e' }, { name: 'bdd', testDir: '.features-gen' }],\n})\n",
+  '.env.example': () => 'BASE_URL=http://127.0.0.1:3920/demo-app/\n',
+  'tests/steps/fixtures.ts': () => "// Fixtures Gherkin — démonstration (fictif)\nimport { test as base, createBdd } from 'playwright-bdd'\n\nexport const test = base\nexport const { Given, When, Then } = createBdd(test)\n",
+  'k6/scripts/smoke.js': () => "// Script k6 de fumée — démonstration (fictif)\nimport http from 'k6/http'\nimport { check, sleep } from 'k6'\n\nexport const options = { vus: 2, duration: '30s', thresholds: { http_req_duration: ['p(95)<600'] } }\n\nexport default function () {\n  const res = http.get(__ENV.BASE_URL || 'http://127.0.0.1:3920/demo-app/')\n  check(res, { 'statut 200': (r) => r.status === 200 })\n  sleep(1)\n}\n",
+}
+
+function seedWorkspace() {
+  const files = []
+  const dirs = []
+  for (const [rel, content] of Object.entries(WORKSPACE_FILES)) {
+    const abs = insideRepo(rel)
+    if (!abs || fs.existsSync(abs)) continue
+    let dir = path.dirname(abs)
+    const created = []
+    while (dir.startsWith(path.resolve(REPO_ROOT) + path.sep) && !fs.existsSync(dir)) {
+      created.unshift(path.relative(REPO_ROOT, dir))
+      dir = path.dirname(dir)
+    }
+    fs.mkdirSync(path.dirname(abs), { recursive: true })
+    fs.writeFileSync(abs, content(), 'utf8')
+    files.push(rel)
+    dirs.push(...created)
+  }
+  // .gitignore déjà présent : bloc de démo ajouté (retiré au reset) pour les lignes attendues qui manquent
+  let gitignoreBlock = false
+  const gi = insideRepo('.gitignore')
+  if (gi && !files.includes('.gitignore') && fs.existsSync(gi)) {
+    const cur = fs.readFileSync(gi, 'utf8')
+    const have = new Set(cur.split(/\r?\n/).map((l) => l.trim()))
+    const missing = GITIGNORE_LINES.filter((l) => !have.has(l))
+    if (missing.length) {
+      fs.writeFileSync(gi, `${cur}${cur.endsWith('\n') ? '' : '\n'}${GITIGNORE_DEMO_START}\n${missing.join('\n')}\n${GITIGNORE_DEMO_END}\n`, 'utf8')
+      gitignoreBlock = true
+    }
+  }
+  return { files, dirs, gitignoreBlock }
+}
+
+const GITIGNORE_LINES = ['node_modules/', 'test-results/', 'playwright-report/', 'blob-report/', '.features-gen/', 'reports/', '.env', '.wizard-qa/', 'tests/.auth/']
+const GITIGNORE_DEMO_START = '# >>> Wizard QA démonstration (retiré par la réinitialisation)'
+const GITIGNORE_DEMO_END = '# <<< Wizard QA démonstration'
+
+/** Relance la détection du projet de test (écran Installation, barre d'état) sans sonder le reste du poste. */
+async function redetectWorkspace() {
+  try { await detectComponents({ stacks: getInstallState().stacks, components: ['workspace'] }) } catch { /* détection facultative */ }
+}
+
+/** 11. État simulé du poste (◇) lu par les écrans historiques : Node/npm, .npmrc fictif, k6, Hook Git et Sync JIRA. */
+function seedPoste() {
+  const at = (ms) => iso(ms)
+  const plans = [
+    { plan_key: 'P0326-10528', folder: 'P0326-10528_Recette_IRMA_R1', status: 'ok', jira: { status: 'ok', ok: true, code: 0 }, xray: { status: 'ok', ok: true, code: 0 } },
+    { plan_key: 'P0326-10531', folder: 'P0326-10531_Non_regression_IRMA', status: 'ko', jira: { status: 'ko', ok: false, code: 1 }, xray: { status: 'ko', ok: false, code: 1 } },
+  ]
+  const analyze = [
+    '◇ Analyse simulée (démonstration) — aucune requête vers JIRA ni Xray',
+    'Projet P0326 · JIRA https://jira.banque-horizon.example (fictif)',
+    '',
+    '[P0326-10528] Recette IRMA R1 — dossier P0326-10528_Recette_IRMA_R1',
+    '  JIRA : OK     4 tests liés au plan (P0326-T1 … P0326-T4)',
+    '  Xray : OK     4 tests synchronisés, dernier import il y a 1 jour',
+    '',
+    '[P0326-10531] Non-régression IRMA — dossier P0326-10531_Non_regression_IRMA',
+    '  JIRA : ÉCART  2 scénarios locaux sans ticket Test (P0326-9313, P0326-9323)',
+    '  Xray : ÉCART  1 ticket Test orphelin (P0326-T0, supprimé localement)',
+    '',
+    'Résumé : 1 plan aligné, 1 plan avec écarts → « Synchroniser vers JIRA » créera 2 tickets et en supprimera 1.',
+  ].join('\n')
+  const lastSync = [
+    '◇ Synchronisation simulée (démonstration) — il y a 3 jours',
+    '$ node hook-run.mjs --force',
+    '[P0326-10528] 4 scénario(s) lus dans tests/features',
+    '  + P0326-T3 créé : Import d’un fichier CSV valide',
+    '  + P0326-T4 créé : Export PDF de la synthèse comité',
+    '  = P0326-T1, P0326-T2 à jour',
+    '[Xray] 4 tests importés dans le plan P0326-10528',
+    'Synchronisation terminée : 2 créés, 2 à jour, 0 supprimé.',
+  ].join('\n')
+  const dryRun = [
+    '◇ Dry-run simulé (démonstration) — aucune écriture dans JIRA ni Xray',
+    '$ node hook-run.mjs --force --dry-run',
+    '.env : JIRA_BASE_URL, JIRA_TOKEN (fictif), XRAY_CLIENT_ID (fictif) — OK',
+    'hooks.conf : 2 plan(s) — P0326-10528, P0326-10531',
+    'Dry-run terminé : 4 test(s) seraient synchronisé(s).',
+  ].join('\n')
+  const data = {
+    version: 1,
+    demo: true,
+    label: '◇ démonstration',
+    createdAt: new Date().toISOString(),
+    k6: { version: 'v1.3.0' },
+    npmrc: {
+      content: [
+        '# Profil .npmrc FICTIF de démonstration (aucun secret réel)',
+        'email=analyste.qa@banque-horizon.example',
+        'always-auth=true',
+        'registry=https://artifactory.banque-horizon.example/api/npm/npm-virtual/',
+        '//artifactory.banque-horizon.example/api/npm/npm-virtual/:_authToken=DEMO-JETON-FICTIF',
+        'SASS_BINARY_SITE=https://artifactory.banque-horizon.example/npm-github-remote/download',
+        'strict-ssl=true',
+        'noproxy=localhost,127.0.0.1',
+        '',
+      ].join('\n'),
+    },
+    hook: {
+      lastDryRunAt: at(5 * DAY),
+      lastDryRunLogFile: 'dry-run-demo.md',
+      lastDryRunLogDisplayTime: new Date(Date.now() - 5 * DAY).toLocaleString('fr-FR'),
+      dryRunOutput: dryRun,
+      analyze: { at: at(1 * DAY + 2 * HOUR), ok: false, output: analyze, plans, demo: true },
+      lastSync: { at: at(3 * DAY), ok: true, output: lastSync },
+      syncOutput: `${lastSync.replace('il y a 3 jours', 'maintenant')}`,
+      preview: {
+        folders: plans.map((p) => p.folder),
+        ticketsCreate: [{ testId: 'P0326-9313', summary: 'Historique des cotations d’un risque' }, { testId: 'P0326-9323', summary: 'Rapport des anomalies d’un import' }],
+        ticketsDelete: [{ key: 'P0326-T0', testId: 'P0326-9312', reason: 'Scénario supprimé localement' }],
+        testPlans: plans.map((p) => ({ plan_key: p.plan_key, folder: p.folder })),
+      },
+    },
+  }
+  writeAtomic(DEMO_POSTE_FILE, data)
+}
+
+/** Formulaires des écrans historiques (.npmrc, réparation hors ligne) : valeurs fictives, originaux conservés dans le manifeste. */
+function seedPageDefaults(manifest) {
+  const current = loadWizardDefaults()
+  manifest.pageDefaultsBackup = { npmrc: current.npmrc ?? null, repair: current.repair ?? null }
+  saveWizardDefaults({
+    npmrc: {
+      email: 'analyste.qa@banque-horizon.example',
+      'always-auth': 'true',
+      registry: 'https://artifactory.banque-horizon.example/api/npm/npm-virtual/',
+      authToken: 'DEMO-JETON-FICTIF',
+      SASS_BINARY_SITE: 'https://artifactory.banque-horizon.example/npm-github-remote/download',
+      'strict-ssl': 'true',
+      proxy: '',
+      'https-proxy': '',
+      noproxy: 'localhost,127.0.0.1',
+    },
+    repair: {
+      ...(current.repair || {}),
+      config: {
+        project: REPO_ROOT,
+        voltaHome: '%LOCALAPPDATA%\\Volta',
+        catsRegistry: 'https://artifactory.banque-horizon.example/api/npm/npm-virtual/',
+        versions: { node: '22.13.0', npm: '10.9.0', cypress: '14.0.3' },
+      },
+    },
+  })
+}
+
+/** 12. Journal d'audit de l'assistant IA (appels fictifs, sans contenu), trié avec les entrées réelles. */
+function seedLlmAudit() {
+  const calls = [
+    [6 * DAY + 2 * HOUR, 'vscode-lm', 'triage', 8400, true, 'gpt-4.1'],
+    [5 * DAY + 4 * HOUR, 'vscode-lm', 'gherkin', 14200, true, 'gpt-4.1'],
+    [5 * DAY + 3 * HOUR, 'vscode-lm', 'gherkin', 12800, true, 'gpt-4.1'],
+    [5 * DAY + 2 * HOUR, 'copilot-cli', 'gherkin', 31000, false, '', 'timeout'],
+    [4 * DAY + 1 * HOUR, 'vscode-lm', 'explore', 6100, true, 'claude-sonnet-4'],
+    [4 * DAY, 'vscode-lm', 'explore', 5400, true, 'claude-sonnet-4'],
+    [2 * DAY + 1 * HOUR, 'vscode-lm', 'explore', 7300, true, 'claude-sonnet-4'],
+    [2 * DAY, 'vscode-lm', 'takeover', 4900, true, 'claude-sonnet-4'],
+    [1 * DAY + 6 * HOUR, 'anthropic', 'livrables-review', 22600, true, 'claude-sonnet-4-5'],
+    [1 * DAY + 5 * HOUR, 'anthropic', 'livrables-review', 19800, true, 'claude-sonnet-4-5'],
+    [5 * HOUR, 'vscode-lm', 'k6', 9100, true, 'gpt-4.1'],
+    [2 * HOUR, 'vscode-lm', 'test', 1200, true, 'gpt-4.1'],
+  ]
+  const demoLines = calls.map(([when, provider, purpose, durationMs, ok, model, code]) => {
+    const e = { at: iso(when), provider, purpose, durationMs, ok }
+    if (model) e.model = `${model} ◇ démo`
+    if (code) e.code = code
+    e.demo = true
+    return JSON.stringify(e)
+  })
+  let existing = []
+  try { existing = fs.readFileSync(AUDIT_PATH, 'utf8').split('\n').filter(Boolean) } catch { existing = [] }
+  const atOf = (l) => { try { return JSON.parse(l).at || '' } catch { return '' } }
+  const lines = [...existing.filter((l) => !/"demo":true/.test(l)), ...demoLines].sort((a, b) => atOf(a).localeCompare(atOf(b)))
+  fs.mkdirSync(path.dirname(AUDIT_PATH), { recursive: true })
+  fs.writeFileSync(AUDIT_PATH, `${lines.join('\n')}\n`, { encoding: 'utf8', mode: 0o600 })
+  return { created: !existing.length, count: demoLines.length }
+}
+
+/** 13. Ancien assistant Copilot (documentation QA) : catalogue de modèles et avancement fictifs, seulement s'il n'existe pas. */
+function seedDocQa() {
+  const conf = path.join(DOC_QA_DIR, 'doc-qa-templates.conf.json')
+  const progress = path.join(REPO_ROOT, '.wizard-qa', 'doc-qa-progress.json')
+  if (fs.existsSync(conf) || !insideRepo(path.relative(REPO_ROOT, conf))) return { files: [], dirs: [] }
+  const ch = (id, title, focus, dataToProvide) => ({ id, title, focus, dataToProvide, expectedQuality: 'Factuel, daté, relu par le QA Lead.', tableHeaders: [], promptHint: '', whyImportant: focus })
+  const catalog = {
+    _demo: 'Catalogue FICTIF de démonstration (projet IRMA, organisme « Banque Horizon »).',
+    wizardCatalog: {
+      documents: [
+        { id: '01', file: '01_Plan_de_test_IRMA_DEMO.docx', coverTitle: 'Plan de test — IRMA (démo)', coverSubtitle: 'Recette R1 · Banque Horizon (fictif)', wizardSection: 'Préparation', chapters: [ch('1', 'Contexte et périmètre', 'Situer le projet IRMA et le périmètre de la recette.', 'Épopées, récits, environnements'), ch('2', 'Stratégie de test', 'Niveaux, types de test et critères d’entrée / sortie.', 'Stack Playwright, k6, Xray'), ch('3', 'Planning et ressources', 'Jalons de la recette et rôles.', 'Dates, équipe QA'), ch('4', 'Risques', 'Risques produit et projet.', 'Liste des risques et mitigations')] },
+        { id: '02', file: '02_Cahier_de_recette_IRMA_DEMO.docx', coverTitle: 'Cahier de recette — IRMA (démo)', coverSubtitle: 'Cas de test fonctionnels (fictif)', wizardSection: 'Conception', chapters: [ch('1', 'Cas de test de connexion', 'Couvrir l’authentification SSO.', 'Récits P0326-9301 à 9304'), ch('2', 'Cas de test du tableau de bord', 'Filtres et indicateurs.', 'Récits P0326-9310 à 9313'), ch('3', 'Cas de test d’import', 'Fichiers valides et invalides.', 'Récits P0326-9320 à 9323')] },
+        { id: '03', file: '03_Bilan_de_recette_IRMA_DEMO.docx', coverTitle: 'Bilan de recette — IRMA (démo)', coverSubtitle: 'Synthèse des campagnes (fictif)', wizardSection: 'Clôture', chapters: [ch('1', 'Résultats des campagnes', 'Taux de réussite et tendance.', 'Campagnes simulées'), ch('2', 'Anomalies', 'Anomalies ouvertes et corrigées.', 'Rapports d’anomalies'), ch('3', 'Recommandation de mise en production', 'Décision argumentée.', 'Critères de sortie')] },
+      ],
+    },
+    identificationFields: [],
+  }
+  const created = []
+  const dirs = []
+  for (let d = path.dirname(conf); d.startsWith(path.resolve(REPO_ROOT) + path.sep) && !fs.existsSync(d); d = path.dirname(d)) dirs.unshift(path.relative(REPO_ROOT, d))
+  fs.mkdirSync(path.dirname(conf), { recursive: true })
+  fs.writeFileSync(conf, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8')
+  created.push(path.relative(REPO_ROOT, conf))
+  if (!fs.existsSync(progress)) {
+    const chapters = {}
+    const put = (doc, id, status, when) => {
+      chapters[`${doc}:${id}`] = {
+        documentId: doc, chapterId: id, status,
+        lastPromptGeneratedAt: iso(when + HOUR), lastAiResponsePastedAt: status === 'prompt_generated' ? null : iso(when + 30 * 60000),
+        lastAppliedAt: status === 'applied' ? iso(when) : null, missingFields: [], completionRatio: status === 'applied' ? 1 : 0.5,
+        hasTodoMarkers: status !== 'applied', notes: 'Démonstration (fictif)', lastError: null,
+      }
+    }
+    put('01', '1', 'applied', 6 * DAY)
+    put('01', '2', 'applied', 5 * DAY)
+    put('01', '3', 'review_needed', 4 * DAY)
+    put('01', '4', 'prompt_generated', 3 * DAY)
+    put('02', '1', 'applied', 2 * DAY)
+    put('02', '2', 'ready_to_apply', 1 * DAY)
+    put('03', '1', 'prompt_generated', 3 * HOUR)
+    fs.mkdirSync(path.dirname(progress), { recursive: true })
+    fs.writeFileSync(progress, JSON.stringify({ version: '1.0.0', chapters, lastAction: { type: 'prompt_generated', docId: '03', chapterId: '1', at: iso(3 * HOUR) }, demo: true }, null, 2), 'utf8')
+    created.push(path.relative(REPO_ROOT, progress))
+  }
+  return { files: created, dirs }
 }
 
 // ------------------------------------------------------------------ API
@@ -650,6 +909,17 @@ export async function loadDemo(user) {
     manifest.perfRunIds = perf.runIds
     manifest.k6ProfileIds = perf.profileIds
     manifest.installRunId = seedInstall(user)
+    const ws = seedWorkspace()
+    manifest.files.push(...ws.files)
+    manifest.dirs = ws.dirs
+    manifest.gitignoreBlock = ws.gitignoreBlock
+    await redetectWorkspace()
+    seedPageDefaults(manifest)
+    seedPoste()
+    manifest.llmAudit = seedLlmAudit()
+    const doc = seedDocQa()
+    manifest.files.push(...doc.files)
+    manifest.dirs.push(...doc.dirs)
     save()
     const liv = await seedLivrables(user, warnings)
     manifest.livrables = liv
@@ -724,6 +994,27 @@ async function resetInner() {
     for (const id of m.k6ProfileIds || []) if (baselines[id]) { delete baselines[id]; changed = true }
     if (changed) savePerfSettings({ baselines })
   } catch { /* réglages facultatifs */ }
+  // Historique V2 des runs k6 (écran « Scénarios k6 »)
+  for (const id of m.perfRunIds || []) {
+    try { deleteK6Run(id) } catch { /* déjà supprimé */ }
+  }
+  // État simulé du poste, formulaires historiques et journal d'audit IA
+  drop(DEMO_POSTE_FILE, '.wizard-qa/demo/poste.json')
+  if (m.pageDefaultsBackup) {
+    try {
+      saveWizardDefaults({ npmrc: m.pageDefaultsBackup.npmrc ?? undefined, repair: m.pageDefaultsBackup.repair ?? undefined })
+      removed.push('formulaires .npmrc / réparation restaurés')
+    } catch { /* configuration en lecture seule */ }
+  }
+  try {
+    const lines = fs.readFileSync(AUDIT_PATH, 'utf8').split('\n').filter(Boolean)
+    const kept = lines.filter((l) => !/"demo":true/.test(l))
+    if (kept.length !== lines.length) {
+      if (kept.length) fs.writeFileSync(AUDIT_PATH, `${kept.join('\n')}\n`, { encoding: 'utf8', mode: 0o600 })
+      else fs.rmSync(AUDIT_PATH, { force: true })
+      removed.push(`journal IA : ${lines.length - kept.length} entrée(s) de démo`)
+    }
+  } catch { /* pas de journal */ }
   // Installation fictive
   if (m.installRunId && /^[\w-]{6,40}$/.test(m.installRunId)) drop(path.join(INSTALL_RUNS_DIR, `${m.installRunId}.json`), `installation ${m.installRunId}`)
   // Livrables : documents générés et profil de démo
@@ -731,6 +1022,23 @@ async function resetInner() {
   const profile = readJson(PROFILE_FILE)
   if (profile?.demo) drop(PROFILE_FILE, '.wizard-qa/livrables/profile.json')
 
+  // Dossiers créés pour le projet de test de démo (les plus profonds d'abord, seulement s'ils sont vides)
+  for (const rel of [...(m.dirs || [])].reverse()) {
+    const abs = insideRepo(rel)
+    if (abs) try { fs.rmdirSync(abs) } catch { /* non vide ou déjà supprimé */ }
+  }
+  if (m.gitignoreBlock) {
+    const gi = insideRepo('.gitignore')
+    try {
+      const cur = fs.readFileSync(gi, 'utf8')
+      const start = cur.indexOf(GITIGNORE_DEMO_START)
+      const end = cur.indexOf(GITIGNORE_DEMO_END)
+      if (start >= 0 && end > start) {
+        fs.writeFileSync(gi, cur.slice(0, start) + cur.slice(end + GITIGNORE_DEMO_END.length).replace(/^\r?\n/, ''), 'utf8')
+        removed.push('.gitignore : bloc de démo retiré')
+      }
+    } catch { /* fichier supprimé entre-temps */ }
+  }
   // Profil « Mon projet » d'avant la démo
   if (Object.prototype.hasOwnProperty.call(m, 'projectBackup')) {
     try {
@@ -740,6 +1048,7 @@ async function resetInner() {
   }
   drop(MANIFEST, '.wizard-qa/demo/manifest.json')
   invalidateFacts()
+  if ((m.files || []).length || m.gitignoreBlock) await redetectWorkspace()
   return removed
 }
 

@@ -6,9 +6,9 @@ dans `workspace/node_modules`, Microsoft Edge, Python avec Pillow.
 
 | Fichier | Rôle |
 |---|---|
-| `enregistreur.mjs` | navigateur Edge sans fenêtre 1440×900, connexion `demo` / `demo`, rechargement de la démo, capture du flux d'écran (≈ 6–7 images/s), gestes visibles (pointeur, frappe au clavier, défilement doux), halo + étiquette, masquage des mentions internes et des chemins du poste |
+| `enregistreur.mjs` | navigateur Edge sans fenêtre 1440×900, connexion `demo` / `demo`, rechargement de la démo, capture du flux d'écran (≈ 6–7 images/s), gestes visibles (pointeur, frappe au clavier, défilement doux), annotations rouges numérotées des étapes (voir `../README.md`), masquage des mentions internes et des chemins du poste |
 | `scenarios.mjs` | les 13 scénarios (actions réelles + légende de chaque moment), puis appel de l'assembleur |
-| `assembler-gif.py` | captures → GIF : palette adaptative commune, images identiques fusionnées, pause finale 1,5 s, réduction automatique si > 2,5 Mo |
+| `assembler-gif.py` | captures → GIF : légende avec la pastille rouge de l'étape, palette adaptative commune, images identiques fusionnées, pause finale 1,5 s, réduction automatique si > 2,5 Mo |
 | `planche-controle.py` | planche de 9 images d'un GIF pour la relecture |
 
 ## Refaire les GIF

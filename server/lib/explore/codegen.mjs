@@ -19,7 +19,7 @@ const SAFE_CODE_RE = new RegExp(
   `|getByRole\\(${JS_STR}(?:, \\{ name: ${JS_STR}(?:, exact: true)? \\})?\\))` +
   '(?:\\.(?:first|last)\\(\\)|\\.nth\\(\\d+\\))?$')
 
-const SOURCE_LABEL = { ai: 'IA', human: 'testeur', rule: 'règle' }
+const SOURCE_LABEL = { ai: 'IA', human: 'testeur', rule: 'règle', heuristic: 'heuristique' }
 
 // sauts de ligne, y compris U+2028 et U+2029 (interdits dans un commentaire // généré)
 const LINE_BREAKS = new RegExp('[\\r\\n' + String.fromCharCode(0x2028, 0x2029) + ']+', 'g')
@@ -278,7 +278,7 @@ export function buildPlaywrightSpec({ story = {}, target = {}, accounts = [], sc
         lastGherkin = g
         lastSource = src
       } else if (!g && src !== lastSource) {
-        L.push(`    // Étapes ${src === 'human' ? 'enregistrées par le testeur' : src === 'ai' ? 'trouvées par l\'IA' : 'déduites par règles'} (source : ${SOURCE_LABEL[src] || oneLine(src)})`)
+        L.push(`    // Étapes ${src === 'human' ? 'enregistrées par le testeur' : src === 'ai' ? 'trouvées par l\'IA' : src === 'heuristic' ? 'trouvées par l\'heuristique' : 'déduites par règles'} (source : ${SOURCE_LABEL[src] || oneLine(src)})`)
         lastSource = src
       }
       if (st.note) L.push(`    // Remarque : ${oneLine(st.note)}`)

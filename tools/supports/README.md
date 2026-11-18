@@ -13,6 +13,7 @@ Microsoft Edge, Python avec Pillow.
 | `schemas/*.html` | sources des schémas (`schema.css`, `fleches.js` communs) |
 | `rendre-schemas.mjs` | rend chaque schéma en PNG 1920×1080 dans `supports/schemas/` |
 | `gifs/` | GIF animés des fonctionnalités → `supports/gifs/` (voir [gifs/README.md](gifs/README.md)) |
+| `videos/` | vidéos MP4 courtes (< 30 s) des fonctionnalités → `supports/videos/` (voir « Refaire les vidéos ») |
 | `build_slides.py` | slides de synthèse → `supports/presentations/WizardQA-synthese.pptx` (python-pptx) ; `--preparer-gabarit <source>` réécrit `gabarit-demo.pptx` |
 | `slides/pictos.mjs` | icônes du design system Prisme → `slides/pictos/*.png` (vert et gris) |
 | `slides/chiffres.mjs` | chiffres du jeu de démo lus par l'API → `slides/chiffres-demo.json` |
@@ -63,6 +64,37 @@ python tools/supports/annoter.py "$TMPDIR/wizard-qa-supports/boites.json"
 
 `docs/captures-annotees/reperes.json` donne pour chaque capture : `fichier`, `brute`, `titre`, `sousTitre`, `page` et
 `reperes: [{ n, x, y, w, h, titre, texte }]` en pixels de la capture brute 1440×900 (réutilisable par les slides).
+
+## Refaire les vidéos
+
+Une vidéo MP4 par fonctionnalité (ordre du parcours), 1440×900, H.264 sans son, moins de 30 s et au plus 4 Mo.
+Prérequis : ceux des GIF, plus ffmpeg (variable `FFMPEG`, sinon le binaire du paquet Python `imageio-ffmpeg`,
+sinon `ffmpeg` du PATH). Serveur isolé lancé comme pour les GIF (`WIZARD_INSTALL_DRY=1` : installations simulées).
+
+```bash
+SUPPORTS_BASE_URL=http://127.0.0.1:4001 node tools/supports/videos/enregistrer-videos.mjs "$TMPDIR/videos-captures" supports/videos        # toutes
+SUPPORTS_BASE_URL=http://127.0.0.1:4001 node tools/supports/videos/enregistrer-videos.mjs "$TMPDIR/videos-captures" supports/videos 05 07  # préfixes
+```
+
+| Fichier | Rôle |
+|---|---|
+| `videos/enregistrer-videos.mjs` | les 21 scénarios vidéo : ceux des GIF repris tels quels, plus l'exploration autonome en direct, la prise de main, le rejeu et la validation, l'export Word, les réglages, Mon projet, `.npmrc`, Hook Git, Sync Xray |
+| `videos/encoder-video.py` | captures → MP4 : bandeau de légende (pastille rouge de l'étape), images identiques fusionnées, pauses plafonnées, vitesse relevée si la durée dépasse 27 s, `libx264 -pix_fmt yuv420p -crf 26 -preset slow -movflags +faststart -r 30`, crf relevé si > 4 Mo |
+
+- Capture : flux d'écran du navigateur à 15 images/s au plus, page de 1440×846 + bandeau de 54 px.
+- Les attentes longues (ouverture du navigateur exploré, rejeu) sont coupées : la capture est suspendue.
+- Chaque scénario recharge la démo et arrête les sessions d'exploration encore actives.
+- La prise de main clique sur la capture : la position de l'élément est calculée dans une page annexe à la taille du
+  navigateur exploré (1280×800), puis ramenée à la capture affichée.
+
+### Annotations rouges des étapes (vidéos et GIF)
+
+`annoter()` (dans `gifs/enregistreur.mjs`) injecte une couche DOM fixe au-dessus de la page (`pointer-events: none`),
+posée sur la boîte réelle de l'élément : cadre arrondi rouge `#C62828` épais avec une lueur, pastille numérotée et
+étiquette « Étape n — ce qui est fait ». Elle apparaît en fondu, reste pendant l'action puis s'efface (`effacer()`) :
+elle est dans les images, jamais dans l'application. `cliquer()` et `taper()` annotent chaque action (option `etape`,
+sinon « Cliquer sur « libellé » » / « Saisir « texte » » ; `etape: false` pour ne rien annoter), `marquer()` annote
+une zone sans action. La numérotation est continue dans un enregistrement et la légende du bas reprend l'étape courante.
 
 ## Refaire les schémas
 

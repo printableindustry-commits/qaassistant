@@ -7,6 +7,7 @@ import { createWriteStream } from 'fs'
 import { pipeline } from 'stream/promises'
 import { REPO_ROOT, SERVER_CONF_DIR } from './paths.mjs'
 import { loadNpmInstallConfig } from './npm-install-config.mjs'
+import { demoPoste, DEMO_MARK } from './demo/poste.mjs'
 
 function expandEnvPath(p) {
   let s = String(p || '')
@@ -140,6 +141,9 @@ function findVoltaExe(voltaHome) {
 /** État Node/Volta lu sur disque (aucun processus lancé) — pour les tableaux de bord fréquents. */
 export function checkVoltaNodeLight() {
   const rt = getRuntimeConfig()
+  if (demoPoste()) {
+    return { nodeInstalled: true, nodeVersion: rt.targetNodeVersion, packageJsonExists: fs.existsSync(getPackageJsonPath()), demo: true }
+  }
   const imageVersions = listVersionDirs(voltaNodeImageDir(rt))
   const inventoryVersions = listVersionDirs(voltaNodeInventoryDir(rt))
   const versions = imageVersions.length ? imageVersions : inventoryVersions
@@ -150,8 +154,37 @@ export function checkVoltaNodeLight() {
   }
 }
 
+/** État simulé (◇ démonstration) : Node et npm « installés » dans Volta, sans lancer node -v ni npm -v. */
+function demoNpmRuntime(rt) {
+  const inventoryRoot = voltaNodeInventoryDir(rt)
+  const imageRoot = voltaNodeImageDir(rt)
+  return {
+    ok: true,
+    demo: true,
+    demoLabel: DEMO_MARK,
+    voltaHome: rt.voltaHome,
+    inventoryPath: inventoryRoot,
+    imagePath: imageRoot,
+    inventoryVersions: [rt.targetNodeVersion],
+    imageVersions: [rt.targetNodeVersion],
+    nodePresent: true,
+    nodeVersion: rt.targetNodeVersion,
+    npmPresent: true,
+    npmVersion: rt.targetNpmVersion,
+    targetNodeVersion: rt.targetNodeVersion,
+    targetNpmVersion: rt.targetNpmVersion,
+    nodeInVoltaInventory: true,
+    nodeInVoltaImage: true,
+    nodeNeedsUpdate: false,
+    npmNeedsUpdate: false,
+    packageJsonExists: fs.existsSync(getPackageJsonPath()),
+    voltaExe: path.join(rt.voltaHome, 'volta.exe'),
+  }
+}
+
 export function checkNpmRuntime({ withNpm = true } = {}) {
   const rt = getRuntimeConfig()
+  if (demoPoste()) return demoNpmRuntime(rt)
   const inventoryRoot = voltaNodeInventoryDir(rt)
   const imageRoot = voltaNodeImageDir(rt)
   const inventoryVersions = listVersionDirs(inventoryRoot)
@@ -211,6 +244,12 @@ function fetchJson(url) {
 
 export async function listNodeDistVersions() {
   const rt = getRuntimeConfig()
+  if (demoPoste()) {
+    // Démonstration : liste figée (pas d'appel à nodejs.org), la version cible en tête.
+    const list = [rt.targetNodeVersion, '24.11.1', '22.21.0', '22.12.0', '20.19.5'].filter((v, i, a) => a.indexOf(v) === i)
+    const versions = list.map((ver) => ({ version: ver, lts: true, zip: `node-v${ver}-win-x64.zip`, url: `${rt.nodeDistBaseUrl}/v${ver}/node-v${ver}-win-x64.zip` }))
+    return { ok: true, versions, nodeMajorMin: rt.nodeMajorMin, nodeMajorMax: rt.nodeMajorMax, demo: true }
+  }
   const index = await fetchJson(`${rt.nodeDistBaseUrl}/index.json`)
   const versions = []
   for (const entry of index) {

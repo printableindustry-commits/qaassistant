@@ -20,9 +20,14 @@ function masque() {
     [/C:\\Users\\[^\\\s]+\\AppData\\Local\\wizard-qa/g, 'D:\\QA\\outils'],
     [/C:\\Users\\[^\\\s]+/g, 'D:\\QA'],
     [/^\s*null\s*$/, ''], [/(^|\s)[A-Za-z0-9-]+ \((Windows_NT)/, '$1POSTE-QA-01 ($2'],
-    [/\bEclipse\b/g, 'POSTE-QA-01']]
+    [/\bEclipse\b/g, 'POSTE-QA-01'], [/[a-z0-9-]+\.ca-technologies\.fr/gi, 'proxy.banque-horizon.example'],
+    [/ca-technologies\.fr/gi, 'banque-horizon.example'], [/\bZGIE\b/g, 'HORIZON']]
   const fix = (n) => { let v = n.nodeValue; const o = v; for (const [a, b] of R) v = v.replace(a, b); if (v !== o) n.nodeValue = v }
-  const walk = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) fix(n) }
+  const fixPh = (e) => { let v = e.getAttribute('placeholder'); const o = v; for (const [a, b] of R) v = v.replace(a, b); if (v !== o) e.setAttribute('placeholder', v) }
+  const walk = (root) => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) fix(n)
+    if (root.querySelectorAll) root.querySelectorAll('[placeholder]').forEach(fixPh)
+  }
   const go = () => {
     walk(document.body)
     new MutationObserver((ms) => { for (const m of ms) {
@@ -33,9 +38,9 @@ function masque() {
   if (document.body) go(); else document.addEventListener('DOMContentLoaded', go)
 }
 
-export async function ouvrirNavigateur({ connecte = true } = {}) {
+export async function ouvrirNavigateur({ connecte = true, largeur = 1440, hauteur = 900 } = {}) {
   const browser = await chromium.launch({ channel: 'msedge', headless: true })
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, locale: 'fr-FR' })
+  const context = await browser.newContext({ viewport: { width: largeur, height: hauteur }, deviceScaleFactor: 1, locale: 'fr-FR', acceptDownloads: true })
   await context.addInitScript(masque)
   if (connecte) {
     const r = await context.request.post(`${BASE}/api/auth/login`, {
@@ -46,11 +51,16 @@ export async function ouvrirNavigateur({ connecte = true } = {}) {
   return { browser, context, page }
 }
 
+// Enregistreur en cours : numérote les étapes annotées (numérotation continue dans un enregistrement).
+let ACTIF = null
+
 // Capture par le flux d'écran du navigateur (CDP Page.startScreencast) : une image à chaque changement
 // d'affichage, ramenée à « ips » images par seconde au plus (la dernière image avant un temps calme est gardée).
+// largeur / hauteur : taille maximale des images du flux (960×600 pour les GIF, taille de la page pour les vidéos).
 export class Enregistreur {
-  constructor(page, dossier, { ips = 7, qualite = 90 } = {}) {
+  constructor(page, dossier, { ips = 7, qualite = 90, largeur = 960, hauteur = 600 } = {}) {
     this.page = page; this.dossier = dossier; this.periode = 1000 / ips; this.qualite = qualite
+    this.largeur = largeur; this.hauteur = hauteur; this.etapes = 0
     this.images = []; this.legende = ''; this.actif = false; this.attente = null
     fs.rmSync(dossier, { recursive: true, force: true }); fs.mkdirSync(dossier, { recursive: true })
   }
@@ -63,7 +73,7 @@ export class Enregistreur {
   }
   async demarrer(legende) {
     if (legende) this.legende = legende
-    this.actif = true; this.t0 = Date.now(); this.dernier = -1e9
+    this.actif = true; this.t0 = Date.now(); this.dernier = -1e9; ACTIF = this
     this.cdp = await this.page.context().newCDPSession(this.page)
     this.cdp.on('Page.screencastFrame', async (ev) => {
       this.cdp.send('Page.screencastFrameAck', { sessionId: ev.sessionId }).catch(() => {})
@@ -77,7 +87,7 @@ export class Enregistreur {
       }
     })
     this.ignorerJusqua = Date.now() + 250
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: this.qualite, maxWidth: 960, maxHeight: 600, everyNthFrame: 1 })
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: this.qualite, maxWidth: this.largeur, maxHeight: this.hauteur, everyNthFrame: 1 })
     await sleep(300)
     this.t0 = Date.now()
     // force une image fraîche (changement invisible d'un pixel)
@@ -105,7 +115,7 @@ export class Enregistreur {
     await sleep(attenteFinale)
     clearInterval(this.veille); clearTimeout(this.minuteur)
     if (this.attente) { this.ecrire(this.attente); this.attente = null }
-    this.actif = false
+    this.actif = false; if (ACTIF === this) ACTIF = null
     await this.cdp?.send('Page.stopScreencast').catch(() => {})
     const fin = Date.now() - (this.t0 || Date.now())
     fs.writeFileSync(path.join(this.dossier, 'manifest.json'), JSON.stringify({ fin, images: this.images }, null, 1))
@@ -134,7 +144,9 @@ async function centre(page, loc) {
   return { x: b.x + Math.min(b.width / 2, 60), y: b.y + b.height / 2 }
 }
 
-export async function survoler(page, loc, pause = 500) {
+export async function survoler(page, loc, pause = 500, { etape = null } = {}) {
+  if (typeof loc === 'string') loc = page.locator(loc).filter({ visible: true }).first()
+  if (etape) await annoter(page, loc, etape)
   await curseur(page)
   const p = await centre(page, loc)
   await page.evaluate(([x, y]) => window.__gifPos && window.__gifPos(x, y), [p.x, p.y])
@@ -144,12 +156,16 @@ export async function survoler(page, loc, pause = 500) {
 }
 
 // rec : si fourni, la capture est suspendue pendant un éventuel écran de chargement après le clic.
-export async function cliquer(page, loc, { pause = 700, avant = 450, rec = null } = {}) {
+// etape : texte de l'annotation rouge (« Étape n — … ») ; par défaut « Cliquer sur « libellé » » ; false : aucune.
+// garder : l'annotation reste affichée après le clic (effacée par l'étape suivante ou effacer()).
+export async function cliquer(page, loc, { pause = 700, avant = 450, rec = null, etape = null, garder = false } = {}) {
   if (typeof loc === 'string') loc = page.locator(loc).first()
+  const annote = etape !== false && await annoter(page, loc, etape || `Cliquer sur « ${await libelle(loc)} »`)
   await survoler(page, loc, avant)
   await page.evaluate(() => window.__gifClic && window.__gifClic()).catch(() => {})
   await loc.click()
   await sleep(120)
+  if (annote && !garder) { await sleep(280); await effacer(page) }
   const charge = rec && await page.evaluate(() => [...document.querySelectorAll('.p-page > .p-empty .p-spinner')].some((e) => e.offsetParent)).catch(() => false)
   if (charge) rec.suspendre()
   await pretes(page)
@@ -161,12 +177,26 @@ export async function cliquer(page, loc, { pause = 700, avant = 450, rec = null 
 export const pretes = (page, ms = 12000) => page.waitForFunction(
   () => ![...document.querySelectorAll('.p-page > .p-empty .p-spinner, .p-strip .p-spinner')].some((e) => e.offsetParent), null, { timeout: ms }).catch(() => {})
 
-export async function taper(page, loc, texte, { delai = 70, pause = 500, vider = true } = {}) {
+// etape : texte de l'annotation rouge, visible pendant toute la frappe (par défaut « Saisir « texte » »).
+export async function taper(page, loc, texte, { delai = 70, pause = 500, vider = true, etape = null, masquer = false } = {}) {
   if (typeof loc === 'string') loc = page.locator(loc).first()
-  await cliquer(page, loc, { pause: 200 })
+  const annote = etape !== false && await annoter(page, loc, etape || (masquer ? 'Saisir le mot de passe' : `Saisir « ${court(texte, 38)} »`))
+  await cliquer(page, loc, { pause: 200, etape: false })
   if (vider) await loc.fill('')
   await loc.pressSequentially(texte, { delay: delai })
   await sleep(pause)
+  if (annote) await effacer(page)
+}
+
+const court = (t, n = 42) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1).trim() + '…' : t }
+
+// Libellé visible d'un élément (première ligne du texte, aria-label, placeholder ou valeur).
+async function libelle(loc) {
+  const t = await loc.evaluate((e) => {
+    const l = (e.getAttribute('aria-label') || e.innerText || e.value || e.placeholder || e.title || '')
+    return l.split('\n').map((s) => s.trim()).filter(Boolean)[0] || ''
+  }).catch(() => '')
+  return court(t, 40) || 'l’élément'
 }
 
 export async function defiler(page, dy, { pas = 12, ms = 40, selecteur = null } = {}) {
@@ -201,38 +231,77 @@ export const parTexte = (page, texte, sel = 'button, a, [role=tab], .p-tab, .p-s
   return page.locator(sel).filter({ hasText: motif }).filter({ visible: true }).first()
 }
 
-// --- Mise en évidence --------------------------------------------------------------------------
-// Halo + étiquette dans le style de la visite guidée (sans la barre de visite), sur un sélecteur ou un locator.
-export async function marquer(page, cible, titre, texte = '') {
-  const loc = typeof cible === 'string' ? page.locator(cible).filter({ visible: true }).first() : cible
-  await loc.scrollIntoViewIfNeeded().catch(() => {})
-  const b = await loc.boundingBox()
-  if (!b) return false
-  await page.evaluate(([b, titre, texte]) => {
-    document.getElementById('gif-halo')?.remove(); document.getElementById('gif-etiq')?.remove()
-    const m = 6
-    const h = document.createElement('div'); h.id = 'gif-halo'
-    h.style.cssText = `position:fixed;left:${b.x - m}px;top:${b.y - m}px;width:${b.width + 2 * m}px;height:${b.height + 2 * m}px;` +
-      'border:3px solid #0f7a5a;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,32,.38),0 0 18px 4px rgba(15,122,90,.55);' +
-      'z-index:2147483600;pointer-events:none;transition:all .35s ease'
-    document.documentElement.appendChild(h)
-    if (titre) {
-      const e = document.createElement('div'); e.id = 'gif-etiq'
-      e.style.cssText = 'position:fixed;z-index:2147483601;pointer-events:none;max-width:380px;background:#fff;border-radius:10px;' +
-        'box-shadow:0 8px 28px rgba(0,0,0,.25);padding:12px 16px;font:14px/1.4 "Segoe UI",system-ui,sans-serif;color:#1d2733;border-left:5px solid #0f7a5a'
-      e.innerHTML = `<div style="font-weight:700;font-size:15px;margin-bottom:3px">${titre}</div>${texte ? `<div>${texte}</div>` : ''}`
-      document.documentElement.appendChild(e)
-      const W = innerWidth, H = innerHeight, r = e.getBoundingClientRect()
-      let x = b.x, y = b.y + b.height + 16
-      if (y + r.height > H - 10) y = b.y - r.height - 16
-      if (y < 10) { y = Math.min(H - r.height - 10, b.y + 16); x = b.x + b.width + 16 }
-      x = Math.max(10, Math.min(x, W - r.width - 10))
-      e.style.left = x + 'px'; e.style.top = y + 'px'
-    }
-  }, [b, titre, texte])
-  return true
+// --- Annotations rouges des étapes ---------------------------------------------------------------
+// Couche DOM fixe au-dessus de la page (pointer-events: none) posée sur la boîte réelle de l'élément :
+// cadre arrondi rouge épais avec lueur, pastille numérotée et étiquette « Étape n — ce qui est fait ».
+// Elle apparaît en fondu, reste pendant l'action puis s'efface : elle est dans les images, pas dans l'application.
+// La numérotation est continue dans un enregistrement ; la légende du bas reprend l'étape courante.
+export const ROUGE = '#C62828'
+
+// cible : sélecteur, locator ou boîte { x, y, width, height }.
+export async function annoter(page, cible, texte, { detail = '', rec = ACTIF } = {}) {
+  if (!rec || !rec.actif || rec.suspendu) return 0
+  let b = null
+  if (typeof cible?.x === 'number' && typeof cible?.width === 'number') b = cible  // boîte déjà calculée (pixels de la page)
+  else {
+    const loc = typeof cible === 'string' ? page.locator(cible).filter({ visible: true }).first() : cible
+    await loc.scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {})
+    b = await loc.boundingBox({ timeout: 3000 }).catch(() => null)
+  }
+  if (!b) return 0
+  const n = ++rec.etapes
+  rec.legender(`Étape ${n} — ${texte}`)
+  await page.evaluate(([b, n, texte, detail, rouge]) => {
+    document.getElementById('ann-couche')?.remove()
+    const W = innerWidth, H = innerHeight, m = 6
+    const x = Math.max(4, b.x - m), y = Math.max(4, b.y - m)
+    const w = Math.min(W - 4, b.x + b.width + m) - x, h = Math.min(H - 4, b.y + b.height + m) - y
+    const c = document.createElement('div'); c.id = 'ann-couche'
+    c.style.cssText = 'position:fixed;inset:0;z-index:2147483600;pointer-events:none;opacity:0;transition:opacity .25s ease'
+    const cadre = document.createElement('div')
+    cadre.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;border:4px solid ${rouge};border-radius:12px;` +
+      'box-sizing:border-box;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 16px 5px rgba(198,40,40,.42),inset 0 0 0 1px rgba(255,255,255,.6);' +
+      'transform:scale(1.05);transition:transform .3s ease'
+    const p = document.createElement('div')
+    const px = Math.min(W - 22, Math.max(22, x)), py = Math.min(H - 22, Math.max(22, y))
+    p.style.cssText = `position:absolute;left:${px - 18}px;top:${py - 18}px;width:36px;height:36px;border-radius:50%;background:${rouge};` +
+      'border:3px solid #fff;box-sizing:border-box;color:#fff;font:700 17px/30px "Segoe UI",system-ui,sans-serif;text-align:center;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,.35)'
+    p.textContent = String(n)
+    const e = document.createElement('div')
+    e.style.cssText = `position:absolute;max-width:420px;background:#fff;border:2px solid ${rouge};border-radius:10px;padding:8px 13px;` +
+      'font:600 15px/1.35 "Segoe UI",system-ui,sans-serif;color:#1d2733;box-shadow:0 6px 22px rgba(0,0,0,.28)'
+    e.innerHTML = `<span style="color:${rouge};font-weight:800">Étape ${n}</span> — ${texte.replace(/</g, '&lt;')}` +
+      (detail ? `<div style="font-weight:400;font-size:13.5px;color:#4a5560;margin-top:3px">${detail.replace(/</g, '&lt;')}</div>` : '')
+    c.append(cadre, p, e)
+    document.documentElement.appendChild(c)
+    // étiquette : à droite du cadre, sinon dessous, sinon dessus, sinon à l'intérieur (haut)
+    const r = e.getBoundingClientRect(), g = 14
+    let ex, ey
+    if (x + w + g + r.width < W - 8 && w < W * 0.6) { ex = x + w + g; ey = Math.max(8, Math.min(y, H - r.height - 8)) }
+    else if (y + h + g + r.height < H - 8) { ex = x; ey = y + h + g }
+    else if (y - g - r.height > 8) { ex = x; ey = y - g - r.height }
+    else { ex = x + 24; ey = y + 24 }
+    e.style.left = Math.max(8, Math.min(ex, W - r.width - 8)) + 'px'; e.style.top = ey + 'px'
+    requestAnimationFrame(() => { c.style.opacity = '1'; cadre.style.transform = 'scale(1)' })
+  }, [b, n, texte, detail, ROUGE]).catch(() => {})
+  await sleep(380)
+  return n
 }
-export const effacer = (page) => page.evaluate(() => { document.getElementById('gif-halo')?.remove(); document.getElementById('gif-etiq')?.remove() }).catch(() => {})
+
+// Efface l'annotation en fondu (retirée du DOM ensuite).
+export async function effacer(page) {
+  const vu = await page.evaluate(() => {
+    const c = document.getElementById('ann-couche'); if (!c) return false
+    c.id = ''; c.style.opacity = '0'; setTimeout(() => c.remove(), 320); return true
+  }).catch(() => false)
+  if (vu) await sleep(330)
+}
+
+// Mise en évidence d'une zone (sans action) : même annotation rouge, avec une phrase d'explication.
+export async function marquer(page, cible, titre, texte = '') {
+  return (await annoter(page, cible, titre, { detail: texte })) > 0
+}
 
 // Étape de la visite guidée (halo, étiquette et barre de la visite), lancée sur la page courante puis refermée.
 export async function visite(page, id, ms = 3500) {

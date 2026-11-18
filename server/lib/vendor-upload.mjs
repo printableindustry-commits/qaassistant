@@ -7,6 +7,7 @@ import { spawnSync } from 'child_process'
 import { pipeline } from 'stream/promises'
 import { fileURLToPath } from 'url'
 import { REPAIR_DIR } from './paths.mjs'
+import { demoPoste } from './demo/poste.mjs'
 
 const LIB_DIR = path.dirname(fileURLToPath(import.meta.url))
 const VENDOR = path.join(REPAIR_DIR, 'vendor')
@@ -50,6 +51,16 @@ export function getVendorUrls(versions = {}) {
 
 export function getVendorStatus(versions = {}) {
   const urls = getVendorUrls(versions)
+  if (demoPoste()) {
+    // Démonstration : paquet portable simulé « présent » (◇), aucun fichier vendor lu ni exécuté.
+    return {
+      demo: true,
+      node: { ...urls.node, ok: true, path: urls.node.check, zipPresent: true },
+      npm: { ...urls.npm, ok: true, version: String(versions.npm || '10.9.0'), path: urls.npm.check },
+      cypress: { ...urls.cypress, ok: true, path: urls.cypress.check, marker: urls.cypress.marker },
+      nodeModules: { ...urls.nodeModules, ok: true, sizeMb: 186 },
+    }
+  }
   let npmVersion = null
   let npmOk = fs.existsSync(urls.npm.check)
   if (npmOk) {

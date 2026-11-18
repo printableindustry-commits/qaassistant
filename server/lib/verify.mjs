@@ -9,6 +9,7 @@ import { getHookInstallStatus } from './install-hook.mjs'
 import { DOC_REPORTS_DIR, DOC_QA_DIR, HOOK_DIR, PATH_CFG, REPAIR_DIR } from './paths.mjs'
 import { getPageDefaults } from './wizard-defaults.mjs'
 import { getProjectProfile } from './project-profile.mjs'
+import { demoPoste, DEMO_MARK } from './demo/poste.mjs'
 
 export function verifyPage(page, body = {}) {
   if (page === 'npmrc') return verifyNpmrc(body.fields)
@@ -29,7 +30,9 @@ function verifyNpmrc(fields) {
   add('Token auth', !!f.authToken, f.authToken ? 'Token renseigné' : 'Token manquant')
   add('Email', !!f.email, f.email || 'Email recommandé pour npm')
 
-  if (f.registry) {
+  if (f.registry && disk.demo) {
+    add('Accès registry (npm ping)', true, `Registre fictif non contacté ${DEMO_MARK}`, true)
+  } else if (f.registry) {
     const ping = tryNpmPing(f.registry)
     add('Accès registry (npm ping)', ping, ping ? 'Registry joignable' : 'Offline ou proxy requis — normal sur poste CATS', true)
   }
@@ -86,6 +89,17 @@ function verifyRepair(cfg) {
 export function verifyHook() {
   const checks = []
   const add = (name, ok, msg, optional = false) => checks.push({ name, ok, message: msg, optional })
+
+  if (demoPoste()?.hook) {
+    // Démonstration : Hook Git simulé « installé et vérifié », sans dépôt git ni .env réels.
+    add('Dépôt git', true, `Dépôt de démonstration ${DEMO_MARK}`)
+    add('Hook post-commit', true, `Installé et valide ${DEMO_MARK}`)
+    add('hooks.conf', true, `OK ${DEMO_MARK}`)
+    add('Fichier .env', true, `OK ${DEMO_MARK}`)
+    add('JIRA_TOKEN', true, `Renseigné (fictif) ${DEMO_MARK}`, true)
+    add('XRAY credentials', true, `Client ID + secret fictifs ${DEMO_MARK}`, true)
+    return { ok: true, checks, demo: true }
+  }
 
   const install = getHookInstallStatus(HOOK_DIR)
   add('Dépôt git', !!install.repoRoot, install.repoRoot || 'Pas un dépôt git')

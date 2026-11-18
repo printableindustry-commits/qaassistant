@@ -11,6 +11,7 @@ import {
 } from './stack-install-config.mjs'
 import { runK6Scaffold, resolveK6Paths } from './k6-scaffold.mjs'
 import { installK6Portable } from './k6-portable.mjs'
+import { demoPoste, DEMO_MARK } from './demo/poste.mjs'
 
 function checkNpmPrereqs() {
   const npmrc = readNpmrc()
@@ -142,7 +143,7 @@ export function getK6InstallStateSync() {
   const init = loadK6InitConfig()
   const paths = resolveK6Paths(init)
   const smokePath = path.join(REPO_ROOT, paths.smokeScript)
-  const scaffoldReady = fs.existsSync(smokePath)
+  const scaffoldReady = fs.existsSync(smokePath) || Boolean(demoPoste())
   return {
     scaffoldReady,
     installed: scaffoldReady,
@@ -154,9 +155,10 @@ export function getK6InstallStateSync() {
 
 export async function checkK6Runtime() {
   const init = loadK6InitConfig()
-  const paths = resolveK6Paths(init)
-  const smokePath = path.join(REPO_ROOT, paths.smokeScript)
-  const k6Info = await probeK6(process.env)
+  const demo = demoPoste()
+  const k6Info = demo
+    ? { k6Present: true, k6Version: `${demo.k6?.version || 'v1.3.0'} ${DEMO_MARK}` }
+    : await probeK6(process.env)
   const sync = getK6InstallStateSync()
   return {
     ...sync,

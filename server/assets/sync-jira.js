@@ -341,7 +341,23 @@
 
   async function init() {
     bindUi()
-    await checkHookReadiness()
+    const readiness = await checkHookReadiness()
+    // Dernière analyse connue (fournie en démonstration) : affichée sans relancer le script.
+    const last = readiness?.lastAnalyze
+    if (last?.output && !state.lastAnalyze) {
+      state.lastAnalyze = last
+      state.lastAnalyzeOutput = last.output
+      const consoleEl = $('analyzeConsole')
+      if (consoleEl) consoleEl.textContent = last.output
+      setConsoleHint('analyzeHint', last.ok ? 'OK' : 'Écarts', false)
+    }
+    const lastSync = readiness?.lastSync
+    if (lastSync?.output && !state.lastSyncOutput) {
+      state.lastSyncOutput = lastSync.output
+      const syncEl = $('syncLocalConsole')
+      if (syncEl) syncEl.textContent = lastSync.output
+      setConsoleHint('syncLocalHint', 'Terminé', false)
+    }
     await refreshBadges()
     Portail.applyEmbedLinks()
   }

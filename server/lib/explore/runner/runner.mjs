@@ -309,6 +309,7 @@ async function cmdGoto({ url }) {
 }
 
 async function cmdSnapshot({ screenshot = true, limit } = {}) {
+  await clearAnnotations()
   await ensureInjected()
   const snap = await state.page.evaluate((lim) => window.__wqa.snapshot({ limit: lim }), Number(limit) || 150)
   const page = state.page
@@ -325,7 +326,7 @@ async function cmdSnapshot({ screenshot = true, limit } = {}) {
     }))
     elements.push(...verified)
   }
-  const out = { ok: true, url: snap.url, title: snap.title, viewport: snap.viewport, scroll: snap.scroll, text: snap.text, truncated: snap.truncated, elements }
+  const out = { ok: true, url: snap.url, title: snap.title, viewport: snap.viewport, scroll: snap.scroll, text: snap.text, lines: snap.lines || [], truncated: snap.truncated, elements }
   if (screenshot) {
     const s = await capture().catch(() => null)
     if (s) {
@@ -438,6 +439,7 @@ async function poll(fn, timeout) {
 const normSpace = (s) => String(s ?? '').replace(/\s+/g, ' ').trim()
 
 async function cmdExpect(args) {
+  await clearAnnotations()
   const kind = args.kind
   const timeout = Math.min(Number(args.timeoutMs) || ACTION_TIMEOUT, 15000)
   let expected = ''
@@ -568,6 +570,7 @@ async function onRecorderEvent(payload) {
 }
 
 async function cmdStartRecording() {
+  await clearAnnotations()
   state.recording = true
   state.events = []
   state.pendingFill = null
@@ -644,6 +647,62 @@ async function cmdScreenshot() {
   return { ok: true, screenshot: s.dataUrl, size: s.size, scale: s.scale, url: state.page.url() }
 }
 
+// ---------- Annotations (cadre rouge + légende sur l'élément visé, visibles dans les captures) ----------
+const ANNOT_ATTR = 'data-wqa-annot'
+
+async function clearAnnotations() {
+  await state.page.evaluate((attr) => { for (const n of document.querySelectorAll('[' + attr + ']')) n.remove() }, ANNOT_ATTR).catch(() => {})
+}
+
+/** Entoure en rouge l'élément visé (ref, sélecteur ou texte), affiche la légende, puis diffuse une capture. */
+async function cmdAnnotate({ ref, selector, text, label }) {
+  await clearAnnotations()
+  let loc = null
+  if (ref && /^e\d+$/.test(String(ref))) loc = state.page.locator(`[data-wqa-ref="${ref}"]`)
+  else if (selector) loc = locatorFor(state.page, selector)
+  else if (text) loc = state.page.getByText(String(text).slice(0, 200)).first()
+  let box = null
+  if (loc) {
+    try {
+      await loc.first().scrollIntoViewIfNeeded({ timeout: 1500 })
+      box = await loc.first().boundingBox({ timeout: 1500 })
+    } catch { box = null }
+  }
+  await state.page.evaluate(({ attr, box, label }) => {
+    const mk = (css) => {
+      const d = document.createElement('div')
+      d.setAttribute(attr, '1')
+      d.setAttribute('data-wqa-ui', '1')
+      d.setAttribute('aria-hidden', 'true')
+      d.style.cssText = 'position:fixed;z-index:2147483646;pointer-events:none;' + css
+      document.documentElement.appendChild(d)
+      return d
+    }
+    const lab = String(label || '').slice(0, 160)
+    if (box) {
+      const pad = 4
+      mk(`left:${box.x - pad}px;top:${box.y - pad}px;width:${box.width + 2 * pad}px;height:${box.height + 2 * pad}px;` +
+        'border:3px solid #D92D20;border-radius:6px;box-shadow:0 0 0 3px rgba(217,45,32,.25)')
+      if (lab) {
+        const t = mk('max-width:460px;background:#D92D20;color:#fff;font:600 13px/1.3 system-ui,sans-serif;padding:4px 8px;border-radius:6px;white-space:normal')
+        t.textContent = lab
+        const above = box.y > 34
+        t.style.left = Math.max(4, Math.min(box.x - 4, window.innerWidth - 470)) + 'px'
+        t.style.top = (above ? box.y - 34 : box.y + box.height + 10) + 'px'
+      }
+    } else if (lab) {
+      const t = mk('right:12px;top:12px;max-width:460px;background:#D92D20;color:#fff;font:600 13px/1.3 system-ui,sans-serif;padding:6px 10px;border-radius:6px')
+      t.textContent = lab
+    }
+  }, { attr: ANNOT_ATTR, box, label }).catch(() => {})
+  const s = await capture().catch(() => null)
+  if (s) {
+    state.shot.lastHash = s.hash
+    emit('screenshot', { dataUrl: s.dataUrl, size: s.size, scale: s.scale, url: state.page.url() })
+  }
+  return { ok: true, found: Boolean(box) }
+}
+
 function cmdSecrets({ secrets }) {
   for (const [k, v] of Object.entries(secrets || {})) {
     const key = String(k).replace(/^\{\{|\}\}$/g, '')
@@ -666,6 +725,8 @@ const HANDLERS = {
   typeText: cmdTypeText,
   pressKey: cmdPressKey,
   screenshot: cmdScreenshot,
+  annotate: cmdAnnotate,
+  clearAnnotations: async () => { await clearAnnotations(); return { ok: true } },
   secrets: cmdSecrets,
   ping: async () => ({ ok: true, pid: process.pid }),
   close: async () => { setTimeout(() => shutdown(0), 10); return { ok: true } },

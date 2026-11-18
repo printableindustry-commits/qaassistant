@@ -371,6 +371,8 @@ export async function openBrowser(opts = {}) {
     typeText: (text) => call('typeText', { text: typeof text === 'object' && text ? text.text : text }, 60000),
     pressKey: (key) => call('pressKey', { key: typeof key === 'object' && key ? key.key : key }, 20000),
     screenshot: () => call('screenshot', {}, 20000),
+    annotate: (o = {}) => call('annotate', o, 15000),
+    clearAnnotations: () => call('clearAnnotations', {}, 5000),
     setSecrets: (s) => call('secrets', { secrets: s }, 5000),
     ping: () => call('ping', {}, 5000),
     exitInfo: () => exitInfo,
