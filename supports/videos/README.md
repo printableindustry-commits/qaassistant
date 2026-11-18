@@ -33,3 +33,13 @@ IRMA, personnes fictives). Chaque action est **entourée en rouge** : cadre arro
 Total : 21 vidéos, environ 20 Mo. Chaque vidéo dure moins de 30 s (13 à 29 s) et pèse au plus 2,1 Mo.
 Les données sont 100 % fictives ; rien n'est envoyé à JIRA ni à Xray, les installations sont simulées et le modèle
 Word de l'entreprise n'est jamais utilisé (export Word au format standard).
+
+## Version GIF (pour PowerPoint)
+
+Les 21 vidéos existent aussi en GIF dans [gif/](gif/), même nom de fichier (`gif/05-exploration-autonome.gif`…) :
+960 px de large, 10 images/s, lecture en boucle, environ 45 Mo en tout (1,3 à 4,5 Mo par GIF). Dans PowerPoint :
+**Insertion › Images › Cet appareil** ; le GIF s'anime en mode diaporama, sans réglage. Pour les refaire :
+
+```
+ffmpeg -i 05-exploration-autonome.mp4 -vf "fps=10,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" gif/05-exploration-autonome.gif
+```
