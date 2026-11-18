@@ -1,27 +1,41 @@
-# Wizard QA — visite guidée (autodémo encadrée)
+# Wizard QA — démo « Tout rejouer » et visite guidée
 
 Transposition web de l'autopilote PRISME. Les pages ne savent rien de la visite : elle navigue par l'URL de
-l'étape, clique au besoin un onglet ou un bouton, puis trouve la cible par sélecteur CSS ou par texte.
+l'étape, joue au besoin des actions (clic, saisie…), puis trouve la cible par sélecteur CSS ou par texte.
+Deux scripts, un seul moteur :
+
+- **Démo** (bouton **▶ Démo** de l'en-tête, palette Ctrl K « Démo : tout rejouer », `?demo=1`) : charge le jeu fictif
+  IRMA s'il ne l'est pas (`GET /api/demo/status`, sinon `POST /api/demo/load` ; si des récits réels sont présents,
+  confirmation d'abord), puis joue réellement l'application : scan par URL, tri d'un récit, génération et validation
+  Gherkin, exploration heuristique sur `/demo-app/` (sans fenêtre), rejeu, envoi Xray **simulé**, campagne **simulée**,
+  génération et relecture d'un livrable, run k6 **simulé**, assistant IA. 15 étapes, 53 actions, ≈ 4 min 30 à ×1.
+  Chaque action est annotée comme dans les vidéos : cadre rouge `#C62828` avec lueur, pastille numérotée,
+  étiquette « Étape n — ce qui est fait » qui suit l'élément, légende en bas. Script `server/conf/demo/demo-rejeu.json`.
+- **Visite guidée** commentée, sans action jouée (palette Ctrl K, `?visite=1`) : script `server/conf/demo/visite.json`.
+
+Garde-fous de la démo : seuls les boutons de simulation sont cliqués (« Simuler l'envoi », « Simuler »,
+« Lancer la simulation ») ; aucune saisie dans un champ mot de passe ; aucune déconnexion ; aucun téléchargement.
 
 | Fichier | Rôle |
 |---|---|
 | `server/assets/prisme/prisme-tour.js` | moteur (`Prisme.tour`) : voile, halo, étiquette, barre, horloge, clavier |
 | `server/assets/prisme/prisme.css` (section « visite guidée », préfixe `.p-tour-`) | styles |
-| `server/assets/prisme/prisme-shell.js` | bouton d'en-tête, entrée de palette, `?visite=`, reprise à chaque page |
-| `server/conf/demo/visite.json` | script de la visite (25 étapes, ≈ 7 min à ×1) |
-| `server/lib/demo/tour-routes.mjs` | `GET /api/demo/visite` |
+| `server/assets/prisme/prisme-shell.js` | bouton « Démo », entrées de palette, `?demo=` / `?visite=`, reprise à chaque page |
+| `server/conf/demo/demo-rejeu.json` | script de la démo (15 étapes, actions jouées) |
+| `server/conf/demo/visite.json` | script de la visite commentée (25 étapes, ≈ 7 min à ×1) |
+| `server/lib/demo/tour-routes.mjs` | `GET /api/demo/rejeu`, `GET /api/demo/visite` |
 
 La visite est faite pour les données de démonstration : chargez-les d'abord (voir `DEMO.md`). Sans elles, elle
 fonctionne quand même, mais certaines étapes retombent sur leur cible de repli.
 
 ## Comportement
 
-- **Départ** : bouton « ▶ Visite guidée » de l'en-tête, palette Ctrl K « Visite guidée (autodémo) », ou une URL
-  `?visite=1` sur n'importe quelle page. `?visite=<id>` part de l'étape `<id>` (ex. `/?visite=livrables-documents`).
+- **Départ** : bouton « ▶ Démo » de l'en-tête (`?demo=1`), ou palette Ctrl K « Visite guidée commentée » (`?visite=1`)
+  sur n'importe quelle page. `?demo=<id>` / `?visite=<id>` part de l'étape `<id>` (ex. `/?visite=livrables-documents`).
   Le paramètre est retiré de l'adresse une fois lu.
-- **Visite** : l'application passe seule de page en page ; l'élément à regarder est entouré d'un halo qui respire,
-  le reste de l'écran est voilé (découpe du voile), une étiquette numérotée (titre + une phrase) suit la cible
-  et reste toujours dans l'écran.
+- **Visite** : l'application passe seule de page en page ; l'élément à regarder est entouré du cadre rouge qui respire,
+  le reste de l'écran est légèrement voilé (découpe du voile), une pastille numérotée et l'étiquette « Étape n — … »
+  suivent la cible et restent toujours dans l'écran.
 - **Étape** : navigation vers `page` si besoin → actions facultatives (clic d'un onglet, d'un bouton, ouverture d'une
   fenêtre) → attente de la cible, 6 s au plus. Introuvable : l'étiquette s'affiche en haut de l'écran, sans halo
   (la console signale `[visite] cible absente`). L'horloge de l'étape ne démarre qu'une fois la cible trouvée.
@@ -67,13 +81,29 @@ Lu dans cet ordre : `WIZARD_DEMO_VISITE=<fichier>`, sinon `server/conf/demo/visi
 |---|---|
 | `id` | identifiant stable de l'étape (sert à `?visite=<id>`) |
 | `page` | URL de la page (`/recits.html`, `/automatisation.html?key=P0326-9301`, `/connaissance.html#scan`). Sans paramètre, toute URL de même chemin convient (on reste sur `?key=…`) ; avec paramètres, ils doivent correspondre ; une ancre seule est posée sans recharger |
-| `action` | facultatif : `{ "clic": "…" }` ou une liste, jouée une fois à l'entrée de l'étape. `clic` = sélecteur CSS, sinon texte d'un bouton, lien, onglet, étape de stepper ou ligne cliquable (le plus intérieur, dans l'ordre de lecture) ; `attente` = ms après le clic (450 par défaut) |
+| `action` | facultatif : une action ou une liste, jouée une fois à l'entrée de l'étape (voir ci-dessous) |
 | `cible` | sélecteur CSS du nœud à entourer ; `".a, .b"` = repli dans l'ordre (les virgules dans `:has(…)` ou `[…]` restent) ; absent = étiquette en haut de l'écran |
 | `texteCible` | texte que la cible doit contenir (sans casse) ; le candidat le plus intérieur est gardé. Sans `cible`, cherché parmi titres, cartes, indicateurs, boutons et liens |
 | `rang` | rang du candidat visible, dans l'ordre de lecture (0 = premier) |
 | `voile` | `false` pour ne pas voiler le reste de l'écran |
 | `secondes` | durée de l'étape à ×1 (2 à 300, 12 par défaut) |
 | `titre`, `texte` | étiquette : titre ≤ 24 caractères, une phrase sobre ≤ 90 caractères |
+
+Actions (chacune annotée en rouge avant d'être jouée ; une cible introuvable en 6 s est sautée, la console
+signale `[demo] sautée`, et la démo continue) :
+
+| Action | Sens |
+|---|---|
+| `{ "clic": "…" }` | sélecteur CSS, sinon texte d'un bouton, lien, onglet, étape de stepper ou ligne cliquable ; `dans` restreint la recherche par texte à un sélecteur (`".p-tab"`) |
+| `{ "saisie": { "cible": "…", "texte": "…", "entree": true } }` | champ par sélecteur, libellé, placeholder ou aria-label ; frappe visible ; jamais un champ mot de passe |
+| `{ "coche": { "cible": "…", "valeur": false } }` | case à cocher par sélecteur ou libellé |
+| `{ "attendre": "sélecteur", "max": 30000 }` | attend qu'un élément apparaisse (résultat d'un traitement), puis l'annote |
+| `{ "fermer": true }` | referme la fenêtre ouverte |
+| `{ "attente": 3000 }` | pause (ms à ×1) ; avec une autre action, pause après elle (600 par défaut) |
+
+Communs : `note` (texte de l'étiquette, sinon « Cliquer sur « … » »), `optionnel` (absent = sauté sans bruit après
+1,5 s), `max` (délai de recherche en ms, 6000 par défaut). `Prisme.tour.state().stats` compte les actions trouvées
+(`ok`) et sautées (`skip`, liste `sautees`).
 
 Les clés anglaises (`steps`, `screen`, `target`, `match`, `index`, `dim`, `seconds`, `title`, `text`, `click`, `wait`)
 sont acceptées.

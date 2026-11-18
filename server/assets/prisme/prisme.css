@@ -1078,71 +1078,101 @@ button.p-step:hover { background: var(--p-mint-2); }
 
 /* ------------------------------------------------------------------ visite guidée (prisme-tour.js) */
 
-html.p-tour-on .p-shell-main { padding-bottom: 64px; }
-html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 72px; }
+html.p-tour-on .p-shell-main { padding-bottom: 100px; }
+html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 110px; }
 .p-tour-ui { font-family: var(--p-font); }
 
-/* découpe du voile : le halo porte une ombre immense qui assombrit tout le reste de l'écran */
+/* annotation rouge des vidéos (tools/supports/gifs/enregistreur.mjs) : cadre arrondi #C62828 avec lueur,
+   pastille numérotée, étiquette « Étape n — … » ; le voile léger reste porté par l'ombre immense du cadre */
 .p-tour-hole {
   position: fixed;
   z-index: 9000;
   pointer-events: none;
-  border-radius: 10px;
+  border-radius: 12px;
   display: none;
-  box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52);
+  box-sizing: border-box;
+  box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.26);
   transition: left 0.35s ease, top 0.35s ease, width 0.35s ease, height 0.35s ease;
 }
 .p-tour-hole.is-on { display: block; }
-.p-tour-hole.is-on:not(.is-target) { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.32); }
+.p-tour-hole.is-on:not(.is-target) { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.2); }
 .p-tour-hole.no-veil { box-shadow: none; }
 .p-tour-hole.is-target {
-  outline: 3px solid #3FD39A;
-  outline-offset: 2px;
+  border: 4px solid #C62828;
   animation: p-tour-breathe 2.2s ease-in-out infinite;
 }
 .p-tour-hole.no-veil.is-target { animation-name: p-tour-breathe-light; }
 @keyframes p-tour-breathe {
-  0%, 100% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52), 0 0 0 3px rgba(63, 211, 154, 0.35), 0 0 18px 4px rgba(63, 211, 154, 0.45); }
-  50% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.52), 0 0 0 9px rgba(63, 211, 154, 0.18), 0 0 34px 12px rgba(63, 211, 154, 0.55); }
+  0%, 100% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.26), 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 16px 5px rgba(198, 40, 40, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+  50% { box-shadow: 0 0 0 200vmax rgba(10, 30, 23, 0.26), 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 26px 9px rgba(198, 40, 40, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
 }
 @keyframes p-tour-breathe-light {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(63, 211, 154, 0.35), 0 0 18px 4px rgba(63, 211, 154, 0.45); }
-  50% { box-shadow: 0 0 0 9px rgba(63, 211, 154, 0.18), 0 0 34px 12px rgba(63, 211, 154, 0.55); }
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 16px 5px rgba(198, 40, 40, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+  50% { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 26px 9px rgba(198, 40, 40, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
 }
+
+.p-tour-pin {
+  position: fixed;
+  z-index: 9001;
+  display: none;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #C62828;
+  color: #fff;
+  font: 700 17px/30px var(--p-font);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  transition: left 0.35s ease, top 0.35s ease;
+}
+.p-tour-pin.is-on { display: block; }
 
 .p-tour-label {
   position: fixed;
   z-index: 9002;
   display: none;
-  width: min(340px, calc(100vw - 24px));
-  padding: 12px 14px 13px;
-  border-radius: var(--p-radius);
-  background: var(--p-surface);
-  color: var(--p-text);
-  border: 1px solid var(--p-mint-line);
-  border-left: 4px solid var(--p-green-2);
-  box-shadow: var(--p-shadow-pop);
+  width: max-content;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 8px 13px;
+  border-radius: 10px;
+  background: #fff;
+  color: #1D2733;
+  border: 2px solid #C62828;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
   transition: left 0.35s ease, top 0.35s ease;
   pointer-events: none;
 }
 .p-tour-label.is-on { display: block; }
 .p-tour-label-head { display: flex; align-items: center; gap: 9px; }
-.p-tour-num {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--p-green);
-  color: #fff;
-  font-weight: 700;
-  font-size: 12px;
-}
-.p-tour-title { font-family: var(--p-font-display); font-weight: 650; font-size: 15px; line-height: 1.2; }
+.p-tour-title { font-weight: 600; font-size: 15px; line-height: 1.35; }
+.p-tour-stepno { color: #C62828; font-weight: 800; }
 .p-tour-pause { display: none; margin-left: auto; font-size: 11px; color: var(--p-amber-text); background: var(--p-amber-soft); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
 .p-tour-label.is-paused .p-tour-pause { display: inline-block; }
-.p-tour-text { margin-top: 6px; font-size: 13px; line-height: 1.45; color: var(--p-text-2); }
+.p-tour-text { margin-top: 3px; font-size: 13.5px; line-height: 1.4; color: #4A5560; }
+
+/* légende du bas : reprend l'étape en cours, juste au-dessus de la barre */
+.p-tour-caption {
+  position: fixed;
+  z-index: 9003;
+  left: 0;
+  right: 0;
+  bottom: 56px;
+  display: none;
+  padding: 7px 16px;
+  background: rgba(15, 18, 22, 0.86);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.p-tour-caption.is-on { display: block; }
 
 .p-tour-bar {
   position: fixed;
@@ -1225,11 +1255,12 @@ html.p-tour-on { scroll-padding-top: 76px; scroll-padding-bottom: 72px; }
   .p-tour-mid { order: 5; flex-basis: 100%; }
   .p-tour-actions { margin-left: auto; }
   .p-tour-stop, .p-tour-resume { height: 30px; padding: 0 10px; }
-  html.p-tour-on .p-shell-main { padding-bottom: 96px; }
+  html.p-tour-on .p-shell-main { padding-bottom: 132px; }
+  .p-tour-caption { bottom: 84px; font-size: 12.5px; }
   .p-tour-launch span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .p-tour-hole, .p-tour-label { transition: none; }
+  .p-tour-hole, .p-tour-label, .p-tour-pin { transition: none; }
   .p-tour-hole.is-target { animation: none; }
 }

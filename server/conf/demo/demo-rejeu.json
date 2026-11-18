@@ -1,0 +1,166 @@
+{
+  "titre": "Démo Wizard QA — tout rejouer",
+  "etapes": [
+    {
+      "id": "pilotage", "page": "/", "cible": ".p-kpis, .home-journey", "secondes": 7,
+      "titre": "Pilotage",
+      "texte": "Le point d’entrée : indicateurs et parcours QA, en un coup d’œil (données fictives IRMA)."
+    },
+    {
+      "id": "scan", "page": "/connaissance.html#scan",
+      "action": [
+        { "clic": "Mon JIRA", "dans": ".kn-choice-item", "note": "Choisir « Mon JIRA »" },
+        { "saisie": { "cible": "input[type=url], input.p-mono", "texte": "https://jira.banque-horizon.example/jira/software/projects/P0326/boards/12" }, "note": "Coller l’URL du tableau JIRA (fictive)", "attente": 1200 },
+        { "clic": "Données de démonstration", "dans": ".kn-choice-item", "note": "Choisir le jeu de démonstration IRMA" },
+        { "clic": "Lancer le scan", "dans": "button", "note": "Lancer le scan des récits (données fictives)", "attente": 2500 }
+      ],
+      "cible": ".p-kpis", "secondes": 4,
+      "titre": "Synthèse du scan",
+      "texte": "Une URL JIRA suffit : récits, critères d’acceptation extraits, points à clarifier et épopées."
+    },
+    {
+      "id": "clarifier", "page": "/connaissance.html#synthese", "cible": ".kn-issue", "secondes": 5,
+      "titre": "À clarifier avec le PO",
+      "texte": "Récits sans critère, cas d’erreur absents : les questions sont prêtes."
+    },
+    {
+      "id": "tri", "page": "/recits.html",
+      "action": [
+        { "clic": "Tous", "dans": ".p-tab", "note": "Ouvrir la file « Tous »" },
+        { "clic": ".rc-item[data-key='P0326-9303']", "note": "Ouvrir le récit P0326-9303", "attente": 1200 },
+        { "clic": ".rc-decide-btn.rc-decide--todo", "note": "Passer le récit « À automatiser »" },
+        { "saisie": { "cible": "Raison", "texte": "Parcours métier critique pour le comité des risques", "entree": true }, "note": "Saisir la raison de la décision" },
+        { "clic": "À automatiser", "dans": ".p-tab", "note": "Ouvrir la file « À automatiser »", "attente": 1200 }
+      ],
+      "cible": ".rc-tabs", "secondes": 4,
+      "titre": "Tri des récits",
+      "texte": "À automatiser, plus tard ou ignoré : chaque récit reçoit une décision motivée."
+    },
+    {
+      "id": "gherkin", "page": "/recits.html?key=P0326-9311",
+      "action": [
+        { "clic": "Générer (modèle)", "dans": "button", "note": "Générer le Gherkin depuis les critères" },
+        { "clic": ".p-overlay .p-modal .p-btn--primary", "optionnel": true, "note": "Confirmer la génération", "attente": 1200 },
+        { "clic": "Valider", "dans": ".rc-detail button", "note": "Valider le scénario", "attente": 1200 }
+      ],
+      "cible": ".rc-detail .p-stepper", "secondes": 4,
+      "titre": "Scénarios Gherkin",
+      "texte": "Générés depuis les critères d’acceptation, relus puis validés par le testeur."
+    },
+    {
+      "id": "plan", "page": "/automatisation.html?key=P0326-9311",
+      "action": [
+        { "clic": "Application à tester", "dans": "button.p-step", "optionnel": true, "note": "Étape « Application à tester »" },
+        { "clic": "Nouvelle session", "dans": "button", "optionnel": true, "note": "Repartir d’une nouvelle session" },
+        { "clic": ".p-overlay .p-modal .p-btn--primary", "optionnel": true, "note": "Confirmer la nouvelle session", "attente": 1000 },
+        { "coche": { "cible": "Afficher la fenêtre", "valeur": false }, "optionnel": true, "note": "Explorer sans fenêtre (navigateur invisible)" },
+        { "clic": "Continuer", "dans": "button", "note": "Continuer : expliquer le test", "attente": 1500 },
+        { "clic": ".p-overlay .p-modal .p-btn--primary", "optionnel": true, "note": "Arrêter l’autre session active", "attente": 1200 },
+        { "clic": "Continuer", "dans": "button", "optionnel": true, "note": "Continuer : expliquer le test", "attente": 1500 }
+      ],
+      "cible": ".au-plan-sc, .au-plan", "secondes": 4,
+      "titre": "Plan de test",
+      "texte": "Le plan est déduit du Gherkin : une étape du plan = un objectif à atteindre, modifiable."
+    },
+    {
+      "id": "exploration", "page": "/automatisation.html?key=P0326-9311",
+      "action": [
+        { "clic": "Lancer l’exploration", "dans": "button", "note": "Lancer l’exploration sur l’application de démo", "attente": 1500 },
+        { "attendre": ".au-shot img", "max": 40000, "note": "Navigateur en direct : capture à chaque action" },
+        { "attente": 6000 },
+        { "attendre": ".au-log > *", "max": 20000, "note": "Journal : règle, heuristique, étape trouvée" },
+        { "attente": 3000 },
+        { "clic": "Plus tard", "dans": ".p-overlay button", "optionnel": true, "note": "Prise de main proposée : plus tard" },
+        { "clic": "Arrêter", "dans": ".p-btn--danger", "optionnel": true, "note": "Arrêter l’exploration (la démo continue)", "attente": 1200 }
+      ],
+      "cible": ".au-steps, .au-progress, .au-shot", "secondes": 5,
+      "titre": "Exploration autonome",
+      "texte": "Sans IA, l’outil essaie seul (règles, heuristique) sur /demo-app/ et retient les sélecteurs."
+    },
+    {
+      "id": "test-genere", "page": "/automatisation.html?key=P0326-9310",
+      "action": [
+        { "clic": "Test généré", "dans": ".p-step", "note": "Ouvrir le test généré", "attente": 1200 }
+      ],
+      "cible": ".au-steps, .p-code", "secondes": 4,
+      "titre": "Test Playwright généré",
+      "texte": "Étapes lisibles (Règle, Heuristique, IA, Testeur) et code Playwright, sans mot de passe."
+    },
+    {
+      "id": "rejeu", "page": "/automatisation.html?key=P0326-9310",
+      "action": [
+        { "clic": "Rejouer", "dans": "button", "note": "Rejouer le test (navigateur sans fenêtre)", "attente": 1500 },
+        { "clic": ".p-overlay .p-modal .p-btn--primary", "optionnel": true, "note": "Arrêter l’autre session active", "attente": 1500 },
+        { "attente": 7000 }
+      ],
+      "cible": ".au-main .p-banner, .au-steps", "secondes": 4,
+      "titre": "Rejeu",
+      "texte": "Le test est rejoué tel quel avant d’être validé : pas de test fragile en base."
+    },
+    {
+      "id": "xray", "page": "/automatisation.html?key=P0326-9301",
+      "action": [
+        { "clic": "Envoyer dans JIRA", "dans": ".p-step", "note": "Étape « Envoyer dans JIRA »" },
+        { "clic": "Envoyer dans JIRA / Xray", "dans": "button", "note": "Ouvrir l’envoi vers Xray", "attente": 1500 },
+        { "saisie": { "cible": "#xpPlan", "texte": "P0326-10528" }, "note": "Saisir le plan de test P0326-10528", "attente": 1200 },
+        { "clic": ".xp-suggest-item", "optionnel": true, "note": "Choisir le plan de test (fictif)" },
+        { "clic": "Simuler l’envoi", "dans": "button", "note": "Envoyer (simulé : aucun appel à JIRA)", "attente": 3000 }
+      ],
+      "cible": ".p-modal:has(.xp-root), .xp-root", "secondes": 4,
+      "titre": "Envoi vers Xray (simulé)",
+      "texte": "Un ticket Test relié au récit et au plan de test : aperçu, puis envoi simulé en démonstration."
+    },
+    {
+      "id": "campagne", "page": "/livrables.html",
+      "action": [
+        { "clic": "Simuler", "dans": ".lv-camp-actions button", "max": 15000, "note": "Lancer une campagne (simulée)", "attente": 3000 },
+        { "clic": "Résultats par test", "dans": "button", "note": "Ouvrir les résultats par test", "attente": 2500 },
+        { "fermer": true },
+        { "clic": "Anomalies", "dans": ".lv-camp-actions button, button", "note": "Ouvrir les anomalies", "attente": 2500 },
+        { "fermer": true }
+      ],
+      "cible": ".lv-camp-sum, .lv-camp-actions", "secondes": 5,
+      "titre": "Campagne d’exécution",
+      "texte": "Les résultats des campagnes (ici simulées) nourrissent directement les livrables."
+    },
+    {
+      "id": "livrable", "page": "/livrables.html",
+      "action": [
+        { "clic": "Rapport d'avancement", "dans": ".lv-docitem", "note": "Ouvrir le rapport d’avancement", "attente": 1200 },
+        { "clic": "Actualiser", "dans": ".lv-dochead-actions button", "note": "Générer depuis les faits collectés" },
+        { "clic": ".p-overlay .p-modal .p-btn--primary", "optionnel": true, "note": "Confirmer la génération", "attente": 2500 },
+        { "clic": "Relire", "dans": ".lv-dochead-actions button", "note": "Faire relire par l’agent", "attente": 2500 },
+        { "clic": "Relecture", "dans": ".p-tab", "note": "Lire le rapport de relecture", "attente": 1500 }
+      ],
+      "cible": ".lv-tabbody, .lv-dochead-actions", "secondes": 4,
+      "titre": "Livrables ISTQB",
+      "texte": "Chaque document ISO/IEC/IEEE 29119-3 est généré, relu par l’agent, approuvé par un humain puis exporté (Word, HTML / PDF, Markdown)."
+    },
+    {
+      "id": "perf", "page": "/perf.html",
+      "action": [
+        { "clic": "Lancer", "dans": ".p-tab", "optionnel": true, "note": "Onglet « Lancer »" },
+        { "clic": "◇ Simulation", "dans": "button", "note": "Choisir le mode simulation (aucun k6 réel)" },
+        { "clic": "Lancer la simulation", "dans": "button", "note": "Lancer la simulation", "attente": 5000 },
+        { "clic": "Runs", "dans": ".p-tab", "note": "Ouvrir l’historique des runs", "attente": 1500 }
+      ],
+      "cible": ".perf-charts, .perf-table-wrap, .perf-panel", "secondes": 4,
+      "titre": "Performance k6",
+      "texte": "Utilisateurs virtuels, p95, débit et erreurs : chaque run reste comparable."
+    },
+    {
+      "id": "ia", "page": "/ia.html",
+      "action": [
+        { "clic": "Brancher Copilot local", "dans": ".p-tab", "note": "Ouvrir « Brancher Copilot local »" }
+      ],
+      "cible": ".ia-steps, .ia-panel", "secondes": 4,
+      "titre": "Assistant IA",
+      "texte": "Copilot local via VS Code, ou un autre fournisseur : sans clé exposée. Sans IA, tout reste utilisable."
+    },
+    {
+      "id": "fin", "page": "/", "cible": ".p-tour-launch", "voile": false, "secondes": 5,
+      "titre": "À vous de jouer",
+      "texte": "Relancez la démo depuis ce bouton ; Ctrl K propose aussi la visite commentée, sans action."
+    }
+  ]
+}

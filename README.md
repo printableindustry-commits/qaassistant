@@ -52,9 +52,7 @@ runs k6 et livrables, données 100 % fictives) : **Réglages → Démonstration 
 1. **Charger la démo** : se connecter en `demo` / `demo`, puis **Réglages › Démonstration › Charger la démo**. Le jeu
    est 100 % fictif (projet IRMA, Banque Horizon). Rien n'est envoyé vers JIRA, Xray ou k6, et **Réinitialiser**
    n'efface que ce que la démo a créé. Voir [docs/demo/DEMO.md](docs/demo/DEMO.md).
-2. **Visite guidée** : le bouton **Visite guidée** de l'en-tête (ou `Ctrl K`) lance l'autodémo. Elle enchaîne
-   25 étapes en 7 minutes environ. `Espace` met en pause et `Échap` rend la main. Voir
-   [docs/demo/VISITE-GUIDEE.md](docs/demo/VISITE-GUIDEE.md).
+2. **Démo** : le bouton **▶ Démo** de l'en-tête (« Tout rejouer ») charge la démo si besoin puis joue l'application seule, actions annotées en rouge (≈ 4 min 30 à ×1, tout simulé) ; `Ctrl K` propose aussi la visite commentée. Voir [docs/demo/VISITE-GUIDEE.md](docs/demo/VISITE-GUIDEE.md).
 3. **Supports de présentation**, avec l'inventaire et les commandes de régénération dans [supports/README.md](supports/README.md) :
    - slides de synthèse avec notes du présentateur : [WizardQA-synthese.pptx](supports/presentations/WizardQA-synthese.pptx) et son [PDF](supports/presentations/WizardQA-synthese.pdf) ;
    - 21 vidéos MP4 de moins de 30 s, annotées en rouge étape par étape : [supports/videos/](supports/videos/README.md) ;

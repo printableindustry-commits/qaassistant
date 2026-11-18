@@ -9,8 +9,14 @@
  * L'état (étape, temps, vitesse, pause, arrêt) vit dans sessionStorage : la coquille (prisme-shell.js) charge
  * ce fichier à chaque page tant qu'une visite est en cours et la reprend où elle en était.
  *
- * API : Prisme.tour.start(idEtape?), .resume(), .stop(), .close(), .next(), .prev(), .jump(i), .toggle(),
- *       .state() (instantané), .script() (script normalisé).
+ * Deux scripts : « visite » (visite.json, commentée) et « rejeu » (demo-rejeu.json, bouton « Démo ») dont les
+ * actions sont jouées dans l'application : clic, saisie, coche, attendre, fermer, attente. Chaque action est
+ * annotée en rouge comme dans les vidéos (cadre #C62828 + lueur, pastille numérotée, « Étape n — … », légende
+ * en bas). Une cible introuvable en 6 s est sautée (journal console [demo]) et la démo continue.
+ * Jamais de saisie dans un champ mot de passe.
+ *
+ * API : Prisme.tour.start(idEtape?, 'visite' | 'rejeu'), .resume(), .stop(), .close(), .next(), .prev(), .jump(i),
+ *       .toggle(), .state() (instantané, avec stats { ok, skip }), .script() (script normalisé).
  */
 ;(function () {
   'use strict'
@@ -24,8 +30,10 @@
   const SPEEDS = [0.5, 1, 2]
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  let script = null      // { titre, etapes: [...] } normalisé
-  let st = null          // { idx, t, speed, paused, stopped, done, acted }
+  let script = null      // { titre, src, etapes: [...] } normalisé
+  let st = null          // { idx, t, speed, paused, stopped, done, acted, ai, src, stats }
+  let acting = false     // actions de l'étape en cours (l'horloge attend, l'annotation suit la cible)
+  let override = null    // étiquette d'une action : { titre, texte }
   let ui = null
   let target = null
   let preparing = false
@@ -33,7 +41,7 @@
   let lastFrame = 0
   let lastSave = 0
   let lastRefind = 0
-  let labelFor = -1
+  let labelFor = ''
   let scrolledAt = 0
   let scrollTries = 0
 
@@ -54,11 +62,30 @@
 
   const pick = (o, ...keys) => { for (const k of keys) if (o[k] != null) return o[k]; return undefined }
 
+  /**
+   * Actions d'une étape : « texte ou sélecteur » (clic) ou objets
+   *   { clic, dans?, note?, optionnel?, attente? }   { saisie: { cible, texte, entree? }, note? }
+   *   { coche: { cible, valeur? } }   { attendre: sélecteur, max? }   { fermer: true }   { attente: ms }
+   * attente avec une autre action : pause après l'action (ms à ×1).
+   */
   function normAction(a) {
     if (a == null) return []
     const list = Array.isArray(a) ? a : [a]
-    return list.map((x) => (typeof x === 'string' ? { clic: x } : { clic: pick(x, 'clic', 'click'), attente: Number(pick(x, 'attente', 'wait')) || 0 }))
-      .filter((x) => x.clic)
+    return list.map((x) => {
+      if (typeof x === 'string') return { type: 'clic', cible: x, dans: '', note: '', opt: false, pause: 0 }
+      const base = { note: String(pick(x, 'note') || ''), opt: Boolean(pick(x, 'optionnel', 'optional')), dans: String(pick(x, 'dans', 'within') || ''), pause: Number(pick(x, 'attente', 'wait')) || 0, max: Number(pick(x, 'max')) || 0 }
+      const clic = pick(x, 'clic', 'click')
+      if (clic) return { ...base, type: 'clic', cible: String(clic) }
+      const sa = pick(x, 'saisie', 'type')
+      if (sa) return { ...base, type: 'saisie', cible: String(pick(sa, 'cible', 'target') || ''), texte: String(pick(sa, 'texte', 'text') ?? ''), entree: Boolean(pick(sa, 'entree', 'enter')) }
+      const co = pick(x, 'coche', 'check')
+      if (co) return { ...base, type: 'coche', cible: String(pick(co, 'cible', 'target') || ''), valeur: pick(co, 'valeur', 'value') !== false }
+      const att = pick(x, 'attendre', 'waitFor')
+      if (att) return { ...base, type: 'attendre', cible: String(att), max: base.max || 30000, opt: true }
+      if (pick(x, 'fermer', 'close')) return { ...base, type: 'fermer' }
+      if (base.pause) return { ...base, type: 'pause' }
+      return null
+    }).filter(Boolean)
   }
 
   function normalize(raw) {
@@ -80,13 +107,13 @@
     return { titre: String(pick(raw || {}, 'titre', 'title') || 'Visite guidée'), etapes }
   }
 
-  async function loadScript() {
-    if (script) return script
+  async function loadScript(src = 'visite') {
+    if (script && script.src === src) return script
     const cached = readStore(SCRIPT_KEY)
-    if (cached?.etapes?.length) return (script = cached)
-    const raw = await P.api('/api/demo/visite')
-    script = normalize(raw)
-    if (!script.etapes.length) throw new Error('Le script de visite ne contient aucune étape.')
+    if (cached?.etapes?.length && (cached.src || 'visite') === src) return (script = cached)
+    const raw = await P.api(`/api/demo/${src === 'rejeu' ? 'rejeu' : 'visite'}`)
+    script = { ...normalize(raw), src }
+    if (!script.etapes.length) throw new Error('Le script de démonstration ne contient aucune étape.')
     writeStore(SCRIPT_KEY, script)
     return script
   }
@@ -95,8 +122,11 @@
 
   const steps = () => script.etapes
   const dur = (i) => steps()[i].secondes * 1000
-  const total = () => steps().reduce((s, e) => s + e.secondes * 1000, 0)
-  const elapsed = () => steps().slice(0, st.idx).reduce((s, e) => s + e.secondes * 1000, 0) + Math.min(st.t, dur(st.idx))
+  // durée estimée d'une étape : ses secondes + ses actions (annotation, geste, pause) ; sert à la piste et au temps
+  const ACT_MS = { clic: 1300, saisie: 1300, coche: 1300, attendre: 5000, fermer: 500, pause: 0 }
+  const est = (e) => e.secondes * 1000 + e.action.reduce((s, a) => s + (ACT_MS[a.type] || 0) + (a.pause || (a.type === 'pause' ? 0 : 600)) + (a.type === 'saisie' ? a.texte.length * 35 : 0), 0)
+  const total = () => steps().reduce((s, e) => s + est(e), 0)
+  const elapsed = () => steps().slice(0, st.idx).reduce((s, e) => s + est(e), 0) + (st.acted ? est(steps()[st.idx]) - dur(st.idx) : 0) + Math.min(st.t, dur(st.idx))
   function fmt(ms) {
     const s = Math.max(0, Math.round(ms / 1000))
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -178,23 +208,59 @@
 
   const CLICKABLE = 'button, a, [role="tab"], [role="button"], [role="option"], summary, .p-step, .p-tab, tr.clickable, label'
 
-  function findClickable(spec) {
+  function findClickable(spec, dans) {
     const bySel = query(spec)
     if (bySel) {
       const el = bySel.find(visible)
       if (el) return el
     }
     const text = norm(spec)
-    const list = (query(CLICKABLE) || []).filter((el) => visible(el) && norm(el.textContent).includes(text))
+    const list = (query(dans || CLICKABLE) || []).filter((el) => visible(el) && norm(el.textContent).includes(text))
     if (!list.length) return null
     const exact = list.filter((el) => norm(el.textContent).startsWith(text))
     return readingOrder(innermost(exact.length ? exact : list))[0]
   }
 
+  const FIELDS = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea, select'
+
+  /** Champ par sélecteur, sinon par texte : libellé, placeholder ou aria-label. */
+  function findField(spec, dans) {
+    const bySel = query(spec)
+    if (bySel) {
+      const el = bySel.find(visible)
+      if (el) return el
+    }
+    const text = norm(spec)
+    const inScope = (el) => !dans || el.closest(dans)
+    const fields = (query(FIELDS) || []).filter((el) => visible(el) && inScope(el))
+    const byAttr = fields.find((el) => norm(el.getAttribute('placeholder')).includes(text) || norm(el.getAttribute('aria-label')).includes(text))
+    if (byAttr) return byAttr
+    for (const l of query('label') || []) {
+      if (!norm(l.textContent).includes(text)) continue
+      const c = l.control || l.querySelector(FIELDS)
+      if (c && visible(c) && inScope(c)) return c
+    }
+    return null
+  }
+
+  /** Case à cocher par sélecteur ou par le texte de son libellé. */
+  function findCheck(spec) {
+    const bySel = query(spec)
+    const el = bySel && bySel.find((x) => x.type === 'checkbox' && (visible(x) || visible(x.closest('label'))))
+    if (el) return el
+    const text = norm(spec)
+    for (const l of query('label') || []) {
+      if (!visible(l) || !norm(l.textContent).includes(text)) continue
+      const c = l.control || l.querySelector('input[type=checkbox]')
+      if (c) return c
+    }
+    return null
+  }
+
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-  async function waitFor(fn, my) {
-    const until = performance.now() + WAIT_MS
+  async function waitFor(fn, my, ms = WAIT_MS) {
+    const until = performance.now() + ms
     while (performance.now() < until) {
       if (my !== seq) return null
       const el = fn()
@@ -230,16 +296,20 @@
       h('div', { class: 'p-tour-mid' }, track, h('div', { class: 'p-tour-info' }, now, time)),
       speed,
       actions)
-    document.body.append(hole, label, bar)
+    const pin = h('div', { class: 'p-tour-ui p-tour-pin', 'aria-hidden': 'true' })
+    const caption = h('div', { class: 'p-tour-ui p-tour-caption', 'aria-hidden': 'true' })
+    document.body.append(hole, pin, label, caption, bar)
     document.documentElement.classList.add('p-tour-on')
-    ui = { hole, label, bar, track, now, time, speed, actions, playB, prevB, nextB, trackBuilt: false }
+    ui = { hole, pin, label, caption, bar, track, now, time, speed, actions, playB, prevB, nextB, trackBuilt: false }
     return ui
   }
 
   function removeUi() {
     if (!ui) return
     ui.hole.remove()
+    ui.pin.remove()
     ui.label.remove()
+    ui.caption.remove()
     ui.bar.remove()
     ui = null
     document.documentElement.classList.remove('p-tour-on', 'p-tour-veiled')
@@ -251,7 +321,7 @@
       ui.track.appendChild(h('button', {
         type: 'button',
         class: 'p-tour-seg',
-        style: { flexGrow: String(s.secondes) },
+        style: { flexGrow: String(Math.round(est(s) / 1000)) },
         title: `${i + 1}. ${s.titre}`,
         'aria-label': `Étape ${i + 1} : ${s.titre}`,
         onclick: () => jump(i),
@@ -287,7 +357,7 @@
       } else {
         ui.actions.append(
           mode === 'done'
-            ? h('button', { class: 'p-tour-resume', type: 'button', onclick: () => start() }, '↺ Rejouer')
+            ? h('button', { class: 'p-tour-resume', type: 'button', onclick: () => start(undefined, st?.src) }, '↺ Rejouer')
             : h('button', { class: 'p-tour-resume', type: 'button', onclick: () => resume() }, '▶ Reprendre la visite'),
           h('button', { class: 'p-tour-btn p-tour-close', type: 'button', title: 'Quitter la démonstration', 'aria-label': 'Quitter la démonstration', onclick: () => close() }, '✕'))
       }
@@ -297,41 +367,53 @@
 
   function hideSpot() {
     target = null
-    labelFor = -1
+    labelFor = ''
+    override = null
     if (!ui) return
     ui.hole.classList.remove('is-on', 'is-target', 'no-veil')
+    ui.pin.classList.remove('is-on')
     ui.label.classList.remove('is-on')
+    ui.caption.classList.remove('is-on')
     document.documentElement.classList.remove('p-tour-veiled')
   }
 
+  /** Étiquette « Étape n — titre » (style des vidéos) ; pendant une action, le titre est celui de l'action. */
   function renderLabel(step) {
+    const n = String(st.idx + 1)
+    const titre = override ? override.titre : step.titre
+    const texte = override ? override.texte : step.texte
     P.clear(ui.label)
     ui.label.append(
       h('div', { class: 'p-tour-label-head' },
-        h('span', { class: 'p-tour-num' }, String(st.idx + 1)),
-        h('span', { class: 'p-tour-title' }, step.titre),
+        h('span', { class: 'p-tour-title' }, h('span', { class: 'p-tour-stepno' }, `Étape ${n}`), ` — ${titre}`),
         h('span', { class: 'p-tour-pause' }, '⏸ En pause')),
-      h('div', { class: 'p-tour-text' }, step.texte))
-    labelFor = st.idx
+      texte ? h('div', { class: 'p-tour-text' }, texte) : null)
+    ui.pin.textContent = n
+    ui.caption.textContent = `Étape ${n} — ${titre}`
+    labelFor = `${st.idx}|${titre}`
   }
 
   function showSpot(step) {
     if (!ui) return
-    if (labelFor !== st.idx) renderLabel(step)
+    const titre = override ? override.titre : step.titre
+    if (labelFor !== `${st.idx}|${titre}`) renderLabel(step)
+    const veil = step.voile && !override
     ui.hole.classList.add('is-on')
     ui.hole.classList.toggle('is-target', Boolean(target))
-    ui.hole.classList.toggle('no-veil', !step.voile)
+    ui.hole.classList.toggle('no-veil', !veil)
+    ui.pin.classList.toggle('is-on', Boolean(target))
     ui.label.classList.add('is-on')
     ui.label.classList.toggle('is-free', !target)
-    document.documentElement.classList.toggle('p-tour-veiled', step.voile)
+    ui.caption.classList.add('is-on')
+    document.documentElement.classList.toggle('p-tour-veiled', veil)
     place()
   }
 
-  /** Place le halo sur la cible et l'étiquette à côté, sans jamais sortir de l'écran. */
+  /** Place le cadre sur la cible, la pastille sur son coin et l'étiquette à côté, sans sortir de l'écran. */
   function place() {
     if (!ui || !ui.hole.classList.contains('is-on')) return
     const vw = window.innerWidth
-    const barH = ui.bar.offsetHeight || 56
+    const barH = (ui.bar.offsetHeight || 56) + (ui.caption.offsetHeight || 0)
     const vh = window.innerHeight - barH
     const lw = ui.label.offsetWidth || 320
     const lh = ui.label.offsetHeight || 80
@@ -349,13 +431,133 @@
     const top = Math.max(4, r.top - pad)
     const right = Math.min(vw - 4, r.right + pad)
     const bottom = Math.min(vh - 4, r.bottom + pad)
-    ui.hole.style.cssText = `left:${left}px;top:${top}px;width:${Math.max(0, right - left)}px;height:${Math.max(0, bottom - top)}px`
-    let y = bottom + gap
-    if (y + lh > vh - 8) y = top - gap - lh
-    if (y < 8) y = Math.min(Math.max(8, top + 12), vh - lh - 8)
-    const x = Math.min(Math.max(12, left), vw - lw - 12)
-    ui.label.style.left = `${Math.max(12, x)}px`
+    const w = Math.max(0, right - left)
+    const hh = Math.max(0, bottom - top)
+    ui.hole.style.cssText = `left:${left}px;top:${top}px;width:${w}px;height:${hh}px`
+    ui.pin.style.left = `${Math.min(vw - 40, Math.max(4, left - 18))}px`
+    ui.pin.style.top = `${Math.min(vh - 40, Math.max(4, top - 18))}px`
+    // à droite du cadre, sinon dessous, sinon dessus, sinon à l'intérieur (comme les vidéos)
+    let x
+    let y
+    if (right + gap + lw < vw - 8 && w < vw * 0.6) { x = right + gap; y = Math.max(8, Math.min(top, vh - lh - 8)) }
+    else if (bottom + gap + lh < vh - 8) { x = left; y = bottom + gap }
+    else if (top - gap - lh > 8) { x = left; y = top - gap - lh }
+    else { x = left + 24; y = top + 24 }
+    ui.label.style.left = `${Math.max(12, Math.min(x, vw - lw - 12))}px`
     ui.label.style.top = `${Math.max(8, Math.min(y, vh - lh - 8))}px`
+  }
+
+  // ---------------------------------------------------------------- actions jouées (script « rejeu »)
+
+  const court = (t, n = 42) => {
+    const x = String(t || '').replace(/\s+/g, ' ').trim()
+    return x.length > n ? `${x.slice(0, n - 1).trim()}…` : x
+  }
+  function libelle(el) {
+    const t = el.getAttribute('aria-label') || el.innerText || el.value || el.placeholder || el.title || ''
+    return court(t.split('\n').map((s) => s.trim()).filter(Boolean)[0] || '', 40) || 'l’élément'
+  }
+
+  /** Attente proportionnelle à la vitesse, suspendue pendant la pause. Faux si la démo a changé d'étape. */
+  async function wait(ms, my) {
+    let left = ms
+    while (left > 0) {
+      if (my !== seq) return false
+      const speed = st?.speed || 1
+      const step = Math.max(10, Math.min(100, left / speed))
+      await sleep(step)
+      if (!st?.paused) left -= step * speed
+    }
+    return my === seq
+  }
+
+  function stat(ok, step, a) {
+    st.stats = st.stats || { ok: 0, skip: 0, sautees: [] }
+    if (ok) st.stats.ok++
+    else {
+      st.stats.skip++
+      st.stats.sautees.push(`${step.id}:${a ? `${a.type} ${a.cible}` : 'cible'}`)
+      console.warn('[demo] sautée :', step.id, a ? `${a.type} « ${a.cible} »` : `cible « ${step.cible || step.texteCible} »`)
+    }
+    save()
+  }
+
+  const nativeSetter = (el) => Object.getOwnPropertyDescriptor(el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, 'value').set
+
+  async function typeInto(el, text, entree, my) {
+    el.focus()
+    if (el.tagName === 'SELECT') {
+      const opt = [...el.options].find((o) => norm(o.textContent).includes(norm(text)) || o.value === text)
+      if (opt) { el.value = opt.value; el.dispatchEvent(new Event('change', { bubbles: true })) }
+      return
+    }
+    const set = nativeSetter(el)
+    set.call(el, '')
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    for (const ch of text) {
+      if (!(await wait(35, my))) return
+      set.call(el, el.value + ch)
+      el.dispatchEvent(new InputEvent('input', { bubbles: true, data: ch, inputType: 'insertText' }))
+    }
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    if (entree) for (const type of ['keydown', 'keypress', 'keyup']) el.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', code: 'Enter', bubbles: true }))
+  }
+
+  /** Clic complet (certaines listes réagissent au mousedown) ; ces évènements ne mettent pas la démo en pause. */
+  function press(el) {
+    const r = el.getBoundingClientRect()
+    const at = { bubbles: true, cancelable: true, view: window, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 0 }
+    el.dispatchEvent(new PointerEvent('pointerdown', at))
+    el.dispatchEvent(new MouseEvent('mousedown', at))
+    el.dispatchEvent(new PointerEvent('pointerup', at))
+    el.dispatchEvent(new MouseEvent('mouseup', at))
+    el.click()
+  }
+
+  function locate(a) {
+    if (a.type === 'clic') return findClickable(a.cible, a.dans)
+    if (a.type === 'saisie') return findField(a.cible, a.dans)
+    if (a.type === 'coche') return findCheck(a.cible)
+    if (a.type === 'attendre') return findTarget({ cible: a.cible, texteCible: '', rang: 0 })
+    return null
+  }
+
+  /** Joue une action : annotation rouge sur l'élément, puis le geste. Vrai si l'élément a été trouvé. */
+  async function runAction(step, a, my) {
+    if (a.type === 'pause') return wait(a.pause, my)
+    if (a.type === 'fermer') { closeModals(); return wait(a.pause || 500, my) }
+    let el
+    if (a.type === 'attendre') {
+      const until = performance.now() + a.max
+      while (!el && performance.now() < until && my === seq) { el = locate(a); if (!el) await sleep(250) }
+    } else {
+      el = await waitFor(() => locate(a), my, a.max || (a.opt ? 1500 : WAIT_MS))
+    }
+    if (my !== seq) return false
+    if (!el) {
+      if (!a.opt) stat(false, step, a)
+      return false
+    }
+    if (a.type === 'saisie' && el.type === 'password') {
+      console.warn('[demo] saisie refusée dans un champ mot de passe :', step.id)
+      stat(false, step, a)
+      return false
+    }
+    stat(true, step, a)
+    const note = a.note || (a.type === 'clic' ? `Cliquer sur « ${libelle(el)} »`
+      : a.type === 'saisie' ? `Saisir « ${court(a.texte, 38)} »`
+        : a.type === 'coche' ? `${a.valeur ? 'Cocher' : 'Décocher'} « ${libelle(el.closest('label') || el)} »`
+          : step.titre)
+    override = { titre: note, texte: a.type === 'attendre' ? step.texte : '' }
+    target = a.type === 'coche' ? (el.closest('label') || el) : el
+    scrollTries = 0
+    bringIntoView(target, true)
+    showSpot(step)
+    if (!(await wait(a.type === 'attendre' ? 1600 : 850, my))) return false
+    if (a.type === 'clic') press(el)
+    else if (a.type === 'saisie') await typeInto(el, a.texte, a.entree, my)
+    else if (a.type === 'coche' && el.checked !== a.valeur) el.click()
+    return wait(a.pause || 600, my)
   }
 
   // ---------------------------------------------------------------- déroulé
@@ -363,7 +565,7 @@
   async function enterStep(i, fresh) {
     const n = steps().length
     st.idx = Math.max(0, Math.min(n - 1, i))
-    if (fresh) { st.t = 0; st.acted = false }
+    if (fresh) { st.t = 0; st.acted = false; st.ai = 0 }
     st.done = false
     save()
     buildUi()
@@ -379,25 +581,35 @@
     }
     if (w === 'hash') location.hash = new URL(step.page, location.origin).hash
     preparing = true
-    if (!st.acted && step.action.length) {
-      st.acted = true
-      save()
-      for (const a of step.action) {
-        const el = await waitFor(() => findClickable(a.clic), my)
-        if (my !== seq) return
-        if (el) {
-          el.click()
-          await sleep(a.attente || 450)
-        } else {
-          console.warn('[visite] action introuvable :', step.id, a.clic)
-        }
-        if (my !== seq) return
-      }
-    }
-    const el = step.cible || step.texteCible ? await waitFor(() => findTarget(step), my) : null
+    // page encore en chargement (indicateur de la page) : les actions attendent qu'elle soit prête, 15 s au plus
+    if (!st.acted && step.action.length) await waitFor(() => !document.querySelector('.p-page > .p-empty .p-spinner, .p-strip .p-spinner'), my, 15000)
     if (my !== seq) return
-    if (!el && (step.cible || step.texteCible)) console.warn('[visite] cible absente :', step.id, step.cible)
+    let last = null
+    if (!st.acted && step.action.length) {
+      acting = true
+      // l'index est enregistré avant chaque geste : après un rechargement, la démo reprend à l'action suivante
+      for (let k = st.ai || 0; k < step.action.length; k++) {
+        st.ai = k + 1
+        if (st.ai >= step.action.length) st.acted = true
+        save()
+        const ok = await runAction(step, step.action[k], my)
+        if (my !== seq) { acting = false; return }
+        if (ok && target?.isConnected) last = target
+      }
+      st.acted = true
+      acting = false
+      override = null
+      save()
+    }
+    let el = step.cible || step.texteCible ? await waitFor(() => findTarget(step), my) : null
+    if (my !== seq) return
+    if (step.cible || step.texteCible) {
+      if (!el) console.warn('[visite] cible absente :', step.id, step.cible)
+      if (script.src === 'rejeu') stat(Boolean(el), step, null)
+    }
+    if (!el && last?.isConnected) el = last
     target = el
+    override = null
     document.documentElement.dataset.tourStep = step.id
     document.documentElement.dataset.tourFound = el ? '1' : '0'
     scrollTries = 0
@@ -474,6 +686,7 @@
     leaveStep()
     seq++
     st.done = true
+    st.finishedAt = Date.now()
     st.paused = false
     st.t = dur(st.idx)
     save()
@@ -497,7 +710,7 @@
     if (!st) return
     st.stopped = false
     st.paused = false
-    if (where(steps()[st.idx]) === 'ailleurs') st.acted = false
+    if (where(steps()[st.idx]) === 'ailleurs') { st.acted = false; st.ai = 0 }
     enterStep(st.idx, false)
   }
 
@@ -510,13 +723,16 @@
     delete document.documentElement.dataset.tourStep
   }
 
-  async function start(fromId) {
+  /** src : 'visite' (commentée, par défaut) ou 'rejeu' (bouton « Démo » : actions jouées). */
+  async function start(fromId, src = 'visite') {
     // un nouveau départ relit le script (il a pu être modifié depuis la dernière visite)
+    seq++
     script = null
     writeStore(SCRIPT_KEY, null)
-    await loadScript()
+    await loadScript(src)
     const i = fromId ? steps().findIndex((s) => s.id === fromId) : 0
-    st = { idx: Math.max(0, i), t: 0, speed: st?.speed || 1, paused: false, stopped: false, done: false, acted: false }
+    st = { idx: Math.max(0, i), t: 0, speed: st?.speed || 1, paused: false, stopped: false, done: false, acted: false, ai: 0, src, stats: { ok: 0, skip: 0, sautees: [] }, startedAt: Date.now() }
+    if (ui) ui.trackBuilt = false
     enterStep(st.idx, true)
   }
 
@@ -524,8 +740,8 @@
   async function restore() {
     const saved = readStore(KEY)
     if (!saved) return false
-    await loadScript()
-    st = { idx: 0, t: 0, speed: 1, paused: false, stopped: false, done: false, acted: false, ...saved }
+    await loadScript(saved.src || 'visite')
+    st = { idx: 0, t: 0, speed: 1, paused: false, stopped: false, done: false, acted: false, ai: 0, ...saved }
     if (st.idx >= steps().length) st.idx = steps().length - 1
     buildUi()
     renderBar()
@@ -554,8 +770,8 @@
   setInterval(tick, 200)
 
   function frame(now) {
-    if (st && ui && !st.stopped && !st.done && !preparing && ui.hole.classList.contains('is-on')) {
-      if (target && !target.isConnected && now - lastRefind > 400) {
+    if (st && ui && !st.stopped && !st.done && (!preparing || acting) && ui.hole.classList.contains('is-on')) {
+      if (target && !acting && !target.isConnected && now - lastRefind > 400) {
         lastRefind = now
         target = findTarget(steps()[st.idx])
         ui.hole.classList.toggle('is-target', Boolean(target))

@@ -60,8 +60,8 @@
   const header = h('header', { class: 'p-header' },
     h('div', { class: 'p-header-titles' }, crumb, title),
     actions,
-    h('button', { class: 'p-btn p-btn--sm p-tour-launch', type: 'button', title: 'Visite guidée de l’application (autodémo)', onclick: () => startTour() },
-      icon('play'), h('span', null, 'Visite guidée')),
+    h('button', { class: 'p-btn p-btn--sm p-btn--primary p-tour-launch', type: 'button', title: 'Démo : rejoue l’application pas à pas, actions annotées (données fictives)', onclick: () => startDemo() },
+      icon('play'), h('span', null, 'Démo')),
     h('button', { class: 'p-search', type: 'button', onclick: () => openPalette() },
       icon('search'), h('span', null, 'Rechercher ou lancer…'), h('span', { class: 'p-kbd' }, 'Ctrl K')),
     h('a', { class: 'p-icon-btn', href: '/wiki.html', title: 'Aide' }, icon('help')),
@@ -205,7 +205,8 @@
       { group: 'Actions', label: 'Générer les scénarios Gherkin', icon: 'wand', href: '/recits.html' },
       { group: 'Actions', label: 'Lancer un test de charge k6', icon: 'play', href: '/perf.html' },
       { group: 'Actions', label: 'Configurer l’assistant IA (Copilot local…)', icon: 'sparkles', href: '/ia.html' },
-      { group: 'Actions', label: 'Visite guidée (autodémo)', sub: 'Démonstration', icon: 'play', run: () => startTour() },
+      { group: 'Actions', label: 'Démo : tout rejouer (actions annotées)', sub: 'Démonstration', icon: 'play', run: () => startDemo() },
+      { group: 'Actions', label: 'Visite guidée commentée (sans action)', sub: 'Démonstration', icon: 'play', run: () => startTour() },
     ]
     if (!state.user?.embedded) acts.push({ group: 'Actions', label: 'Se déconnecter', icon: 'logout', run: logout })
     return [...acts, ...pages]
@@ -311,15 +312,42 @@
     loadTour().then((t) => t.start(fromId)).catch((e) => P.toast(e.message || 'Visite guidée indisponible', 'error'))
   }
 
-  /** ?visite=1 (ou ?visite=<id d'étape>) lance la visite ; sinon une visite en cours dans l'onglet reprend. */
+  /**
+   * Bouton « Démo » (« Tout rejouer ») : charge le jeu fictif IRMA s'il n'est pas chargé, puis lance le script
+   * « rejeu » dont les actions sont jouées dans l'application. Des récits réels déjà scannés : confirmation d'abord.
+   */
+  let demoStarting = false
+  async function startDemo(fromId) {
+    if (demoStarting) return
+    demoStarting = true
+    try {
+      const status = await P.api('/api/demo/status')
+      if (!status.loaded) {
+        const stories = await P.api('/api/jira/stories?limit=1').catch(() => null)
+        const reel = stories?.total > 0 && stories.scan?.source !== 'demo'
+        if (reel && !(await P.confirm('Des récits réels sont présents. La démo charge le jeu fictif IRMA (Banque Horizon) à leur place ; Réglages › Démonstration › Réinitialiser restaure ensuite « Mon projet ».', { title: 'Lancer la démo', okLabel: 'Charger la démo' }))) return
+        P.toast('Chargement des données de démonstration…', 'ok', 2500)
+        await P.api('/api/demo/load', { method: 'POST', body: {} })
+      }
+      const t = await loadTour()
+      await t.start(fromId, 'rejeu')
+    } catch (e) {
+      P.toast(e.status === 403 ? 'Le chargement de la démo est réservé aux administrateurs.' : (e.message || 'Démo indisponible'), 'error')
+    } finally {
+      demoStarting = false
+    }
+  }
+
+  /** ?visite=1 / ?demo=1 (ou =<id d'étape>) lance la visite ou la démo ; sinon une visite en cours dans l'onglet reprend. */
   function bootTour() {
     const params = new URLSearchParams(location.search)
-    const wanted = params.get('visite')
-    if (wanted != null) {
-      params.delete('visite')
+    for (const [key, run] of [['demo', startDemo], ['visite', startTour]]) {
+      const wanted = params.get(key)
+      if (wanted == null) continue
+      params.delete(key)
       const qs = params.toString()
       history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`)
-      return startTour(wanted && wanted !== '1' && wanted !== 'true' ? wanted : undefined)
+      return run(wanted && wanted !== '1' && wanted !== 'true' ? wanted : undefined)
     }
     let running = false
     try { running = Boolean(sessionStorage.getItem('p-tour')) } catch { /* stockage indisponible */ }
@@ -358,6 +386,7 @@
     refreshStrip,
     openPalette,
     startTour,
+    startDemo,
     loadTour,
     get state() { return { ...state } },
   }
