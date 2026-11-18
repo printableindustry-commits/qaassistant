@@ -148,7 +148,8 @@ function stepLines(step, ctx) {
       if (kind === 'url') {
         lines.push(`await expect(page).toHaveURL(new RegExp(${jsString(escapeRegex(urlPattern(value, ctx.baseUrl)))}))`)
       } else if (kind === 'text' && !sel) {
-        lines.push(`await expect(page.locator('body')).toContainText(${valueExpr(value, null, ctx.passwordMap)})`)
+        // innerText comme le moteur (runner.mjs) : cellules et blocs séparés par des espaces, pas collés
+        lines.push(`await expect(page.locator('body')).toContainText(${valueExpr(value, null, ctx.passwordMap)}, { useInnerText: true })`)
       } else if (needSel(`vérification ${kind}`)) {
         // ligne déjà ajoutée
       } else if (kind === 'visible') {
@@ -158,7 +159,7 @@ function stepLines(step, ctx) {
       } else if (kind === 'text') {
         lines.push(ex.exact
           ? `await expect(${sel}).toHaveText(${valueExpr(value, null, ctx.passwordMap)})`
-          : `await expect(${sel}).toContainText(${valueExpr(value, null, ctx.passwordMap)})`)
+          : `await expect(${sel}).toContainText(${valueExpr(value, null, ctx.passwordMap)}, { useInnerText: true })`)
       } else if (kind === 'value') {
         lines.push(`await expect(${sel}).toHaveValue(${valueExpr(value, ex.secret, ctx.passwordMap)})`)
       } else {
