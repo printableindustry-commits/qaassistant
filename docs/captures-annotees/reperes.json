@@ -44,7 +44,7 @@
           "x": 88,
           "y": 513,
           "w": 664,
-          "h": 358,
+          "h": 329,
           "titre": "À traiter",
           "texte": "Les actions prioritaires, chacune avec son bouton pour agir."
         },
@@ -53,15 +53,15 @@
           "x": 760,
           "y": 513,
           "w": 664,
-          "h": 358,
+          "h": 329,
           "titre": "Couverture par épopée",
           "texte": "Part des récits dont les scénarios Gherkin sont validés."
         },
         {
           "n": 6,
-          "x": 790,
+          "x": 827,
           "y": 13,
-          "w": 119,
+          "w": 82,
           "h": 34,
           "titre": "Visite guidée",
           "texte": "Lance l’autodémo : l’application passe seule d’écran en écran."
@@ -657,7 +657,7 @@
         {
           "n": 1,
           "x": 88,
-          "y": 228,
+          "y": 220,
           "w": 1336,
           "h": 93,
           "titre": "État du poste",
@@ -666,7 +666,7 @@
         {
           "n": 2,
           "x": 103,
-          "y": 399,
+          "y": 391,
           "w": 1306,
           "h": 109,
           "titre": "Stacks à installer",
@@ -675,17 +675,17 @@
         {
           "n": 3,
           "x": 88,
-          "y": 564,
+          "y": 556,
           "w": 1336,
-          "h": 336,
+          "h": 344,
           "titre": "Suivi en direct",
           "texte": "Chaque composant est détecté, installé puis vérifié ; journal et console."
         },
         {
           "n": 4,
-          "x": 654,
+          "x": 692,
           "y": 10,
-          "w": 128,
+          "w": 127,
           "h": 40,
           "titre": "Installer tout",
           "texte": "Une installation en une fois ; la simulation est ouverte à tous."
@@ -804,7 +804,7 @@
         {
           "n": 1,
           "x": 458,
-          "y": 324,
+          "y": 305,
           "w": 972,
           "h": 256,
           "titre": "Halo",
@@ -813,9 +813,9 @@
         {
           "n": 2,
           "x": 458,
-          "y": 586,
-          "w": 348,
-          "h": 102,
+          "y": 567,
+          "w": 428,
+          "h": 89,
           "titre": "Étiquette",
           "texte": "Titre et une phrase sobre, numérotés, toujours dans l’écran."
         },
@@ -871,7 +871,7 @@
         {
           "n": 3,
           "x": 413,
-          "y": 332,
+          "y": 367,
           "w": 614,
           "h": 43,
           "titre": "Visite guidée",
