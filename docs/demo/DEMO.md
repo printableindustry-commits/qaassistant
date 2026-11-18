@@ -38,10 +38,10 @@ Les dates sont calculées à partir de maintenant.
 runs k6 de démo (`reports/k6/<id>`), et restaure le profil « Mon projet » d'avant la démo. Recharger remplace le jeu
 précédent par un jeu neuf.
 
-## 3. Visite guidée
+## 3. Démo et visite guidée
 
-Le bouton **Visite guidée** de l'en-tête enchaîne les fonctionnalités, encadrées une à une :
-voir [VISITE-GUIDEE.md](VISITE-GUIDEE.md).
+Le bouton **▶ Démo** de l'en-tête rejoue toute la démo, actions annotées en rouge ; la visite commentée, sans action
+jouée, se lance depuis la palette Ctrl K (« Visite guidée commentée ») : voir [VISITE-GUIDEE.md](VISITE-GUIDEE.md).
 
 ## API
 

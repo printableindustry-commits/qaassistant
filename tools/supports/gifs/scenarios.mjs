@@ -346,8 +346,8 @@ export const SCENARIOS = {
   '13-visite-guidee': { ips: 4, vitesse: 1.25, async jouer(page, rec) {
     await page.emulateMedia({ reducedMotion: 'reduce' })  // halo sans respiration : GIF plus léger
     await aller(page, '/', 1200)
-    await rec.demarrer('Visite guidée : l’application se présente seule, étape par étape')
-    await cliquer(page, page.locator('.p-tour-launch').first(), { pause: 300, etape: 'Lancer la visite guidée' })
+    await rec.demarrer('Démo : l’application rejoue le parcours seule, actions annotées')
+    await cliquer(page, page.locator('.p-tour-launch').first(), { pause: 300, etape: 'Lancer la démo (bouton « Démo »)' })
     const etat = async (id) => {
       for (let k = 0; k < 40; k++) {
         try {
@@ -363,8 +363,8 @@ export const SCENARIOS = {
       }
       return null
     }
-    // une sélection d'étapes (sur 25) : le GIF reste court, la barre montre tout le parcours
-    const choix = [0, 2, 3, 6, 8, 9, 11, 12, 14, 16, 17, 19, 21, 22, 24]
+    // une sélection d'étapes du rejeu (sur 15) : le GIF reste court, la barre montre tout le parcours
+    const choix = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     for (const [k, i] of choix.entries()) {
       if (k > 0) {
         rec.suspendre()
@@ -378,10 +378,10 @@ export const SCENARIOS = {
       rec.reprendre()
       if (!e) continue
       if (k === 0) { const x2 = page.locator('.p-tour-speed button[data-speed="2"]').first(); if (await x2.count()) await x2.click().catch(() => {}) }
-      rec.legender(`Visite guidée (accélérée) · étape ${e.idx + 1}/${e.n} · ${e.titre}`)
+      rec.legender(`Démo (accélérée) · étape ${e.idx + 1}/${e.n} · ${e.titre}`)
       await sleep(1300)
     }
-    rec.legender('Relancez la visite à tout moment : bouton « Visite guidée » ou Ctrl K')
+    rec.legender('Relancez la démo à tout moment : bouton « Démo » ; visite commentée : Ctrl K')
     await sleep(2200)
   } },
 }

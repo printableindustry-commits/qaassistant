@@ -212,6 +212,9 @@ def charger_reperes():
     return {c['fichier'].split('.')[0]: c for c in d['captures']}
 
 
+A_CHEVAL = {('01-pilotage', 6)}  # (capture, repère) : pastille posée à cheval sur le bord haut de la capture
+
+
 def capture(slide, cle, x, y, w, numeros=None, exclus=()):
     """Pose la capture brute 1440×900 et ses encadrés + pastilles numérotées. Renvoie [(n, repère)]."""
     c = REP[cle]
@@ -234,6 +237,10 @@ def capture(slide, cle, x, y, w, numeros=None, exclus=()):
               adj=min(23148, int(100000 * 60000 / max(1, min(bw, bh)))), nom='Encadré %d' % n)
         cx = min(max(bx, x + d // 2 + 9144), x + w - d // 2 - 9144)
         cy = min(max(by, y + d // 2 + 9144), y + h - d // 2 - 9144)
+        if (cle, r['n']) in A_CHEVAL:
+            # petit bouton collé au haut de la capture : pastille à cheval sur le bord, pour ne masquer ni son
+            # icône ni le libellé voisin
+            cy = y
         # deux pastilles ne se chevauchent pas : on glisse la nouvelle le long du bord haut de son encadré
         vertical = bh > 2.5 * d  # encadré haut : on descend le long du bord gauche, sinon on glisse à droite
         while any(abs(cx - px) < d * 1.15 and abs(cy - py) < d * 1.15 for px, py in poses):
@@ -627,8 +634,7 @@ def construire():
 
     # 7 à 17 · L'application -----------------------------------------------------------------
     slide_application(prs, 'Piloter · Pilotage', 'Où en est la campagne de test, en un coup d’œil', '01-pilotage',
-                      'L’écran d’accueil : chaque indicateur et chaque action mène à l’écran qui permet d’agir. '
-                      'Le Parcours QA donne la prochaine étape.',
+                      'Chaque indicateur, chaque action mène à l’écran où agir ; le Parcours QA donne la prochaine étape.',
                       'projet IRMA, %d récits scannés, couverture Gherkin et dernier run k6 affichés.' % r_['total'],
                       ['01-connexion-pilotage.gif'],
                       'On se connecte avec demo / demo et on arrive sur le Pilotage. Montrer le bandeau d’état (1) puis '
@@ -759,8 +765,9 @@ def construire():
                                        (4, 'Arrêter l’autodémo', 'rend la main ; « Reprendre la visite »')]),
                  ['13-visite-guidee.gif'],
                  'Réglages › Démonstration › Charger la démo installe le jeu IRMA en une dizaine de secondes ; '
-                 'Réinitialiser n’efface que ce que la démo a créé. Le bouton « Visite guidée » de l’en-tête lance '
-                 'l’autodémo : l’application passe seule d’écran en écran, l’élément à regarder est entouré d’un halo. '
+                 'Réinitialiser n’efface que ce que la démo a créé. Le bouton « Démo » de l’en-tête rejoue toute la démo, '
+                 'actions annotées ; la visite commentée (Ctrl K › Visite guidée commentée) fait passer l’application '
+                 'seule d’écran en écran, l’élément à regarder entouré d’un halo. '
                  'Espace met en pause, Page suivante avance, Échap rend la main. C’est le meilleur plan B si le temps '
                  'manque. GIF : 13-visite-guidee.gif.')
 
@@ -819,7 +826,7 @@ def construire():
     texte(s, G, 1645920, 4480560, 487680, [[('Wizard QA · ' + ACCROCHE, 16, False, TEXTE)]], nom='Sous-titre')
     carte(s, G, 2453640, 4480560, 1836420, 'play', 'Lancer la démonstration',
           'node server/portail.mjs, connexion demo / demo, puis Réglages › Démonstration › Charger la démo. '
-          'Le bouton « Visite guidée » de l’en-tête enchaîne 25 étapes en 7 minutes.', 'M')
+          'Le bouton « Démo » de l’en-tête rejoue tout le parcours, actions annotées ; Ctrl K › Visite guidée commentée : 25 étapes en 7 minutes.', 'M')
     carte(s, G, 4472940, 4480560, 1836420, 'folder', 'Les supports',
           'supports/presentations : ces slides et leur PDF. supports/gifs : 13 GIF. docs/captures-annotees : 17 '
           'captures. supports/schemas : 4 schémas. Scripts de régénération : tools/supports.', 'M')

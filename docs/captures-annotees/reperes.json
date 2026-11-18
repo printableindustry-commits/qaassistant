@@ -63,8 +63,8 @@
           "y": 13,
           "w": 82,
           "h": 34,
-          "titre": "Visite guidée",
-          "texte": "Lance l’autodémo : l’application passe seule d’écran en écran."
+          "titre": "Démo",
+          "texte": "Rejoue toute la démo avec annotations : l’application passe seule d’écran en écran."
         }
       ]
     },
@@ -874,8 +874,8 @@
           "y": 367,
           "w": 614,
           "h": 43,
-          "titre": "Visite guidée",
-          "texte": "L’autodémo se lance aussi d’ici ; Entrée exécute l’action choisie."
+          "titre": "Visite guidée commentée",
+          "texte": "La visite commentée, sans action jouée, se lance d’ici ; Entrée exécute l’action choisie."
         }
       ]
     }

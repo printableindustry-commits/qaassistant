@@ -9,7 +9,7 @@ export const ECRANS = [
       { cible: '.home-journey', titre: 'Parcours QA', texte: 'Du poste installé aux tests reliés à Xray : chaque étape et son état.' },
       { cible: { sel: 'section.p-card', texte: 'À traiter' }, titre: 'À traiter', texte: 'Les actions prioritaires, chacune avec son bouton pour agir.' },
       { cible: { sel: 'section.p-card', texte: 'Couverture des récits par épopée' }, titre: 'Couverture par épopée', texte: 'Part des récits dont les scénarios Gherkin sont validés.' },
-      { cible: '.p-tour-launch', titre: 'Visite guidée', texte: 'Lance l’autodémo : l’application passe seule d’écran en écran.' }
+      { cible: '.p-tour-launch', titre: 'Démo', texte: 'Rejoue toute la démo avec annotations : l’application passe seule d’écran en écran.' }
     ]
   },
   {
@@ -184,7 +184,7 @@ export const ECRANS = [
     reperes: [
       { cible: '.p-palette input', titre: 'Recherche', texte: 'Pages, actions et récits, filtrés à la frappe.' },
       { cible: '.p-palette-list', titre: 'Actions et pages', texte: 'Installer, scanner, générer, lancer un test de charge ; toutes les pages.' },
-      { cible: { sel: '.p-palette-item', texte: 'Visite guidée' }, titre: 'Visite guidée', texte: 'L’autodémo se lance aussi d’ici ; Entrée exécute l’action choisie.' }
+      { cible: { sel: '.p-palette-item', texte: 'Visite guidée' }, titre: 'Visite guidée commentée', texte: 'La visite commentée, sans action jouée, se lance d’ici ; Entrée exécute l’action choisie.' }
     ]
   }
 ]
