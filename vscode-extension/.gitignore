@@ -1,0 +1,4 @@
+# Produits par « npm run build:ext » (copie de ../server et ../media, compilation TypeScript)
+out/
+server/
+media/

@@ -1,12 +1,17 @@
 node_modules/
 out/
-*.vsix
 .DS_Store
 Thumbs.db
 *.log
 .env
 .env.*
 !.env.example
+
+# Paquets : seul le .vsix courant de vsix/ est versionné ; dist/ (zip de l'appli web) se reconstruit
+*.vsix
+!vsix/*.vsix
+dist/
+
 # Wizard QA — k6 / performance
 reports/k6/*.json
 reports/k6/*.html

@@ -2,14 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Wizard QA (Extension)",
+      "name": "Wizard QA (extension VS Code)",
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/../../.."
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "${workspaceFolder}/workspace"
       ],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+      "outFiles": ["${workspaceFolder}/vscode-extension/out/**/*.js"],
+      "preLaunchTask": "Wizard QA : build extension"
+    },
+    {
+      "name": "Wizard QA (appli web)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/portail.mjs",
+      "env": { "PORTAIL_NO_BROWSER": "1" }
     }
   ]
 }

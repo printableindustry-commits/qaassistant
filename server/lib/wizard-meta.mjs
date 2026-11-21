@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 const SERVER_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 const EXTENSION_DIR = path.dirname(SERVER_DIR)
 
-export const WIZARD_FOOTER_LABEL = 'Outil — TRIBU IT pour CA-TS'
+export const WIZARD_FOOTER_LABEL = 'Wizard QA'
 
 export function readExtensionVersion() {
   const fromEnv = String(process.env.WIZARD_EXTENSION_VERSION || '').trim()
@@ -30,6 +30,6 @@ export function getWizardMeta() {
   return {
     version: getExtensionVersion(),
     footerLabel: WIZARD_FOOTER_LABEL,
-    name: 'Wizard QA Assistant (CATS)',
+    name: 'Wizard QA',
   }
 }

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Wizard QA : chaque commit reconstruit l'appli web ET l'extension VS Code.
+# Le commit est refusé si le build échoue ; le .vsix produit est ajouté au commit.
+# Contourner exceptionnellement : git commit --no-verify
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$ROOT" || exit 1
+
+# Le build part de l'arbre de travail : signaler les sources modifiées mais non indexées.
+if [ -n "$(git diff --name-only -- server vscode-extension/src vscode-extension/package.json media scripts/build.mjs package.json)" ]; then
+  echo "pre-commit : attention, des sources non indexées entrent dans le build (et donc dans le .vsix commité) :" >&2
+  git diff --name-only -- server vscode-extension/src vscode-extension/package.json media scripts/build.mjs package.json >&2
+fi
+
+if ! node scripts/build.mjs; then
+  echo "pre-commit : build en échec, commit annulé." >&2
+  exit 1
+fi
+
+git add -A vsix || exit 1

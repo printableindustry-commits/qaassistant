@@ -59,12 +59,12 @@ export function isWebviewOrigin(origin = '') {
   return /^vscode-webview:\/\//i.test(origin)
 }
 
-/** Une requête modifiante doit venir de la même origine (ou de la webview VS Code). */
-export function isOriginAllowed(req) {
+/** Une requête modifiante doit venir de la même origine (ou, en mode intégré seulement, de la webview VS Code). */
+export function isOriginAllowed(req, { embedded = false } = {}) {
   if (SAFE_METHODS.has(req.method)) return true
   const origin = req.headers.origin
   if (origin) {
-    if (isWebviewOrigin(origin)) return true
+    if (isWebviewOrigin(origin)) return embedded
     try {
       return new URL(origin).host.toLowerCase() === String(req.headers.host || '').toLowerCase()
     } catch {
@@ -75,9 +75,9 @@ export function isOriginAllowed(req) {
   return req.headers['sec-fetch-site'] !== 'cross-site'
 }
 
-export function corsHeaders(req) {
+export function corsHeaders(req, { embedded = false } = {}) {
   const origin = req.headers.origin
-  if (!origin || !isWebviewOrigin(origin)) return {}
+  if (!embedded || !origin || !isWebviewOrigin(origin)) return {}
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
@@ -98,7 +98,7 @@ export function authorize(req, pathname, { embedded = false } = {}) {
   if (!isHostAllowed(req.headers.host)) {
     return { ok: false, status: 421, error: 'Hôte non autorisé (définissez PORTAIL_ALLOWED_HOSTS).' }
   }
-  if (!isOriginAllowed(req)) {
+  if (!isOriginAllowed(req, { embedded })) {
     return { ok: false, status: 403, error: 'Origine de la requête refusée.' }
   }
   const user = userFromToken(sessionToken(req)) || (embedded ? EMBEDDED_USER : null)

@@ -1,0 +1,9 @@
+# Seuls out/, server/, media/, package.json et README.md partent dans le .vsix
+src/**
+tsconfig.json
+.gitignore
+**/*.map
+**/*.log
+**/.wizard-qa/**
+**/workspace/**
+node_modules/**

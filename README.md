@@ -96,7 +96,7 @@ Le contrat technique (routeur, statuts, design system, interfaces entre modules)
 Les fournisseurs sont essayés dans cet ordre (modifiable dans **Assistant IA**) :
 
 1. **Copilot local (VS Code)** — l'extension Wizard QA relaie les requêtes vers GitHub Copilot via l'API `vscode.lm`.
-   Dans VS Code : commande **« Wizard QA: Connecter Copilot local »**, réglages `wizardQa.serverUrl` et
+   Dans VS Code : commande **« Wizard QA : Connecter Copilot local »**, réglages `wizardQa.serverUrl` et
    `wizardQa.bridgeToken` (jeton affiché sur la page Assistant IA). Inutile de configurer quoi que ce soit avec le
    serveur intégré lancé par l'extension.
 2. **Copilot CLI** — commande `copilot` (paquet npm `@github/copilot`, installable depuis la page Installation).
@@ -106,16 +106,36 @@ Les fournisseurs sont essayés dans cet ordre (modifiable dans **Assistant IA**)
 
 Tant qu'aucun fournisseur n'est branché, chaque écran bascule automatiquement en mode manuel.
 
-## Extension VS Code
+## Appli web et extension VS Code
+
+Un seul code applicatif (`server/`), livré de deux façons, **toujours construites ensemble** :
+
+| Commande | Produit |
+|----------|---------|
+| `npm start` | Lance l'appli web (http://127.0.0.1:3920/) |
+| `npm run build` | `node --check` de `server/` et `scripts/`, **puis** l'appli web **et** l'extension |
+| `npm run build:web` | `dist/web/wizard-qa-web-<version>.zip` : `server/`, `start.cmd`, `start.sh`, README (sans `workspace/` ni données) |
+| `npm run build:ext` | `vsix/wizard-qa-<version>.vsix` : extension compilée + copie de `server/` et `media/` |
+| `npm run setup-hooks` | Active `.githooks/pre-commit` (aussi lancé par `npm install`) |
+
+Le hook **pre-commit** exécute `npm run build` à chaque commit (≈ 15 s), refuse le commit si le build échoue et ajoute
+le `.vsix` au commit. Le dossier `vsix/` est versionné (un seul paquet, le courant) ; `dist/` ne l'est pas.
+Si le contenu de l'extension n'a pas changé, le `.vsix` existant est conservé tel quel (pas de binaire réécrit à chaque commit).
+
+**Installer l'extension** :
 
 ```bash
-npm install
-npm run compile
-npm run package
+code --install-extension vsix/wizard-qa-3.0.0.vsix
 ```
 
-Installer `wizard-qa-assistant-<version>.vsix` via **Extensions → … → Install from VSIX…**. L'extension lance le serveur
-en mode intégré (`--embedded`, utilisateur local implicite) et l'affiche dans une webview.
+ou **Extensions › … › Installer depuis un VSIX…**. Prérequis : VS Code 1.90+ et Node.js 22+ (sinon le Node de VS Code est utilisé).
+
+Dans VS Code : icône **Wizard QA** de la barre d'activité (vue **Pages**), commandes **Wizard QA : Ouvrir**,
+**Ouvrir dans le navigateur**, **Démo**, **Connecter Copilot local**. L'extension lance le serveur embarqué
+(`--embedded`, port libre de `127.0.0.1`, utilisateur local `vscode` implicite, sans connexion) sur le projet ouvert
+(ou `wizardQa.repoRoot`) et affiche l'application Prisme dans un panneau ; il s'arrête avec VS Code.
+Journal : **Sortie › Wizard QA**. Avec `wizardQa.serverUrl` (serveur déjà lancé), les pages s'ouvrent dans le navigateur.
+Code de l'extension : `vscode-extension/src/` ; débogage : configuration « Wizard QA (extension VS Code) » de `.vscode/launch.json`.
 
 ## Arborescence
 
@@ -127,7 +147,9 @@ en mode intégré (`--embedded`, utilisateur local implicite) et l'affiche dans 
 | `server/lib/app-registry.json` | Pages, sections, rail de navigation, guides |
 | `server/assets/prisme/` | Design system Prisme : `prisme.css`, `prisme-ui.js`, `prisme-shell.js`, `legacy-bridge.css` |
 | `server/pages/`, `server/assets/pages/` | Pages et leurs scripts |
-| `src/` | Extension VS Code (dont `llmBridge.ts`, pont Copilot) |
+| `vscode-extension/` | Extension VS Code : `src/extension.ts`, `server.ts` (serveur embarqué), `panel.ts`, `pages.ts`, `llmBridge.ts` (pont Copilot) |
+| `vsix/` | Paquet `.vsix` courant (versionné, produit par `npm run build`) |
+| `scripts/build.mjs`, `.githooks/` | Build web + extension, hook pre-commit |
 | `workspace/` | Projet de test géré par défaut (ignoré par Git) |
 
 ## Données locales

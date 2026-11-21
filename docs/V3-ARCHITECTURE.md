@@ -2,7 +2,8 @@
 
 La V3 transforme le portail local en **application web authentifiée** au design **Prisme**
 (console claire, vert profond `#00694D`, menthe `#E2F3EA`, rail d'icônes, fil d'Ariane, Ctrl K).
-L'extension VS Code reste possible (mode `--embedded`), mais l'usage principal est le navigateur.
+Le même code (`server/`) est livré en **appli web** (`npm start`, `dist/web/*.zip`) et en **extension VS Code**
+(`vscode-extension/`, paquet `vsix/wizard-qa-<version>.vsix`) ; `npm run build` produit toujours les deux (voir §8).
 
 Ce document est la référence commune : chaque module le respecte pour que l'ensemble s'emboîte.
 
@@ -452,3 +453,17 @@ modules (scan, tri, Gherkin, sessions, push Xray simulé, profil, génération/r
 leurs fichiers aux formats exacts (campagnes, runs k6, historique d'installation). Manifeste : `<REPO_ROOT>/.wizard-qa/demo/manifest.json`.
 Routes : `GET /api/demo/status` ; `POST /api/demo/load` et `POST /api/demo/reset` (admin). Interface : **Réglages → Démonstration**.
 Voir [demo/DEMO.md](demo/DEMO.md) et [demo/DONNEES-FICTIVES.md](demo/DONNEES-FICTIVES.md).
+
+## 8. Livraison : appli web et extension VS Code
+
+- `scripts/build.mjs` : `node --check` de `server/` et `scripts/`, zip web déterministe (`dist/web/`, non versionné),
+  puis extension : `tsc` de `vscode-extension/src`, copie de `server/` et `media/` dans `vscode-extension/` (ignorés par Git),
+  `vsce package --no-dependencies` → `vsix/wizard-qa-<version>.vsix` (versionné, un seul fichier). Version unique : `package.json` racine.
+- `.githooks/pre-commit` (activé par `npm run setup-hooks` / `npm install`) : build complet à chaque commit, `.vsix` ajouté au commit.
+- Extension : `server.ts` lance `server/portail.mjs --embedded` (port libre, `PORTAIL_NO_BROWSER=1`, `WIZARD_REPO_ROOT` =
+  `wizardQa.repoRoot`, sinon le dossier ouvert, sinon le stockage global) et l'arrête à la désactivation ; `panel.ts` affiche
+  l'application dans une iframe (`asExternalUri`, CSP `frame-src` limitée au serveur) ; `pages.ts` lit le rail via
+  `GET /api/app/model` ; `llmBridge.ts` est le pont Copilot local (`/api/llm/bridge/*`, jeton `WIZARD_BRIDGE_TOKEN`).
+- Mode `--embedded` : seul le contrôle de session change (utilisateur local `vscode`) ; hôte, origine et CORS restent vérifiés.
+  Dans l'iframe, les requêtes sont de même origine (`http://127.0.0.1:<port>`) : aucun cookie tiers n'est nécessaire.
+  L'habillage historique V2 n'est plus appliqué en mode intégré (seulement sur `?embed=`).

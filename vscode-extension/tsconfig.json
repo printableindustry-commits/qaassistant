@@ -6,10 +6,11 @@
     "outDir": "out",
     "rootDir": "src",
     "sourceMap": true,
+    "newLine": "lf",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node", "vscode"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "server"]
+  "include": ["src/**/*"]
 }

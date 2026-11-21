@@ -318,8 +318,9 @@ function injectPrismeShell(html) {
   return html
 }
 
+// Habillage historique V2 seulement sur demande explicite (?embed=) : le mode --embedded de l'extension
+// affiche l'application Prisme telle quelle, comme dans le navigateur.
 function isEmbedRequest(reqUrl = '') {
-  if (EMBEDDED) return true
   return /[?&]embed=(?:vscode|1)(?:&|$)/.test(reqUrl)
 }
 
@@ -449,7 +450,7 @@ function runHookScript(args, cwd = HOOK_DIR) {
 }
 
 const server = http.createServer(async (req, res) => {
-  for (const [k, v] of Object.entries(corsHeaders(req))) res.setHeader(k, v)
+  for (const [k, v] of Object.entries(corsHeaders(req, { embedded: EMBEDDED }))) res.setHeader(k, v)
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'same-origin')
   if (req.method === 'OPTIONS') {
@@ -2125,8 +2126,7 @@ let listenPort = BASE_PORT
 function onListenReady() {
   const home = `http://${HOST}:${listenPort}/`
   console.log('\n╔════════════════════════════════════════════════════════════════════╗')
-  console.log('║  Wizard QA Assistant (CATS)                                        ║')
-  console.log('║  TRIBU IT pour CA-TS                                               ║')
+  console.log('║  Wizard QA                                                         ║')
   console.log('╚════════════════════════════════════════════════════════════════════╝')
   console.log(`\n  Accueil : ${home}`)
   console.log(`  Défauts : ${getDefaultsPath()}`)

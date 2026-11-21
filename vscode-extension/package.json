@@ -1,0 +1,161 @@
+{
+  "name": "wizard-qa",
+  "displayName": "Wizard QA",
+  "description": "Application Wizard QA (stack de test, récits JIRA, Gherkin, k6, livrables) intégrée à VS Code, avec pont Copilot local.",
+  "version": "3.0.0",
+  "publisher": "wizard-qa",
+  "license": "UNLICENSED",
+  "private": true,
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "wizard-qa",
+          "title": "Wizard QA",
+          "icon": "media/icon-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "wizard-qa": [
+        {
+          "id": "wizardQa.pages",
+          "name": "Pages"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "wizardQa.open",
+        "title": "Ouvrir",
+        "category": "Wizard QA",
+        "icon": "$(window)"
+      },
+      {
+        "command": "wizardQa.openInBrowser",
+        "title": "Ouvrir dans le navigateur",
+        "category": "Wizard QA",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "wizardQa.demo",
+        "title": "Démo",
+        "category": "Wizard QA",
+        "icon": "$(play)"
+      },
+      {
+        "command": "wizardQa.refreshPages",
+        "title": "Actualiser les pages",
+        "category": "Wizard QA",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "wizardQa.restartServer",
+        "title": "Redémarrer le serveur",
+        "category": "Wizard QA",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "wizardQa.stopServer",
+        "title": "Arrêter le serveur",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.showLog",
+        "title": "Afficher le journal",
+        "category": "Wizard QA"
+      },
+      {
+        "command": "wizardQa.connectCopilot",
+        "title": "Connecter Copilot local",
+        "category": "Wizard QA",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "wizardQa.open",
+          "when": "view == wizardQa.pages",
+          "group": "navigation@1"
+        },
+        {
+          "command": "wizardQa.openInBrowser",
+          "when": "view == wizardQa.pages",
+          "group": "navigation@2"
+        },
+        {
+          "command": "wizardQa.refreshPages",
+          "when": "view == wizardQa.pages",
+          "group": "navigation@3"
+        },
+        {
+          "command": "wizardQa.restartServer",
+          "when": "view == wizardQa.pages",
+          "group": "more@1"
+        },
+        {
+          "command": "wizardQa.stopServer",
+          "when": "view == wizardQa.pages",
+          "group": "more@2"
+        },
+        {
+          "command": "wizardQa.connectCopilot",
+          "when": "view == wizardQa.pages",
+          "group": "more@3"
+        },
+        {
+          "command": "wizardQa.showLog",
+          "when": "view == wizardQa.pages",
+          "group": "more@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "wizardQa.openInBrowser",
+          "when": "view == wizardQa.pages && viewItem == wizardPage",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Wizard QA",
+      "properties": {
+        "wizardQa.serverUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "URL d'un serveur Wizard QA déjà lancé (par exemple `http://127.0.0.1:3920`). Vide = serveur intégré lancé par l'extension. Avec un serveur externe, l'application s'ouvre dans le navigateur (sa session ne peut pas vivre dans une vue VS Code)."
+        },
+        "wizardQa.repoRoot": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Dossier du projet de test géré par le serveur intégré (`WIZARD_REPO_ROOT`). Vide = premier dossier de l'espace de travail, sinon un dossier propre à l'extension."
+        },
+        "wizardQa.nodePath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Chemin de l'exécutable Node.js (22 ou plus) du serveur intégré. Vide = `node` du PATH, sinon le Node embarqué par VS Code."
+        },
+        "wizardQa.bridgeToken": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Jeton d'appairage du pont Copilot local pour un serveur externe (`wizardQa.serverUrl`), affiché sur la page **Assistant IA**. Inutile avec le serveur intégré."
+        },
+        "wizardQa.llmBridge.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Relayer les requêtes d'IA du serveur Wizard QA vers GitHub Copilot (API `vscode.lm`)."
+        }
+      }
+    }
+  }
+}
